@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Nov 15 16:39:45 2018
@@ -29,15 +30,14 @@ TODO: (optional) write code to plot straight to Google Maps in 3D.
 
 @author: Krishna Makhija
 """
-#%%
-#!/usr/bin/python3
-
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from mpl_toolkits.mplot3d import Axes3D
 import argparse
+from pathlib import Path
+from os.path import expanduser
 #import gmplot
 
 #rc('font',**{'family':'serif','serif':['Computer Modern']})
@@ -179,8 +179,9 @@ el_wp = np.tile(elBranch, 18)
 #np.repeat(0, 306)
 
 #f_sphere = open("hemisphere_waypoints.waypoints","w+")
-path = "~"
-f_sphere = open(path + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes.waypoints", "w+")
+#home = str(Path.home())    # for python3
+home = expanduser("~")
+f_sphere = open(home + "/" + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes.waypoints", "w+")
 f_sphere.write("QGC WPL 110\n")
 ### Define Mission Start point:
 f_sphere.write("0\t1\t0\t16\t0\t0\t0\t")
