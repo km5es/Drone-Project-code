@@ -1,0 +1,92 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+##################################################
+# GNU Radio Python Flow Graph
+# Title: gr_cal_tcp_loopback_client
+# Author: KM
+# Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
+# Generated: Tue Mar 24 20:49:22 2020
+##################################################
+
+from gnuradio import blocks
+from gnuradio import eng_notation
+from gnuradio import gr
+from gnuradio import uhd
+from gnuradio.eng_option import eng_option
+from gnuradio.filter import firdes
+from grc_gnuradio import blks2 as grc_blks2
+from optparse import OptionParser
+import time
+
+
+class gr_cal_tcp_loopback_client(gr.top_block):
+
+    def __init__(self):
+        gr.top_block.__init__(self, "gr_cal_tcp_loopback_client")
+
+        ##################################################
+        # Variables
+        ##################################################
+        self.samp_rate = samp_rate = 7.68e6
+        self.freq = freq = 150e6
+
+        ##################################################
+        # Blocks
+        ##################################################
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+        	",".join(("", "")),
+        	uhd.stream_args(
+        		cpu_format="fc32",
+        		channels=range(1),
+        	),
+        )
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_center_freq(freq, 0)
+        self.uhd_usrp_sink_0.set_gain(20, 0)
+        self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, 1024)
+        self.blks2_tcp_source_0 = grc_blks2.tcp_source(
+        	itemsize=gr.sizeof_gr_complex*1024,
+        	addr='127.0.0.1',
+        	port=8810,
+        	server=False,
+        )
+
+
+
+        ##################################################
+        # Connections
+        ##################################################
+        self.connect((self.blks2_tcp_source_0, 0), (self.blocks_vector_to_stream_0, 0))
+        self.connect((self.blocks_vector_to_stream_0, 0), (self.uhd_usrp_sink_0, 0))
+
+    def get_samp_rate(self):
+        return self.samp_rate
+
+    def set_samp_rate(self, samp_rate):
+        self.samp_rate = samp_rate
+        self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
+
+    def get_freq(self):
+        return self.freq
+
+    def set_freq(self, freq):
+        self.freq = freq
+        self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
+
+
+def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
+    if gr.enable_realtime_scheduling() != gr.RT_OK:
+        print "Error: failed to enable real-time scheduling."
+
+    tb = top_block_cls()
+    tb.start()
+    try:
+        raw_input('Press Enter to quit: ')
+    except EOFError:
+        pass
+    tb.stop()
+    tb.wait()
+
+
+if __name__ == '__main__':
+    main()
