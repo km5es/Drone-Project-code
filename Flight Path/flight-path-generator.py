@@ -179,7 +179,8 @@ el_wp = np.tile(elBranch, 18)
 #np.repeat(0, 306)
 
 #f_sphere = open("hemisphere_waypoints.waypoints","w+")
-f_sphere = open(str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes.waypoints", "w+")
+path = "~"
+f_sphere = open(path + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes.waypoints", "w+")
 f_sphere.write("QGC WPL 110\n")
 ### Define Mission Start point:
 f_sphere.write("0\t1\t0\t16\t0\t0\t0\t")
