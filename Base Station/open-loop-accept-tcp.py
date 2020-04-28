@@ -23,6 +23,7 @@ import timeit
 import time
 from serial.serialutil import SerialException
 from threading import Thread, Event
+import psutil
 
 ##### Define global variables
 client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -55,6 +56,7 @@ def saveData():
             filename = timestring + str("_milton.dat")
             f = open(filename, "w")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
+            iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
             start = time.time()
 #            while i < data_len:                     ### clear TCP buffer before saving. it might be full. alternatively just save into one array and then dump.
             while True:
@@ -64,8 +66,11 @@ def saveData():
                     event_end.clear()   # reset event flag for next WP
                     break
             end = time.time()
+            iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
             rospy.set_param('trigger/acknowledgement', True)
             print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
+            print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
+            print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
 
 
 def stop_acq():
