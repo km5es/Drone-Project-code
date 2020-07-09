@@ -128,6 +128,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(548, 12)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>min_buffer</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>512*8200</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(176, 12)</value>
     </param>
     <param>
@@ -183,7 +210,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>min_buffer</value>
     </param>
     <param>
       <key>server</key>
@@ -199,7 +226,7 @@
     </param>
     <param>
       <key>vlen</key>
-      <value>1024</value>
+      <value>1</value>
     </param>
   </block>
   <block>
@@ -383,11 +410,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(520, 264)</value>
+      <value>(300, 364)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -407,7 +434,7 @@
     </param>
     <param>
       <key>minoutbuf</key>
-      <value>0</value>
+      <value>min_buffer</value>
     </param>
     <param>
       <key>num_items</key>
@@ -1504,7 +1531,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(880, 108)</value>
+      <value>(692, 220)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1657,24 +1684,6 @@
   </block>
   <connection>
     <source_block_id>blks2_tcp_source_0</source_block_id>
-    <sink_block_id>blocks_vector_to_stream_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_vector_to_stream_0</source_block_id>
-    <sink_block_id>blocks_file_sink_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_vector_to_stream_0</source_block_id>
-    <sink_block_id>qtgui_time_sink_x_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_vector_to_stream_0</source_block_id>
     <sink_block_id>uhd_usrp_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
