@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Tue Mar 24 20:49:22 2020
+# Generated: Wed Jul  8 21:10:26 2020
 ##################################################
 
 from gnuradio import blocks
@@ -21,8 +21,13 @@ import time
 
 class gr_cal_tcp_loopback_client(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, device_transport='send_frame_size=8200, num_send_frames=512'):
         gr.top_block.__init__(self, "gr_cal_tcp_loopback_client")
+
+        ##################################################
+        # Parameters
+        ##################################################
+        self.device_transport = device_transport
 
         ##################################################
         # Variables
@@ -34,7 +39,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         # Blocks
         ##################################################
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
-        	",".join(("", "")),
+        	",".join((device_transport, "")),
         	uhd.stream_args(
         		cpu_format="fc32",
         		channels=range(1),
@@ -59,6 +64,12 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.connect((self.blks2_tcp_source_0, 0), (self.blocks_vector_to_stream_0, 0))
         self.connect((self.blocks_vector_to_stream_0, 0), (self.uhd_usrp_sink_0, 0))
 
+    def get_device_transport(self):
+        return self.device_transport
+
+    def set_device_transport(self, device_transport):
+        self.device_transport = device_transport
+
     def get_samp_rate(self):
         return self.samp_rate
 
@@ -74,11 +85,22 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
 
+def argument_parser():
+    description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
+    parser = OptionParser(usage="%prog: [options]", option_class=eng_option, description=description)
+    parser.add_option(
+        "", "--device-transport", dest="device_transport", type="string", default='send_frame_size=8200, num_send_frames=512',
+        help="Set device_transport [default=%default]")
+    return parser
+
+
 def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
+    if options is None:
+        options, _ = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
 
-    tb = top_block_cls()
+    tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
     try:
         raw_input('Press Enter to quit: ')
