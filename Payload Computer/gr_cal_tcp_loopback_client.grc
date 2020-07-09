@@ -66,7 +66,7 @@
     </param>
     <param>
       <key>run_options</key>
-      <value>prompt</value>
+      <value>run</value>
     </param>
     <param>
       <key>run</key>
@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>512*8200</value>
+      <value>17*4096*100</value>
     </param>
   </block>
   <block>
@@ -167,7 +167,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>7.68e6</value>
+      <value>7.68e6*2</value>
     </param>
   </block>
   <block>
@@ -226,7 +226,7 @@
     </param>
     <param>
       <key>vlen</key>
-      <value>1</value>
+      <value>min_buffer</value>
     </param>
   </block>
   <block>
@@ -410,11 +410,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(300, 364)</value>
+      <value>(420, 264)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -438,7 +438,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>1024</value>
+      <value>min_buffer</value>
     </param>
     <param>
       <key>vlen</key>
@@ -1531,7 +1531,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(692, 220)</value>
+      <value>(692, 228)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1684,6 +1684,12 @@
   </block>
   <connection>
     <source_block_id>blks2_tcp_source_0</source_block_id>
+    <sink_block_id>blocks_vector_to_stream_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>blocks_vector_to_stream_0</source_block_id>
     <sink_block_id>uhd_usrp_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>

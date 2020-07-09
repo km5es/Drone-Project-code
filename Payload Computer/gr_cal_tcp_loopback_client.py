@@ -5,9 +5,10 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Thu Jul  9 03:07:17 2020
+# Generated: Thu Jul  9 04:13:54 2020
 ##################################################
 
+from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
 from gnuradio import uhd
@@ -31,8 +32,8 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6
-        self.min_buffer = min_buffer = 512*8200
+        self.samp_rate = samp_rate = 7.68e6*2
+        self.min_buffer = min_buffer = 17*4096*100
         self.freq = freq = 150e6
 
         ##################################################
@@ -48,20 +49,23 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
         self.uhd_usrp_sink_0.set_center_freq(freq, 0)
         self.uhd_usrp_sink_0.set_gain(20, 0)
+        self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
+        (self.blocks_vector_to_stream_0).set_min_output_buffer(6963200)
         self.blks2_tcp_source_0 = grc_blks2.tcp_source(
-        	itemsize=gr.sizeof_gr_complex*1,
+        	itemsize=gr.sizeof_gr_complex*min_buffer,
         	addr='127.0.0.1',
         	port=8810,
         	server=False,
         )
-        (self.blks2_tcp_source_0).set_min_output_buffer(4198400)
+        (self.blks2_tcp_source_0).set_min_output_buffer(6963200)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blks2_tcp_source_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.blks2_tcp_source_0, 0), (self.blocks_vector_to_stream_0, 0))
+        self.connect((self.blocks_vector_to_stream_0, 0), (self.uhd_usrp_sink_0, 0))
 
     def get_device_transport(self):
         return self.device_transport
@@ -107,11 +111,6 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
-    try:
-        raw_input('Press Enter to quit: ')
-    except EOFError:
-        pass
-    tb.stop()
     tb.wait()
 
 
