@@ -23,8 +23,6 @@ import sys
 port = 8810
 togglePoint = 100    ### number of pulses after which GPIO is toggled
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
-ser.flushInput()
-ser.flushOutput()
 sample_packet = 4096*17     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
 
@@ -43,11 +41,12 @@ def streamFile(togglePoint):
     conn, addr = s.accept()     # Establish connection with client.
     print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 #    sys.stdout.close()
-
+    if ser.isOpen() == True:
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
+        print(ser)
     while True:
-        if ser.isOpen() == True:
-            print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
-            print(ser)
         get_trigger_from_base = ser.read(8)
         if get_trigger_from_base == str(trigger_msg):
 #            timestamp_start = time.strftime("%H%M%S-%d%m%Y")

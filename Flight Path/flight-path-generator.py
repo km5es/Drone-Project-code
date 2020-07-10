@@ -114,7 +114,7 @@ latitude = latPath.flatten('F')
 elevation = np.tile(np.array(elevation), (1, 19)).flatten('F')
 
 
-p = np.linspace(0, longitude.shape[0]-19, longitude.shape[0]/19)
+p = np.linspace(0, longitude.shape[0]-19, longitude.shape[0]//19)
 p = [ int(x) for x in p ]
 
 r = np.arange(1, len(p), 2)

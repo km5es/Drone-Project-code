@@ -11,6 +11,11 @@ serial comms and save for a fixed length.
 #FIXME: I suppose for now the rates dont need to be that high. Hmph.
 #FIXME: why does it take so long to finish a loop? saving is taking longer than the sample rates. How slow is Python?
 #TODO: Maybe implement a feature where the data rates are displayed in the std out?
+#TODO: add a timeout to the data acquisition. Set it to 5 s or so. 
+#TODO: add a path for saving data to 
+#TODO: add a feature wherein data save rates are displayed in MB/s 
+#TODO: incorporate the ROS code into Drone-Project.git. Update all paths respectively. Also add the GRC file for generating a cal signal. 
+#FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
 
 import socket
 import serial
@@ -35,17 +40,23 @@ client.connect((address))  ## <--Add this line.
 toggle_ON = 'start_tx'
 toggle_OFF = 'stop_acq'
 nullSink = open(os.devnull, 'w')
-samp_rate = 50e6
+samp_rate = 15.36e6
 acquire_time = 3
 data_len = int(acquire_time*samp_rate/4096)      ### total number of samples to be acquired. 8 bytes per sample in float32 per channel.
 event_end = Event()
+timeout = 8
 
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
-ser = serial.Serial('/dev/ttyUSB1', 57600) ### which serial radio is doing what? this is drone
+ser = serial.Serial('/dev/ttyUSB0', 57600) ### which serial radio is doing what? this is drone
 
 def saveData():
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
+    if ser.isOpen() == True:
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
+        print(ser)
+    else:
+        print(colored('No serial connection', 'magenta'))
     while not rospy.is_shutdown():
         if rospy.get_param('trigger/command'):
             rospy.set_param('trigger/command', False)
@@ -56,8 +67,9 @@ def saveData():
             filename = timestring + str("_milton.dat")
             f = open(filename, "w")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
-            iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
+            #iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
             start = time.time()
+            start_timeout = start + timeout
 #            while i < data_len:                     ### clear TCP buffer before saving. it might be full. alternatively just save into one array and then dump.
             while True:
                 SDRdata = client.recv(8*4096, socket.MSG_WAITALL)    ### 8 bytes for each sample consisting of float32. change to 4 when switching to int. 
@@ -65,13 +77,15 @@ def saveData():
                 if event_end.is_set():
                     event_end.clear()   # reset event flag for next WP
                     break
+                elif time.time() > start_timeout:
+                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
+                    break
             end = time.time()
-            iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
+            #iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
             rospy.set_param('trigger/acknowledgement', True)
             print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
-            print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
-            print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
-
+#            print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
+#            print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
 
 def stop_acq():
     while True: 
