@@ -33,9 +33,11 @@ def streamFile(togglePoint):
     host = socket.gethostbyname('127.0.0.1')     # Get local machine name
     s.bind((host, port))            # Bind to the port
     s.listen(5)                     # Now wait for client connection.
-    trigger_msg = 'start_tx'               # change this to something more substantial later on
-    trigger_endacq = 'stop_acq'
-    shutdown = 'shutdown'
+    trigger_msg = '1'               # change this to something more substantial later on
+    trigger_endacq = '0'
+    shutdown = 'x'
+    if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
+        msg_len = len(trigger_msg)
 #    sys.stdout = open("logfile.txt", "w")
     print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
     conn, addr = s.accept()     # Establish connection with client.
@@ -47,7 +49,7 @@ def streamFile(togglePoint):
         print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
         print(ser)
     while True:
-        get_trigger_from_base = ser.read(8)
+        get_trigger_from_base = ser.read(msg_len)
         if get_trigger_from_base == str(trigger_msg):
 #            timestamp_start = time.strftime("%H%M%S-%d%m%Y")
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")

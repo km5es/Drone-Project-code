@@ -37,8 +37,8 @@ port=8800
 address=(ip,port)
 client.connect((address))  ## <--Add this line.
 
-toggle_ON = 'start_tx'
-toggle_OFF = 'stop_acq'
+toggle_ON = '1'
+toggle_OFF = '0'
 nullSink = open(os.devnull, 'w')
 samp_rate = 15.36e6
 acquire_time = 3
@@ -62,7 +62,7 @@ def saveData():
             rospy.set_param('trigger/command', False)
             rospy.set_param('trigger/acknowledgement', False)
             print(colored('Received trigger from drone. Triggering payload.', 'cyan'))
-            ser.write(toggle_ON) ### tell ODROID to transmit
+            ser.write(toggle_ON) ### tell payload to transmit
             timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.
             filename = timestring + str("_milton.dat")
             f = open(filename, "w")
