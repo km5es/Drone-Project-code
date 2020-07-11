@@ -33,9 +33,9 @@ def streamFile(togglePoint):
     host = socket.gethostbyname('127.0.0.1')     # Get local machine name
     s.bind((host, port))            # Bind to the port
     s.listen(5)                     # Now wait for client connection.
-    trigger_msg = 'start_tx\n'               # change this to something more substantial later on
-    trigger_endacq = 'stop_acq\n'
-    shutdown = 'shutdown\n'
+    trigger_msg = 'start_tx'               # change this to something more substantial later on
+    trigger_endacq = 'stop_acq'
+    shutdown = 'shutdown'
     if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
         msg_len = len(trigger_msg)
 
