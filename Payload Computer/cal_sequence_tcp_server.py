@@ -33,11 +33,14 @@ def streamFile(togglePoint):
     host = socket.gethostbyname('127.0.0.1')     # Get local machine name
     s.bind((host, port))            # Bind to the port
     s.listen(5)                     # Now wait for client connection.
-    trigger_msg = '1'               # change this to something more substantial later on
-    trigger_endacq = '0'
-    shutdown = 'x'
+    trigger_msg = 'start_tx\n'               # change this to something more substantial later on
+    trigger_endacq = 'stop_acq\n'
+    shutdown = 'shutdown\n'
     if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
         msg_len = len(trigger_msg)
+    else:
+        print('Please ensure the length of all trigger messages is equal.')
+        break
 #    sys.stdout = open("logfile.txt", "w")
     print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
     conn, addr = s.accept()     # Establish connection with client.
@@ -57,7 +60,6 @@ def streamFile(togglePoint):
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             pulses = 0
             for pulses in range(togglePoint):
-                #print('This is pulse number ' +str(pulses))
                 f = open(filename,'rb')
                 l = f.read(sample_packet)
                 while (l):
@@ -67,7 +69,6 @@ def streamFile(togglePoint):
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
 #                f.close()
-#            ser.write(trigger_msg)         # end acquisition on base.
 #            timestamp_stop = time.strftime("%H%M%S-%d%m%Y")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))

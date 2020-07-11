@@ -37,14 +37,17 @@ port=8800
 address=(ip,port)
 client.connect((address))  ## <--Add this line.
 
-toggle_ON = '1'
-toggle_OFF = '0'
+toggle_ON = 'start_tx\n'
+toggle_OFF = 'stop_acq\n'
 nullSink = open(os.devnull, 'w')
 samp_rate = 15.36e6
 acquire_time = 3
 data_len = int(acquire_time*samp_rate/4096)      ### total number of samples to be acquired. 8 bytes per sample in float32 per channel.
 event_end = Event()
 timeout = 8
+
+if len(toggle_ON) == len(toggle_OFF):
+    msg_len = len(toggle_ON)
 
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 ser = serial.Serial('/dev/ttyUSB0', 57600) ### which serial radio is doing what? this is drone
@@ -89,7 +92,7 @@ def saveData():
 
 def stop_acq():
     while True: 
-        a = ser.read(8)
+        a = ser.read(msg_len)
         if a == str(toggle_OFF):
             event_end.set()
             print("Setting event now.")
