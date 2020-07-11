@@ -38,9 +38,7 @@ def streamFile(togglePoint):
     shutdown = 'shutdown\n'
     if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
         msg_len = len(trigger_msg)
-    else:
-        print('Please ensure the length of all trigger messages is equal.')
-        break
+
 #    sys.stdout = open("logfile.txt", "w")
     print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
     conn, addr = s.accept()     # Establish connection with client.
