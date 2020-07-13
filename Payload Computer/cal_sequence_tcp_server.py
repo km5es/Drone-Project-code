@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # server.py
 '''
 This script will combine with gr_cal_tcp_loopback_client.py to generate a cal signal from the drone. It reads from serial radio for

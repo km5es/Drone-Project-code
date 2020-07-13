@@ -1,4 +1,4 @@
-#%%
+#!/usr/bin/env python2.7
 """
 Author: KM
 Python code for receiving local loopback TCP data from GRC flowgraph entitled
@@ -46,9 +46,6 @@ data_len = int(acquire_time*samp_rate/4096)      ### total number of samples to 
 event_end = Event()
 timeout = 8
 
-if len(toggle_ON) == len(toggle_OFF):
-    msg_len = len(toggle_ON)
-
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 ser = serial.Serial('/dev/ttyUSB0', 57600) ### which serial radio is doing what? this is drone
 
@@ -92,7 +89,7 @@ def saveData():
 
 def stop_acq():
     while True: 
-        a = ser.read(msg_len)
+        a = ser.read(len(toggle_ON))
         if a == str(toggle_OFF):
             event_end.set()
             print("Setting event now.")
