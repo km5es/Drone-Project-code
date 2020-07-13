@@ -37,8 +37,8 @@ port=8800
 address=(ip,port)
 client.connect((address))  ## <--Add this line.
 
-toggle_ON = 'start_tx\n'
-toggle_OFF = 'stop_acq\n'
+toggle_ON = 'start_tx'
+toggle_OFF = 'stop_acq'
 nullSink = open(os.devnull, 'w')
 samp_rate = 15.36e6
 acquire_time = 3
