@@ -16,6 +16,7 @@ serial comms and save for a fixed length.
 #TODO: add a feature wherein data save rates are displayed in MB/s 
 #TODO: incorporate the ROS code into Drone-Project.git. Update all paths respectively. Also add the GRC file for generating a cal signal. 
 #FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
+#FIXME: Why isn't there an exception for socket error 98? Add sudo ls-f -t -i tcp:8800 | xargs kill -9
 
 import socket
 import serial
@@ -39,6 +40,8 @@ client.connect((address))  ## <--Add this line.
 
 toggle_ON = 'start_tx'
 toggle_OFF = 'stop_acq'
+handshake_start = 'is_comms'
+handshake_conf = 'serialOK'
 nullSink = open(os.devnull, 'w')
 samp_rate = 15.36e6
 acquire_time = 3
@@ -49,10 +52,13 @@ timeout = 8
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 ser = serial.Serial('/dev/ttyUSB0', 57600) ### which serial radio is doing what? this is drone
 
+def reset_buffer():
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+
 def saveData():
     if ser.isOpen() == True:
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
+        reset_buffer()
         print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
         print(ser)
     else:
@@ -61,31 +67,37 @@ def saveData():
         if rospy.get_param('trigger/command'):
             rospy.set_param('trigger/command', False)
             rospy.set_param('trigger/acknowledgement', False)
-            print(colored('Received trigger from drone. Triggering payload.', 'cyan'))
-            ser.write(toggle_ON) ### tell payload to transmit
-            timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.
-            filename = timestring + str("_milton.dat")
-            f = open(filename, "w")
-            print(colored('Saving data now in ' + str(filename), 'cyan'))
-            #iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
-            start = time.time()
-            start_timeout = start + timeout
-#            while i < data_len:                     ### clear TCP buffer before saving. it might be full. alternatively just save into one array and then dump.
-            while True:
-                SDRdata = client.recv(8*4096, socket.MSG_WAITALL)    ### 8 bytes for each sample consisting of float32. change to 4 when switching to int. 
-                f.write(SDRdata)            ### might need to switch to socket.recv_into(buffer[, nbytes[, flags]]). experiment and see.
-                if event_end.is_set():
-                    event_end.clear()   # reset event flag for next WP
-                    break
-                elif time.time() > start_timeout:
-                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
-                    break
-            end = time.time()
-            #iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
-            rospy.set_param('trigger/acknowledgement', True)
-            print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
-#            print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
-#            print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
+            print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
+            ser.write(handshake_start)
+            get_confirmation_drone = ser.read(len(handshake_conf))
+            reset_buffer()
+            if get_confirmation_drone == handshake_conf:
+                print(colored('Received handshake from drone. Triggering calibration signal.', 'cyan'))
+                ser.write(toggle_ON) ### tell payload to transmit
+                timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.
+                filename = timestring + str("_milton.dat")
+                f = open(filename, "w")
+                print(colored('Saving data now in ' + str(filename), 'cyan'))
+                #iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
+                start = time.time()
+                start_timeout = start + timeout
+#                while i < data_len:                     ### clear TCP buffer before saving. it might be full. alternatively just save into one array and then dump.
+                while True:
+                    SDRdata = client.recv(8*4096, socket.MSG_WAITALL)    ### 8 bytes for each sample consisting of float32. change to 4 when switching to int. 
+                    f.write(SDRdata)            ### might need to switch to socket.recv_into(buffer[, nbytes[, flags]]). experiment and see.
+                    if event_end.is_set():
+                        event_end.clear()   # reset event flag for next WP
+                        break
+                    elif time.time() > start_timeout:
+                        print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
+                        break
+                end = time.time()
+                #iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
+                rospy.set_param('trigger/acknowledgement', True)
+                reset_buffer()
+                print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
+#                print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
+#                print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
 
 def stop_acq():
     while True: 
@@ -93,8 +105,10 @@ def stop_acq():
         if a == str(toggle_OFF):
             event_end.set()
             print("Setting event now.")
+            reset_buffer()
 
 if __name__ == '__main__':
+    os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
     while True:
         try:
             t1 = Thread(target=saveData)

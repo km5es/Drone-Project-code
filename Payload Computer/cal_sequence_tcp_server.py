@@ -27,6 +27,10 @@ ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
 sample_packet = 4096*17     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
 
+def reset_buffer():
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+
 def streamFile(togglePoint):
     global port                    # Reserve a port for your service.
     s = socket.socket()             # Create a socket object
@@ -37,6 +41,8 @@ def streamFile(togglePoint):
     trigger_msg = 'start_tx'               # change this to something more substantial later on
     trigger_endacq = 'stop_acq'
     shutdown = 'shutdown'
+    handshake_start = 'is_comms'
+    handshake_conf = 'serialOK'
     if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
         msg_len = len(trigger_msg)
 
@@ -46,41 +52,44 @@ def streamFile(togglePoint):
     print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 #    sys.stdout.close()
     if ser.isOpen() == True:
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
+        reset_buffer()
         print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
         print(ser)
     while True:
-        get_trigger_from_base = ser.read(msg_len)
-        print(get_trigger_from_base)
-        if get_trigger_from_base == str(trigger_msg):
-#            timestamp_start = time.strftime("%H%M%S-%d%m%Y")
-            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            filename='qpsk_waveform'
-            print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
-            pulses = 0
-            for pulses in range(togglePoint):
-                f = open(filename,'rb')
-                l = f.read(sample_packet)
-                while (l):
-                    conn.send(l)
+        reset_buffer()
+        get_handshake = ser.read(msg_len)
+        if get_handshake == handshake_start:
+            ser.write(handshake_conf)
+            get_trigger_from_base = ser.read(msg_len)
+            print(get_trigger_from_base)
+            if get_trigger_from_base == str(trigger_msg):
+#                timestamp_start = time.strftime("%H%M%S-%d%m%Y")
+                timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+                filename='qpsk_waveform'
+                print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+                pulses = 0
+                for pulses in range(togglePoint):
+                    f = open(filename,'rb')
                     l = f.read(sample_packet)
-                pulses += 1
-                if pulses == togglePoint/2:
-                    print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-#                f.close()
-#            timestamp_stop = time.strftime("%H%M%S-%d%m%Y")
-            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
-            ser.write(trigger_endacq)
-#            conn.close()
-        elif get_trigger_from_base == str(shutdown):
-            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-            print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-            break
+                    while (l):
+                        conn.send(l)
+                        l = f.read(sample_packet)
+                    pulses += 1
+                    if pulses == togglePoint/2:
+                        print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+#                    f.close()
+#                timestamp_stop = time.strftime("%H%M%S-%d%m%Y")
+                timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+                print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
+                ser.write(trigger_endacq)
+#                conn.close()
+            elif get_trigger_from_base == str(shutdown):
+                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
+                break
 
 if __name__ == '__main__':
-    os.system('lsof -t -i tcp:8810 | xargs kill -9')
+    os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
     streamFile(togglePoint)
 #    except socket.error:
 #        os.system('lsof -t -i tcp:8810 | xargs kill -9')
