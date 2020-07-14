@@ -50,7 +50,8 @@ The codes here enable complete autonomous calibration between the drone (SDR + p
 
 ![pipeline](autonomy_pipeline.jpg)
 
-Once the PX4 firmware is up and running, this is how one could simulate the entire pipeline using SITL + Gazebo + ROS + GNURadio/UHD:
+Once the PX4 firmware is up and running, this is how one could simulate the entire pipeline using SITL + Gazebo + ROS + GNURadio/UHD.
+
 Terminal 1:
 ```
 cd ~/src/Firmware/
