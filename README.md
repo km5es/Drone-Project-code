@@ -70,3 +70,10 @@ Enter flight path and begin mission.
 
 #### NOTE: All of the above need to run in the exact sequence as shown.
 
+#TODO: Add shell script that performs all of the above.
+
+#TODO: Add the GNU Radio codes used for generating the calibration waveforms.
+
+#TODO: Add the ROS nodes and mission.csv file/folders as well
+
+
