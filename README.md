@@ -8,7 +8,7 @@ As of now, everything is tested on Ubuntu 18.04. Here are (some) of the addition
 ### UHD and GNU Radio 
 Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP_Open-Source_Toolchain_(UHD_and_GNU_Radio)_on_Linux). Tested with UHD 3.13.0.0 and 3.15.0.0 and GNU Radio v3.7.13.4. NOTE: GNU Radio v3.8 and higher use Python 3.
 
-### ROS Melodic + SITL software
+### ROS Melodic + SITL toolchain
 1. Start [here](https://dev.px4.io/v1.9.0/en/setup/dev_env_linux_ubuntu.html). A convenience shell script will install ROS, Gazebo, MAVROS, Geographiclib and everything else. It will also set up a catkin workspace.
 ```
 source ubuntu_sim_ros_melodic.sh
@@ -30,11 +30,21 @@ git clone https://github.com/PX4/Firmware.git
 cd Firmware/
 make px4_sitl gazebo_solo
 ```
-To run in headless mode:
+Full instructions to be found [here](https://dev.px4.io/v1.9.0/en/setup/building_px4.html). To run in headless mode:
 ```
 HEADLESS=1 make px4_sitl gazebo_solo
 ```
-
+5. Install QGroundControl. Detailed instructions [here](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html). Before downloading the app image do this:
+```
+sudo usermod -a -G dialout $USER
+sudo apt-get remove modemmanager -y
+sudo apt install gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl -y
+```
+Log out and log back in. Then download the app image file from [here](https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage).
+```
+chmod +x ./QGroundControl.AppImage
+./QGroundControl.AppImage  (or double click)
+```
 ## Autonomy Pipeline
 The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). Here's a flow diagram of the entire process:
 
