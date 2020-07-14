@@ -34,5 +34,5 @@ HEADLESS=1 make px4_sitl gazebo_solo
 ```
 
 ## Autonomy Pipeline
-[pipeline](autonomy_pipeline.jpg)
+![pipeline](autonomy_pipeline.jpg)
 The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). 
