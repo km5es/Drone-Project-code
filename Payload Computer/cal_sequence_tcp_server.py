@@ -61,7 +61,6 @@ def streamFile(togglePoint):
         if get_handshake == handshake_start:
             ser.write(handshake_conf)
             get_trigger_from_base = ser.read(msg_len)
-            print(get_trigger_from_base)
             if get_trigger_from_base == str(trigger_msg):
 #                timestamp_start = time.strftime("%H%M%S-%d%m%Y")
                 timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
