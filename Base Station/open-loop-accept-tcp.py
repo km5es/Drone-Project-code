@@ -36,7 +36,7 @@ client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 ip=socket.gethostbyname("127.0.0.1")
 port=8800
 address=(ip,port)
-client.connect((address))  ## <--Add this line.
+client.connect((address)) 
 
 toggle_ON = 'start_tx'
 toggle_OFF = 'stop_acq'
@@ -78,7 +78,7 @@ def saveData():
                 filename = timestring + str("_milton.dat")
                 f = open(filename, "w")
                 print(colored('Saving data now in ' + str(filename), 'cyan'))
-                #iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
+#                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
                 start = time.time()
                 start_timeout = start + timeout
 #                while i < data_len:                     ### clear TCP buffer before saving. it might be full. alternatively just save into one array and then dump.
@@ -92,15 +92,15 @@ def saveData():
                         print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
                         break
                 end = time.time()
-                #iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p6']
+#                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
                 rospy.set_param('trigger/acknowledgement', True)
                 reset_buffer()
                 print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
 #                print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
 #                print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
             else:
-                print(colored('Handshake with drone comms failed. Terminating loop.', 'magenta'))
-                break
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+
 
 def stop_acq():
     while True: 
@@ -121,6 +121,7 @@ if __name__ == '__main__':
             t2.start()
             t1.join()
             t2.join()
-        except (serial.SerialException):
-            print(colored("USB serial device busy. Killing process using USB0 and trying again.", 'red'))
+        except (serial.SerialException, socket.error):
+            print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
             os.system('kill -9 $(fuser /dev/ttyUSB0)')
+            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')

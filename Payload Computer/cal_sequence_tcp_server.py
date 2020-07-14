@@ -59,6 +59,7 @@ def streamFile(togglePoint):
         reset_buffer()
         get_handshake = ser.read(msg_len)
         if get_handshake == handshake_start:
+            print(colored('Received handshake request from base station.', 'cyan'))
             ser.write(handshake_conf)
             get_trigger_from_base = ser.read(msg_len)
             if get_trigger_from_base == str(trigger_msg):
