@@ -97,8 +97,9 @@ Enter flight path and begin mission.
 
 [ ] Add shell script that performs all of the above.
 
-[ ] Add the GNU Radio codes used for generating the calibration waveforms.
+[x] Add the GNU Radio codes used for generating the calibration waveforms.
 
-[ ] Add the ROS nodes and mission.csv file/folders as well
+[x] Add the ROS nodes and mission.csv file/folders as well
 
+[ ] Add 3D CAD files? 
 
