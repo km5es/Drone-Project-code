@@ -11,10 +11,10 @@ serial comms and save for a fixed length.
 #FIXME: I suppose for now the rates dont need to be that high. Hmph.
 #FIXME: why does it take so long to finish a loop? saving is taking longer than the sample rates. How slow is Python?
 #TODO: Maybe implement a feature where the data rates are displayed in the std out?
-#TODO: add a timeout to the data acquisition. Set it to 5 s or so. 
 #TODO: add a path for saving data to 
 #TODO: add a feature wherein data save rates are displayed in MB/s 
 #TODO: incorporate the ROS code into Drone-Project.git. Update all paths respectively. Also add the GRC file for generating a cal signal. 
+#FIXME: The ROS code still looks at the mission.csv file for triggering? Confirm this also.
 #FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
 #FIXME: Why isn't there an exception for socket error 98? Add sudo ls-f -t -i tcp:8800 | xargs kill -9
 
@@ -72,6 +72,7 @@ def saveData():
             ser.write(handshake_start)
             if handshake_event.wait(timeout=1):
                 reset_buffer()
+                handshake_event.clear()
                 print(colored('Received handshake from drone. Triggering calibration signal.', 'cyan'))
                 ser.write(toggle_ON) ### tell payload to transmit
                 timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.

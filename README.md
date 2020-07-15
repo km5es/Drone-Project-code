@@ -2,7 +2,12 @@
 ![cal-illustration](oth_withBeam_gradient.png)
 
 ## Description
-A high accuracy drone-based calibrator targeted towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. More details inside each folder.
+A high accuracy drone-based calibrator targeted towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. More details inside each folder. Clone the repo into a catkin workspace:
+```
+mkdir /home/$USER/catkin_ws/src/ -p
+cd /home/$USER/catkin_ws/src
+git clone https://github.com/km5es/Drone-Project.git
+```
 
 ## Dependencies:
 As of now, everything is tested on Ubuntu 18.04. Here are (some) of the additional dependencies. Follow instructions in the links for more.
@@ -48,6 +53,12 @@ Log out and log back in. Then download the app image file from [here](https://s3
 chmod +x ./QGroundControl.AppImage
 ./QGroundControl.AppImage  (or double click)
 ```
+6. Build the ROS node:
+```
+cd /home/$USER/catkin_ws/
+catkin_make
+```
+
 ## Autonomy Pipeline
 The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). Here's a flow diagram of the entire process:
 
@@ -70,11 +81,11 @@ rosrun flying_spider drone_project.py
 ```
 Terminal 4:
 ```
-python ~/Drone-Project/Base\ Station/tcp_toggle.py
+python ~catkin_ws/src/Drone-Project/Base\ Station/tcp_toggle.py
 ```
 Terminal 5:
 ```
-python ~/Drone-Project/Base\ Station/open-loop-accept-tcp.py
+python ~catkin_ws/src/Drone-Project/Base\ Station/open-loop-accept-tcp.py
 ```
 Run QGroundControl:
 ```
