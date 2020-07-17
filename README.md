@@ -95,11 +95,11 @@ Enter flight path and begin mission.
 
 >#### NOTE: The exact sequence shown above needs to be maintained for the simulations to work.
 
-[ ] Add shell script that performs all of the above.
+- [ ] Add shell script that performs all of the above.
 
-[x] Add the GNU Radio codes used for generating the calibration waveforms.
+- [x] Add the GNU Radio codes used for generating the calibration waveforms.
 
-[x] Add the ROS nodes and mission.csv file/folders as well
+- [x] Add the ROS nodes and mission.csv file/folders as well
 
-[ ] Add 3D CAD files? 
+- [ ] Add 3D CAD files? 
 
