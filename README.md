@@ -93,7 +93,16 @@ Run QGroundControl:
 ```
 Enter flight path and begin mission.
 
->#### NOTE: The exact sequence shown above needs to be maintained for the simulations to work.
+>***NOTE:*** The exact sequence shown above needs to be maintained for the simulations to work.
+
+### Run entire SITL autonomy pipeline
+```
+cd ~/catkin_ws/src/Drone-Project/
+source sitl-pipeline.sh
+```
+When QGC opens up just enter flight path and hit Start Mission!
+
+#### TODO:
 
 - [x] Add shell script that performs all of the above.
 
@@ -101,5 +110,5 @@ Enter flight path and begin mission.
 
 - [x] Add the ROS nodes and mission.csv file/folders as well
 
-- [ ] Add 3D CAD files? 
+- [ ] Add 3D CAD files and RF stuff? 
 

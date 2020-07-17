@@ -1,9 +1,14 @@
 #!/bin/bash
-###### A convenience script to run the entire SITL autonomy pipeline.
-#### Author: KM
+#### A convenience script to run the entire SITL autonomy pipeline.
+###### Author: KM
+######## Date: July 16th 2020
+
+### clear comms
+lsof -t -i udp:14540 | xargs kill -9
+kill -9 $(fuser /dev/ttyUSB0)
+lsof -t -i tcp:8800 | xargs kill -9
 
 ### run MAVROS
-lsof -t -i udp:14540 | xargs kill -9
 roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557" &
 
 sleep 2.5

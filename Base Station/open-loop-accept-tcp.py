@@ -13,9 +13,9 @@ serial comms and save for a fixed length.
 #TODO: Maybe implement a feature where the data rates are displayed in the std out?
 #TODO: add a path for saving data to 
 #TODO: add a feature wherein data save rates are displayed in MB/s 
-#TODO: incorporate the ROS code into Drone-Project.git. Update all paths respectively. Also add the GRC file for generating a cal signal. 
 #FIXME: The ROS code still looks at the mission.csv file for triggering? Confirm this also.
 #FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
+    #FIXME: break the else loop correctly.
 #FIXME: Why isn't there an exception for socket error 98? Add sudo ls-f -t -i tcp:8800 | xargs kill -9
 
 import socket
@@ -45,11 +45,12 @@ handshake_conf = 'serialOK'
 handshake_event = Event()
 acq_event = Event()
 timeout = 8
+'''
 nullSink = open(os.devnull, 'w')
 samp_rate = 15.36e6
 acquire_time = 3
 data_len = int(acquire_time*samp_rate/4096)      ### total number of samples to be acquired. 8 bytes per sample in float32 per channel.
-
+'''
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 ser = serial.Serial('/dev/ttyUSB0', 57600) ### which serial radio is doing what? this is drone
 
@@ -101,7 +102,6 @@ def saveData():
 #                print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
             else:
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
-
 
 def stop_acq():
     while True: 
