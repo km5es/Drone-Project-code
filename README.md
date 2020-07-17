@@ -77,7 +77,7 @@ roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
 ```
 Terminal 3:
 ```
-rosrun flying_spider drone_project.py
+rosrun beam_mapping drone_project.py
 ```
 Terminal 4:
 ```
@@ -89,7 +89,7 @@ python ~catkin_ws/src/Drone-Project/Base\ Station/open-loop-accept-tcp.py
 ```
 Run QGroundControl:
 ```
-./Downloads/QGroundControl.AppImage
+~/Downloads/QGroundControl.AppImage
 ```
 Enter flight path and begin mission.
 
