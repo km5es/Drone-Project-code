@@ -9,10 +9,10 @@ using GPIO. That number is defined as togglePoint and 2x togglePoint causes the 
 Author: Krishna Makhija
 date: 21st Mar 2020, modified 26/3/2020
 '''
-#TODO: check with actual SDR. fix the underflow issue. might have to increase the size of each buffer
-    #FIXME: verify integrity of waveform
+#FIXME: verify integrity of waveform
 #TODO: identify serial radios using vendor and make. Important.
 #TODO: redirect all print statements to a logfile. 
+#TODO: save GPS and temp info in a log file. Also save IMU data.
 
 import socket                   # Import socket module
 from termcolor import colored

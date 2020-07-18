@@ -28,10 +28,10 @@ cd ~/src/Firmware/ && HEADLESS=1 make px4_sitl gazebo_solo; exec $SHELL'"
 ### run GRC TCP server
 gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/tcp_toggle.py; exec $SHELL'"
 
-sleep 6
+sleep 6;
 
 ### run GRC TCP client
-gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/open-loop-accept-tcp.py; exec $SHELL'"
+gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/open-loop-accept-tcp.py; exec $SHELL'";
 
 ### run QGroundControl
 gnome-terminal -e "bash -c '~/Downloads/QGroundControl.AppImage; exec $SHELL'"

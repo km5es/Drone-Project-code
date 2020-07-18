@@ -100,7 +100,15 @@ Enter flight path and begin mission.
 cd ~/catkin_ws/src/Drone-Project/
 source sitl-pipeline.sh
 ```
-When QGC opens up just enter flight path and hit Start Mission!
+QGC is not working properly with this shell script as of now. To get the pipeline to run do this in the PX4 terminal:
+```
+commander mode auto:mission
+commander arm
+```
+This is assuming the flight path is already uploaded to the vehicle. To RTL:
+```
+commander mode auto:rtl
+```
 
 #### TODO:
 

@@ -1,26 +1,26 @@
 #!/usr/bin/env python2.7
 """
 Author: KM
-Python code for receiving local loopback TCP data from GRC flowgraph entitled
-tcp_toggle.grc. This is to begin saving data from a start point received from 
-serial comms and save for a fixed length.
+Test sync between SDRs only. Do not include ROS.
 """
 
 #TODO: Would it be nice to have progress bars/size readouts of the files?
+#FIXME: should the TCP connection be interleaved or not? The data rates are going to be fast as hell.
+#FIXME: I suppose for now the rates dont need to be that high. Hmph.
+#FIXME: why does it take so long to finish a loop? saving is taking longer than the sample rates. How slow is Python?
 #TODO: Maybe implement a feature where the data rates are displayed in the std out?
 #TODO: add a path for saving data to 
 #TODO: add a feature wherein data save rates are displayed in MB/s 
 #FIXME: The ROS code still looks at the mission.csv file for triggering? Confirm this also.
 #FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
-    #FIXME: break the else loop correctly if handshake fails.
-#TODO: add feature for saving temp, and GPS info in a log file along with time stamps.
+    #FIXME: break the else loop correctly.
+#FIXME: Why isn't there an exception for socket error 98? Add sudo ls-f -t -i tcp:8800 | xargs kill -9
 
 import socket
 import serial
 import os
 import sys
 from time import sleep
-import rospy
 from termcolor import colored
 import timeit
 import time
@@ -62,10 +62,8 @@ def saveData():
         print(ser)
     else:
         print(colored('No serial connection', 'magenta'))
-    while not rospy.is_shutdown():
-        if rospy.get_param('trigger/command'):
-            rospy.set_param('trigger/command', False)
-            rospy.set_param('trigger/acknowledgement', False)
+    while True:
+        if ser.isOpen() == True:
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
             ser.write(handshake_start)
             if handshake_event.wait(timeout=1):
@@ -92,7 +90,6 @@ def saveData():
                         break
                 end = time.time()
 #                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-                rospy.set_param('trigger/acknowledgement', True)
                 reset_buffer()
                 print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
 #                print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
