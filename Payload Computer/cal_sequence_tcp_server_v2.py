@@ -48,14 +48,14 @@ print(colored('TCP server listening for connection from GRC flowgraph.', 'green'
 conn, addr = s.accept()     # Establish connection with client.
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 
+def reset_buffer():
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+
 if ser.isOpen() == True:
     reset_buffer()
     print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
     print(ser)
-
-def reset_buffer():
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
 
 def stream_file():
     while True:
