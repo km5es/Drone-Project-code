@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>17*4096*100</value>
+      <value>17*4096</value>
     </param>
   </block>
   <block>

@@ -98,6 +98,7 @@ def serial_radio_events():
                 break
 
 if __name__ == '__main__':
+    os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
     while True:
         try:
             t1 = Thread(target=serial_radio_events)
