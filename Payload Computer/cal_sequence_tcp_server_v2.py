@@ -107,7 +107,3 @@ if __name__ == '__main__':
             t2.start()
             t1.join()
             t2.join()
-        except (serial.SerialException, socket.error):
-            print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
-            os.system('kill -9 $(fuser /dev/ttyUSB0)')
-            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
