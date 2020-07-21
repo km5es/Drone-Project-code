@@ -5,10 +5,8 @@ Python code for receiving local loopback TCP data from GRC flowgraph entitled
 tcp_toggle.grc. This is to begin saving data from a start point received from 
 serial comms and save for a fixed length.
 """
-
 #TODO: Would it be nice to have progress bars/size readouts of the files?
 #TODO: Maybe implement a feature where the data rates are displayed in the std out?
-#TODO: add a path for saving data to 
 #TODO: add a feature wherein data save rates are displayed in MB/s 
 #FIXME: The ROS code still looks at the mission.csv file for triggering? Confirm this also.
 #FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
@@ -35,6 +33,7 @@ port=8800
 address=(ip,port)
 client.connect((address)) 
 
+path = '/home/kmakhija/'
 toggle_ON = 'start_tx'
 toggle_OFF = 'stop_acq'
 handshake_start = 'is_comms'
@@ -74,7 +73,7 @@ def saveData():
                 print(colored('Received handshake from drone. Triggering calibration signal.', 'cyan'))
                 ser.write(toggle_ON) ### tell payload to transmit
                 timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.
-                filename = timestring + str("_milton.dat")
+                filename = path + timestring + str("_milton.dat")
                 f = open(filename, "w")
                 print(colored('Saving data now in ' + str(filename), 'cyan'))
 #                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
@@ -103,12 +102,15 @@ def saveData():
 def stop_acq():
     while True: 
         a = ser.read(len(toggle_ON))
+        print(a)
         if a == str(toggle_OFF):
             acq_event.set()
             print("Setting acq_event now")
         elif a == str(handshake_conf):
             handshake_event.set()
             print('Setting handshake_event now.')
+        else:
+            reset_buffer()
 
 if __name__ == '__main__':
     while True:

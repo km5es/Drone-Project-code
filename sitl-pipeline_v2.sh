@@ -8,11 +8,14 @@ lsof -t -i udp:14540 | xargs kill -9
 kill -9 $(fuser /dev/ttyUSB0)
 lsof -t -i tcp:8800 | xargs kill -9
 
+### run MAVROS
+roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557" &
+
 ### run PX4 simulator in headless mode
 gnome-terminal -e "bash -c 'cd ~/src/Firmware/ && HEADLESS=1 make px4_sitl gazebo_solo;'"
 
 ### run MAVROS
-gnome-terminal -e "bash -c 'roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"'"
+#gnome-terminal -e "bash -c 'roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"'"
 
 sleep 2.5;
 
@@ -28,4 +31,4 @@ sleep 6;
 gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/open-loop-accept-tcp.py;'"
 
 ### run QGroundControl
-#~/Downloads/QGroundControl.AppImage
+~/Downloads/QGroundControl.AppImage
