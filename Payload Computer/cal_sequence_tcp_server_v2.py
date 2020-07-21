@@ -64,6 +64,7 @@ def stream_file():
         while (m):
             conn.send(m)
             if trigger_event.is_set():
+                trigger_event.clear()
                 timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
                 filename='qpsk_waveform'
                 print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
