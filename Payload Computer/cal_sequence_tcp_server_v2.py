@@ -48,7 +48,8 @@ conn, addr = s.accept()
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 
 if ser.isOpen() == True:
-    reset_buffer()
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
     print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
     print(ser)
 
