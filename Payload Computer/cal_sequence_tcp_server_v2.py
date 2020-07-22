@@ -16,7 +16,7 @@ cal signal is transmitted. This ensures each transmission is phase consistent wi
 #TODO: redirect all print statements to a logfile. 
 #TODO: save GPS and temp info in a log file. Also save IMU data.
 
-import socket                   # Import socket module
+import socket
 from termcolor import colored
 import serial
 import os
@@ -24,40 +24,46 @@ from datetime import datetime
 import sys
 from threading import Thread, Event
 
+### Define global variables
 port = 8810
-togglePoint = 100    ### number of pulses after which GPIO is toggled
+togglePoint = 100                           ### number of pulses after which GPIO is toggled
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
-sample_packet = 4096*17     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
+sample_packet = 4096*17                     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
 trigger_event = Event()
-s = socket.socket()             # Create a socket object
+s = socket.socket()                         # Create a socket object
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-host = socket.gethostbyname('127.0.0.1')     # Get local machine name
-s.bind((host, port))            # Bind to the port
-s.listen(5)                     # Now wait for client connection.
-trigger_msg = 'start_tx'               # change this to something more substantial later on
+host = socket.gethostbyname('127.0.0.1')    # Get local machine name
+s.bind((host, port))                        # Bind to the port
+s.listen(5)                                 # Now wait for client connection.
+trigger_msg = 'start_tx'                    # change this to something more substantial later on
 trigger_endacq = 'stop_acq'
 shutdown = 'shutdown'
 handshake_start = 'is_comms'
 handshake_conf = 'serialOK'
 
-if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
-    msg_len = len(trigger_msg)
-
+### Make TCP and serial connections
 print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
-conn, addr = s.accept()     # Establish connection with client.
+conn, addr = s.accept()
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
-
-def reset_buffer():
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
 
 if ser.isOpen() == True:
     reset_buffer()
     print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
     print(ser)
 
+if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
+    msg_len = len(trigger_msg)
+
+### Define objects
+def reset_buffer():
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+
 def stream_file():
+    '''
+    Stream zeros unless a trigger is set. When triggered transmit cal sequence.
+    '''
     while True:
         zeros = open('zeros', 'rb')
         m = zeros.read(4096)
@@ -84,6 +90,10 @@ def stream_file():
                 reset_buffer()
 
 def serial_radio_events():
+    '''
+    This object is for serial comms. When a handshake request is received, an event will be set in the stream_file() object which 
+    will begin the calibration.
+    '''
     while True:
         get_handshake = ser.read(msg_len)
         if get_handshake == handshake_start:
