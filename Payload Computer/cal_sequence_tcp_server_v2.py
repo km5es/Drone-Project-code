@@ -30,7 +30,6 @@ togglePoint = 100                           ### number of pulses after which GPI
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
 sample_packet = 4096*17                     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
-trigger_event = Event()
 s = socket.socket()                         # Create a socket object
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host = socket.gethostbyname('127.0.0.1')    # Get local machine name
@@ -41,6 +40,8 @@ trigger_endacq = 'stop_acq'
 shutdown = 'shutdown'
 handshake_start = 'is_comms'
 handshake_conf = 'serialOK'
+trigger_event = Event()
+stop_acq_event = Event()
 
 ### Make TCP and serial connections
 print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
@@ -65,30 +66,28 @@ def stream_file():
     '''
     Stream zeros unless a trigger is set. When triggered transmit cal sequence.
     '''
-    while True:
-        zeros = open('zeros', 'rb')
-        m = zeros.read(4096)
-        while (m):
-            conn.send(m)
-            if trigger_event.is_set():
-                trigger_event.clear()
-                timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-                filename='qpsk_waveform'
-                print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
-                pulses = 0
-                for pulses in range(togglePoint):
-                    f = open(filename,'rb')
+    zeros = open('zeros', 'rb')
+    m = zeros.read(4096)
+    while (m):
+        conn.send(m)
+        if trigger_event.is_set():
+            trigger_event.clear()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            filename='qpsk_waveform'
+            print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            pulses = 0
+            for pulses in range(togglePoint):
+                f = open(filename,'rb')
+                l = f.read(sample_packet)
+                while (l):
+                    conn.send(l)
                     l = f.read(sample_packet)
-                    while (l):
-                        conn.send(l)
-                        l = f.read(sample_packet)
-                    pulses += 1
-                    if pulses == togglePoint/2:
-                        print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-                timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-                print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
-                ser.write(trigger_endacq)
-                reset_buffer()
+                pulses += 1
+                if pulses == togglePoint/2:
+                    print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            stop_acq_event.set()
+            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
 
 def serial_radio_events():
     '''
@@ -104,6 +103,10 @@ def serial_radio_events():
             get_trigger_from_base = ser.read(msg_len)
             if get_trigger_from_base == str(trigger_msg):
                 trigger_event.set()
+                if stop_acq_event.is_set():
+                    stop_acq_event.clear()
+                    ser.write(trigger_endacq)
+                    reset_buffer()
         elif get_handshake == str(shutdown):
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
