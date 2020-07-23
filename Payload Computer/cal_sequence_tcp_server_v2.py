@@ -85,9 +85,9 @@ def stream_file():
                 pulses += 1
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            stop_acq_event.set()
-            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
+                timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+                stop_acq_event.set()
+                print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
 
 def serial_radio_events():
     '''
