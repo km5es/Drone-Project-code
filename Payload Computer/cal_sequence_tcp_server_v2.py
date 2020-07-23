@@ -104,7 +104,7 @@ def serial_radio_events():
             get_trigger_from_base = ser.read(msg_len)
             if get_trigger_from_base == str(trigger_msg):
                 trigger_event.set()
-        elif get_trigger_from_base == str(shutdown):
+        elif get_handshake == str(shutdown):
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
             break
