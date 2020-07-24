@@ -71,7 +71,6 @@ def stream_file():
     condition_LO = zeros.read(sample_packet)
     while (condition_LO):
         conn.send(condition_LO)
-#        condition_LO = zeros.read(sample_packet)
         if trigger_event.is_set():
             trigger_event.clear()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
@@ -83,7 +82,6 @@ def stream_file():
                 cal_signal = f.read(sample_packet)
                 while (cal_signal):
                     conn.send(cal_signal)
-                    cal_signal = f.read(sample_packet)
                 pulses += 1
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
