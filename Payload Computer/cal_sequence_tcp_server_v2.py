@@ -69,7 +69,7 @@ def stream_file():
     '''
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read(sample_packet)
-    while (condition_LO):
+    while True:
         conn.send(condition_LO)
         if trigger_event.is_set():
             trigger_event.clear()
@@ -80,14 +80,14 @@ def stream_file():
             cal_signal = f.read(sample_packet)
             pulses = 0
             for pulses in range(togglePoint):
-                print(pulses)
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            total_time = timestamp_stop - timestamp_start
             stop_acq_event.set()
-            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
+            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
 
 def serial_radio_events():
     '''
