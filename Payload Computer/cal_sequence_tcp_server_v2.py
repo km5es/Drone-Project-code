@@ -80,6 +80,7 @@ def stream_file():
             cal_signal = f.read(sample_packet)
             pulses = 0
             for pulses in range(togglePoint):
+                print(pulses)
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint/2:
