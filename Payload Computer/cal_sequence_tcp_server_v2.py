@@ -15,6 +15,7 @@ cal signal is transmitted. This ensures each transmission is phase consistent wi
 #TODO: identify serial radios using vendor and make. Important.
 #TODO: redirect all print statements to a logfile. 
 #TODO: save GPS and temp info in a log file. Also save IMU data.
+#FIXME: Buffer underruns.
 
 import socket
 from termcolor import colored
@@ -26,9 +27,9 @@ from threading import Thread, Event
 
 ### Define global variables
 port = 8810
-togglePoint = 100                           ### number of pulses after which GPIO is toggled
+togglePoint = 96                           ### number of pulses after which GPIO is toggled
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
-sample_packet = 4096*17                     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
+sample_packet = 4096*16                     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
 s = socket.socket()                         # Create a socket object
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
