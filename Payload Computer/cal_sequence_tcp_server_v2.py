@@ -85,9 +85,9 @@ def stream_file():
                 pulses += 1
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-                timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-                stop_acq_event.set()
-                print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            stop_acq_event.set()
+            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Sending trigger to base and awaiting next trigger.', 'green'))
 
 def serial_radio_events():
     '''
@@ -103,10 +103,11 @@ def serial_radio_events():
             get_trigger_from_base = ser.read(msg_len)
             if get_trigger_from_base == str(trigger_msg):
                 trigger_event.set()
-                if stop_acq_event.is_set():
-                    stop_acq_event.clear()
-                    ser.write(trigger_endacq)
-                    reset_buffer()
+                while True:
+                    if stop_acq_event.is_set():
+                        stop_acq_event.clear()
+                        ser.write(trigger_endacq)
+                        reset_buffer()
         elif get_handshake == str(shutdown):
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
