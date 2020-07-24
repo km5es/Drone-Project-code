@@ -24,6 +24,7 @@ import os
 from datetime import datetime
 import sys
 from threading import Thread, Event
+import time
 
 ### Define global variables
 port = 8810
@@ -73,6 +74,7 @@ def stream_file():
         conn.send(condition_LO)
         if trigger_event.is_set():
             trigger_event.clear()
+            start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             filename='qpsk_waveform'
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
@@ -85,7 +87,8 @@ def stream_file():
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            total_time = timestamp_stop - timestamp_start
+            end = time.time()
+            total_time = end - start
             stop_acq_event.set()
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
 
