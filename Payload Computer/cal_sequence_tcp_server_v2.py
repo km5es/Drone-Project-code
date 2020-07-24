@@ -71,7 +71,7 @@ def stream_file():
     condition_LO = zeros.read(sample_packet)
     while (condition_LO):
         conn.send(condition_LO)
-        condition_LO = zeros.read(sample_packet)
+#        condition_LO = zeros.read(sample_packet)
         if trigger_event.is_set():
             trigger_event.clear()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
