@@ -74,14 +74,13 @@ def stream_file():
         if trigger_event.is_set():
             trigger_event.clear()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            filename='qpsk_waveform'
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            filename='qpsk_waveform'
+            f = open(filename,'rb')
+            cal_signal = f.read(sample_packet)
             pulses = 0
             for pulses in range(togglePoint):
-                f = open(filename,'rb')
-                cal_signal = f.read(sample_packet)
-                while (cal_signal):
-                    conn.send(cal_signal)
+                conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
