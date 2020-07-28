@@ -71,15 +71,15 @@ def stream_file():
     '''
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read(sample_packet)
+    filename = 'qpsk_waveform'
+    f = open(filename,'rb')
+    cal_signal = f.read(sample_packet)
     while trigger_event.is_set() == False:
-        conn.send(condition_LO)
+        conn.send(cal_signal)
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            filename='qpsk_waveform'
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
-            f = open(filename,'rb')
-            cal_signal = f.read(sample_packet)
             pulses = 0
             for pulses in range(togglePoint):
                 conn.send(cal_signal)
