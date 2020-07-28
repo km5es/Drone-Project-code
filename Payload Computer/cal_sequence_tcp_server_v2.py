@@ -69,7 +69,7 @@ def stream_file():
     Stream zeros unless a trigger is set. When triggered transmit cal sequence.
     '''
     zeros = open('zeros', 'rb')
-    condition_LO = zeros.read(sample_packet)
+    condition_LO = zeros.read(sample_packet*togglePoint)
     while True:
         conn.send(condition_LO)
         if trigger_event.is_set():

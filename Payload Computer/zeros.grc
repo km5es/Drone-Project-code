@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>top_block</value>
+      <value>zeros</value>
     </param>
     <param>
       <key>max_nouts</key>
@@ -113,7 +113,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>4096*16</value>
+      <value>4096*16*96</value>
     </param>
   </block>
   <block>
