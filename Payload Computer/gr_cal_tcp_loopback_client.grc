@@ -101,7 +101,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(280, 12)</value>
+      <value>(268, 8)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -128,7 +128,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(548, 12)</value>
+      <value>(512, 4)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>16*4096*96</value>
+      <value>16*4096</value>
     </param>
   </block>
   <block>
@@ -155,7 +155,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(176, 12)</value>
+      <value>(184, 8)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -194,7 +194,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(183, 243)</value>
+      <value>(180, 242)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -414,7 +414,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(420, 264)</value>
+      <value>(416, 264)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -461,7 +461,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(372, 10)</value>
+      <value>(344, 6)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -489,7 +489,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>send_frame_size=4096, num_send_frames=1536</value>
+      <value>send_frame_size=8192, num_send_frames=512</value>
     </param>
   </block>
   <block>
@@ -1531,7 +1531,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(692, 228)</value>
+      <value>(648, 222)</value>
     </param>
     <param>
       <key>_rotation</key>
