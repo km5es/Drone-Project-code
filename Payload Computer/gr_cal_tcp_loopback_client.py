@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Mon Jul 27 21:02:38 2020
+# Generated: Mon Jul 27 22:03:04 2020
 ##################################################
 
 from gnuradio import blocks
@@ -21,7 +21,7 @@ import time
 
 class gr_cal_tcp_loopback_client(gr.top_block):
 
-    def __init__(self, device_transport='send_frame_size=8200, num_send_frames=512'):
+    def __init__(self, device_transport='send_frame_size=4096, num_send_frames=1536'):
         gr.top_block.__init__(self, "gr_cal_tcp_loopback_client")
 
         ##################################################
@@ -99,7 +99,7 @@ def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
     parser = OptionParser(usage="%prog: [options]", option_class=eng_option, description=description)
     parser.add_option(
-        "", "--device-transport", dest="device_transport", type="string", default='send_frame_size=8200, num_send_frames=512',
+        "", "--device-transport", dest="device_transport", type="string", default='send_frame_size=4096, num_send_frames=1536',
         help="Set device_transport [default=%default]")
     return parser
 

@@ -489,7 +489,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>send_frame_size=8200, num_send_frames=512</value>
+      <value>send_frame_size=4096, num_send_frames=1536</value>
     </param>
   </block>
   <block>
