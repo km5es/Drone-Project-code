@@ -74,7 +74,7 @@ def stream_file():
     filename = 'qpsk_waveform'
     f = open(filename,'rb')
     cal_signal = f.read(sample_packet)
-    while trigger_event.is_set() == False:
+    while (cal_signal):
         conn.send(cal_signal)
         if trigger_event.is_set():
             start = time.time()
