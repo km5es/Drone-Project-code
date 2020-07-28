@@ -28,6 +28,7 @@ import time
 
 ### Define global variables
 port = 8810
+os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 togglePoint = 96                           ### number of pulses after which GPIO is toggled
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
 sample_packet = 4096*16                     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
@@ -117,7 +118,6 @@ def serial_radio_events():
             break
 
 if __name__ == '__main__':
-    os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
     t1 = Thread(target=serial_radio_events)
     t2 = Thread(target=stream_file)
     t1.start()
