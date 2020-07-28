@@ -71,10 +71,9 @@ def stream_file():
     '''
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read(sample_packet)
-    while True:
+    while trigger_event.is_set() == False:
         conn.send(condition_LO)
         if trigger_event.is_set():
-            trigger_event.clear()
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             filename='qpsk_waveform'
@@ -92,6 +91,7 @@ def stream_file():
             total_time = end - start
             stop_acq_event.set()
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            trigger_event.clear()
 
 def serial_radio_events():
     '''
