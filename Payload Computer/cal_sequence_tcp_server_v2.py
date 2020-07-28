@@ -71,7 +71,7 @@ def stream_file():
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read(sample_packet*togglePoint)
     while True:
-        conn.send(condition_LO)
+#        conn.send(condition_LO)
         if trigger_event.is_set():
             trigger_event.clear()
             start = time.time()
