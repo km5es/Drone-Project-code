@@ -29,7 +29,7 @@ import time
 ### Define global variables
 port = 8810
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-togglePoint = 96                            # number of pulses after which GPIO is toggled
+togglePoint = 96*5                            # number of pulses after which GPIO is toggled
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
 sample_packet = 4096*16                     # Length of one pulse.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
