@@ -29,16 +29,16 @@ import time
 ### Define global variables
 port = 8810
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-togglePoint = 96                           ### number of pulses after which GPIO is toggled
+togglePoint = 96                            # number of pulses after which GPIO is toggled
 ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
-sample_packet = 4096*16                     #  Length of one pulse. might have to be changed to 16*4096 once the OFF time has been changed.
+sample_packet = 4096*16                     # Length of one pulse.
 client_script_name = 'gr_cal_tcp_loopback_client.py'
 s = socket.socket()                         # Create a socket object
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host = socket.gethostbyname('127.0.0.1')    # Get local machine name
 s.bind((host, port))                        # Bind to the port
 s.listen(5)                                 # Now wait for client connection.
-trigger_msg = 'start_tx'                    # change this to something more substantial later on
+trigger_msg = 'start_tx'                    
 trigger_endacq = 'stop_acq'
 shutdown = 'shutdown'
 handshake_start = 'is_comms'
@@ -70,12 +70,12 @@ def stream_file():
     Stream zeros unless a trigger is set. When triggered transmit cal sequence.
     '''
     zeros = open('zeros', 'rb')
-    condition_LO = zeros.read(sample_packet)
+    condition_LO = zeros.read()
     filename = 'qpsk_waveform'
     f = open(filename,'rb')
-    cal_signal = f.read(sample_packet)
-    while (cal_signal):
-        conn.send(cal_signal)
+    cal_signal = f.read()
+    while trigger_event.is_set() == False:
+        conn.send(condition_LO)
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
@@ -107,7 +107,7 @@ def serial_radio_events():
             get_trigger_from_base = ser.read(msg_len)
             if get_trigger_from_base == str(trigger_msg):
                 trigger_event.set()
-                while True:
+                while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
                         ser.write(trigger_endacq)

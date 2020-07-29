@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Zeros
-# Generated: Mon Jul 27 21:30:42 2020
+# Generated: Tue Jul 28 21:30:07 2020
 ##################################################
 
 if __name__ == '__main__':
@@ -58,8 +58,8 @@ class zeros(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 32000
-        self.head = head = 4096*16*96
+        self.samp_rate = samp_rate = 15.36e6
+        self.head = head = 4096*16
 
         ##################################################
         # Blocks
