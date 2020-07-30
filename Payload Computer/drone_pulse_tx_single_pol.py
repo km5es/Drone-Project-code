@@ -5,7 +5,7 @@
 # Title: Drone Pulse Tx Single Pol
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Tue Jul 14 21:30:02 2020
+# Generated: Thu Jul 30 16:25:04 2020
 ##################################################
 
 if __name__ == '__main__':
@@ -121,6 +121,7 @@ class drone_pulse_tx_single_pol(gr.top_block, Qt.QWidget):
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
         (self.blocks_multiply_xx_0).set_min_output_buffer(4096)
         (self.blocks_multiply_xx_0).set_max_output_buffer(4096)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.5, ))
         self.blocks_head_0_0_0 = blocks.head(gr.sizeof_gr_complex*1, head)
         self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '/home/kmakhija/GRC/keyword.dat', True)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
@@ -136,8 +137,9 @@ class drone_pulse_tx_single_pol(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.blocks_file_source_0, 0), (self.digital_constellation_modulator_0, 0))
         self.connect((self.blocks_head_0_0_0, 0), (self.blocks_file_sink_1, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_head_0_0_0, 0))
         self.connect((self.blocks_multiply_xx_0, 0), (self.blocks_throttle_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.blocks_head_0_0_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_multiply_xx_0, 1))
         self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_multiply_xx_0, 0))
 

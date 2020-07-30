@@ -3,6 +3,8 @@
 Author: KM
 Test sync between SDRs only. Do not include ROS.
 """
+#TODO: Test data rate calculator.
+
 import socket
 import serial
 import os
@@ -16,11 +18,14 @@ from threading import Thread, Event
 import psutil
 
 ##### Define global variables
+
 client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 ip=socket.gethostbyname("127.0.0.1")
 port=8800
 address=(ip,port)
 client.connect((address)) 
+
+client_script_name = 'tcp_toggle.py'
 
 path = '/home/kmakhija/'
 toggle_ON = 'start_tx'
@@ -56,16 +61,15 @@ def recv_data():
             start = time.time()
             start_timeout = start + timeout
             while acq_event.is_set() == True:
-                SDRdata = client.recv(8*4096, socket.MSG_WAITALL)    
-                f.write(SDRdata)            
+                SDRdata = client.recv(8*4096, socket.MSG_WAITALL)                
                 if time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
                     acq_event.clear()
                     break
+            f.write(SDRdata)
             end = time.time()
 #                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
             print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
-
 
 
 def serial_radio_events():
@@ -76,7 +80,9 @@ def serial_radio_events():
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
         ser.write(msg)
         if msg == str(shutdown):
-            print('Shutting down payload.')
+            print('Shutting down payload and this code.')
+            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
         elif msg == str(handshake_start):
             get_handshake_conf = ser.read(len(toggle_ON))
