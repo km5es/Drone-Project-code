@@ -15,7 +15,6 @@ cal signal is transmitted. This ensures each transmission is phase consistent wi
 #TODO: identify serial radios using vendor and make. Important.
 #TODO: redirect all print statements to a logfile. 
 #TODO: save GPS and temp info in a log file. Also save IMU data.
-#FIXME: Buffer underruns.
 
 import socket
 from termcolor import colored
@@ -96,7 +95,8 @@ def stream_file():
 def serial_radio_events():
     '''
     This object is for serial comms. When a handshake request is received, an event will be set in the stream_file() object which 
-    will begin the calibration.
+    will begin the calibration. When calibration is finished an event is set in stream_file() which sends a serial msg from this
+    object to the base to stop acquisiiton.
     '''
     while True:
         get_handshake = ser.read(msg_len)

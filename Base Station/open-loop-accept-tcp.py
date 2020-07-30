@@ -72,7 +72,7 @@ def saveData():
                 handshake_event.clear()
                 print(colored('Received handshake from drone. Triggering calibration signal.', 'cyan'))
                 ser.write(toggle_ON) ### tell payload to transmit
-                timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.
+                timestring = time.strftime("%H%M%S-%d%m%Y")         
                 filename = path + timestring + str("_milton.dat")
                 f = open(filename, "w")
                 print(colored('Saving data now in ' + str(filename), 'cyan'))

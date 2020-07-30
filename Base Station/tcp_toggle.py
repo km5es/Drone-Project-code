@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Thu Jul 23 18:10:04 2020
+# Generated: Wed Jul 29 19:33:54 2020
 ##################################################
 
 from gnuradio import eng_notation
@@ -94,6 +94,11 @@ def main(top_block_cls=tcp_toggle, options=None):
 
     tb = top_block_cls()
     tb.start()
+    try:
+        raw_input('Press Enter to quit: ')
+    except EOFError:
+        pass
+    tb.stop()
     tb.wait()
 
 

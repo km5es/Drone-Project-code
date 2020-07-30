@@ -3,19 +3,6 @@
 Author: KM
 Test sync between SDRs only. Do not include ROS.
 """
-
-#TODO: Would it be nice to have progress bars/size readouts of the files?
-#FIXME: should the TCP connection be interleaved or not? The data rates are going to be fast as hell.
-#FIXME: I suppose for now the rates dont need to be that high. Hmph.
-#FIXME: why does it take so long to finish a loop? saving is taking longer than the sample rates. How slow is Python?
-#TODO: Maybe implement a feature where the data rates are displayed in the std out?
-#TODO: add a path for saving data to 
-#TODO: add a feature wherein data save rates are displayed in MB/s 
-#FIXME: The ROS code still looks at the mission.csv file for triggering? Confirm this also.
-#FIXME: should there be some hand-shaking with the drone serial prior to each sequence? maybe there should be an exception if the other serial is not connected?
-    #FIXME: break the else loop correctly.
-#FIXME: Why isn't there an exception for socket error 98? Add sudo ls-f -t -i tcp:8800 | xargs kill -9
-
 import socket
 import serial
 import os
@@ -35,83 +22,82 @@ port=8800
 address=(ip,port)
 client.connect((address)) 
 
+path = '/home/kmakhija/'
 toggle_ON = 'start_tx'
 toggle_OFF = 'stop_acq'
 handshake_start = 'is_comms'
 handshake_conf = 'serialOK'
-handshake_event = Event()
+shutdown = 'shutdown'
+
 acq_event = Event()
-timeout = 8
-'''
-nullSink = open(os.devnull, 'w')
-samp_rate = 15.36e6
-acquire_time = 3
-data_len = int(acquire_time*samp_rate/4096)      ### total number of samples to be acquired. 8 bytes per sample in float32 per channel.
-'''
+timeout = 4
+
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
-ser = serial.Serial('/dev/ttyUSB0', 57600) ### which serial radio is doing what? this is drone
+ser = serial.Serial('/dev/ttyUSB0', 57600) 
 
 def reset_buffer():
     ser.reset_input_buffer()
     ser.reset_output_buffer()
 
-def saveData():
-    if ser.isOpen() == True:
-        reset_buffer()
-        print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
-        print(ser)
-    else:
-        print(colored('No serial connection', 'magenta'))
-    while True:
-        if ser.isOpen() == True:
-            print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
-            ser.write(handshake_start)
-            if handshake_event.wait(timeout=1):
-                reset_buffer()
-                handshake_event.clear()
-                print(colored('Received handshake from drone. Triggering calibration signal.', 'cyan'))
-                ser.write(toggle_ON) ### tell payload to transmit
-                timestring = time.strftime("%H%M%S-%d%m%Y")         ###filename is timestamp. location is path to this script.
-                filename = timestring + str("_milton.dat")
-                f = open(filename, "w")
-                print(colored('Saving data now in ' + str(filename), 'cyan'))
-#                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-                start = time.time()
-                start_timeout = start + timeout
-#                while i < data_len:                     ### clear TCP buffer before saving. it might be full. alternatively just save into one array and then dump.
-                while True:
-                    SDRdata = client.recv(8*4096, socket.MSG_WAITALL)    ### 8 bytes for each sample consisting of float32. change to 4 when switching to int. 
-                    f.write(SDRdata)            ### might need to switch to socket.recv_into(buffer[, nbytes[, flags]]). experiment and see.
-                    if acq_event.is_set():
-                        acq_event.clear()   # reset acq_event flag for next WP
-                        break
-                    elif time.time() > start_timeout:
-                        print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
-                        break
-                end = time.time()
-#                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-                reset_buffer()
-                print(colored('Finished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
-#                print('Blocks written {0}'.format(iocnt2.write_count - iocnt1.write_count))
-#                print('Blocks read {0}'.format(iocnt2.read_count - iocnt1.read_count))
-            else:
-                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
 
-def stop_acq():
-    while True: 
-        a = ser.read(len(toggle_ON))
-        if a == str(toggle_OFF):
-            acq_event.set()
-            print("Setting acq_event now")
-        elif a == str(handshake_conf):
-            handshake_event.set()
-            print('Setting handshake_event now.')
+def recv_data():
+    '''
+    Wait for acq_event to begin and stop saving data.
+    '''
+    print('Waiting for trigger from payload to begin saving data.')
+    while True:
+        if acq_event.is_set():
+            print('Trigger from payload recd. Saving data now.')
+            timestring = time.strftime("%H%M%S-%d%m%Y")         
+            filename = path + timestring + str("_milton.dat")
+            f = open(filename, "w")
+            print(colored('Saving data now in ' + str(filename), 'cyan'))
+#                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
+            start = time.time()
+            start_timeout = start + timeout
+            while acq_event.is_set() == True:
+                SDRdata = client.recv(8*4096, socket.MSG_WAITALL)    
+                f.write(SDRdata)            
+                if time.time() > start_timeout:
+                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
+                    acq_event.clear()
+                    break
+            end = time.time()
+#                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
+            print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
+
+
+
+def serial_radio_events():
+    '''
+    Manually trigger payload and initiate saving data on base station.
+    '''
+    while True:                                     
+        msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
+        ser.write(msg)
+        if msg == str(shutdown):
+            print('Shutting down payload.')
+            pass
+        elif msg == str(handshake_start):
+            get_handshake_conf = ser.read(len(toggle_ON))
+            print(get_handshake_conf)
+            if get_handshake_conf == str(handshake_conf):
+                reset_buffer()
+                print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
+                ser.write(toggle_ON)
+                acq_event.set()
+                get_stop_acq_trigger = ser.read(len(toggle_OFF))
+                print(get_stop_acq_trigger)
+                if get_stop_acq_trigger == str(toggle_OFF):
+                    acq_event.clear()
+                    reset_buffer()
+
 
 if __name__ == '__main__':
     while True:
         try:
-            t1 = Thread(target=saveData)
-            t2 = Thread(target=stop_acq)
+            t1 = Thread(target=recv_data)
+            t2 = Thread(target=serial_radio_events)
             t1.start()
             t2.start()
             t1.join()
