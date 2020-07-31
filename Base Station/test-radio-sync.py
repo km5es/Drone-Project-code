@@ -4,6 +4,8 @@ Author: KM
 Test sync between SDRs only. Do not include ROS.
 """
 #TODO: Test data rate calculator.
+#TODO: advance this to a new version of open-loop-accept-tcp.py
+#TODO: keep the raw_input() call so that condition 3 can be calibrated for.
 
 import socket
 import serial
@@ -60,13 +62,15 @@ def recv_data():
 #                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
             start = time.time()
             start_timeout = start + timeout
-            while acq_event.is_set() == True:
-                SDRdata = client.recv(8*4096, socket.MSG_WAITALL)                
-                if time.time() > start_timeout:
+            while True:
+                SDRdata = client.recv(4096*8*16, socket.MSG_WAITALL)
+                f.write(SDRdata)
+                if acq_event.is_set() == False:
+                    break               
+                elif time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
                     acq_event.clear()
                     break
-            f.write(SDRdata)
             end = time.time()
 #                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
             print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
