@@ -326,3 +326,16 @@ def find_residual_phase(a,b,window_size=1024):
     phase/=n_windows
     print(n_windows)
     return phase
+
+def timeAverage(file, startIndex, on_pulse_len, duty_len, averages):
+    """
+    Get an average of pulses of length = on_pulse_len. duty_len is the duty cycle.
+    """
+    pulse_ON = []
+    for n in range(1, averages+1):
+        pulse_ON.append(file[startIndex + n*duty_len*on_pulse_len : startIndex + on_pulse_len + n*duty_len*on_pulse_len])
+    pulse_ON = np.array(pulse_ON)
+    time_avg = []
+    for m in range(pulse_ON.shape[1]):
+        time_avg.append((np.sum(pulse_ON[:, m])/pulse_ON.shape[0]))
+    return np.array(time_avg)
