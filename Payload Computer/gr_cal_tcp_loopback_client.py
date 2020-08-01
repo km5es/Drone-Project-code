@@ -5,16 +5,15 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Fri Jul 31 19:31:03 2020
+# Generated: Fri Jul 31 19:59:42 2020
 ##################################################
 
-from gnuradio import blocks
+from gnuradio import analog
 from gnuradio import eng_notation
 from gnuradio import gr
 from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
-from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
 
@@ -33,7 +32,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 7.68e6*4
-        self.min_buffer = min_buffer = 2*4096
+        self.min_buffer = min_buffer = 16*4096
         self.freq = freq = 150e6
 
         ##################################################
@@ -50,23 +49,15 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
         self.uhd_usrp_sink_0.set_center_freq(freq, 0)
         self.uhd_usrp_sink_0.set_gain(20, 0)
-        self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
-        (self.blocks_vector_to_stream_0).set_min_output_buffer(8192)
-        self.blks2_tcp_source_0 = grc_blks2.tcp_source(
-        	itemsize=gr.sizeof_gr_complex*min_buffer,
-        	addr='127.0.0.1',
-        	port=8810,
-        	server=False,
-        )
-        (self.blks2_tcp_source_0).set_min_output_buffer(8192)
+        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_SIN_WAVE, 1000, 0.5, 0)
+        (self.analog_sig_source_x_0).set_min_output_buffer(65536)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blks2_tcp_source_0, 0), (self.blocks_vector_to_stream_0, 0))
-        self.connect((self.blocks_vector_to_stream_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.analog_sig_source_x_0, 0), (self.uhd_usrp_sink_0, 0))
 
     def get_device_transport(self):
         return self.device_transport
@@ -80,6 +71,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
+        self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
 
     def get_min_buffer(self):
         return self.min_buffer
