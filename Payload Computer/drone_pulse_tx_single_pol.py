@@ -5,7 +5,7 @@
 # Title: Drone Pulse Tx Single Pol
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Fri Jul 31 20:36:17 2020
+# Generated: Fri Jul 31 20:49:15 2020
 ##################################################
 
 if __name__ == '__main__':
@@ -123,8 +123,8 @@ class drone_pulse_tx_single_pol(gr.top_block, Qt.QWidget):
         (self.blocks_multiply_xx_0).set_min_output_buffer(4096)
         (self.blocks_multiply_xx_0).set_max_output_buffer(4096)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.5, ))
-        self.blocks_head_0_0_0 = blocks.head(gr.sizeof_gr_complex*1, head_0)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '/home/kmakhija/GRC/keyword.dat', True)
+        self.blocks_head_0_0_0 = blocks.head(gr.sizeof_gr_complex*1, head)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '/home/kmakhija/Drone-Project/Payload Computer/keyword.dat', True)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
         (self.blocks_file_source_0).set_min_output_buffer(4096)
         (self.blocks_file_source_0).set_max_output_buffer(4096)
@@ -264,6 +264,7 @@ class drone_pulse_tx_single_pol(gr.top_block, Qt.QWidget):
 
     def set_head(self, head):
         self.head = head
+        self.blocks_head_0_0_0.set_length(self.head)
         self.set_TX_time(self.head/self.samp_rate)
 
     def get_freq(self):
@@ -321,7 +322,6 @@ class drone_pulse_tx_single_pol(gr.top_block, Qt.QWidget):
 
     def set_head_0(self, head_0):
         self.head_0 = head_0
-        self.blocks_head_0_0_0.set_length(self.head_0)
 
     def get_gain(self):
         return self.gain

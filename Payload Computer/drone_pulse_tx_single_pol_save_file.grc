@@ -1102,7 +1102,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/kmakhija/GRC/keyword.dat</value>
+      <value>/home/kmakhija/Drone-Project/Payload Computer/keyword.dat</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1236,7 +1236,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>head_0</value>
+      <value>head</value>
     </param>
     <param>
       <key>type</key>
