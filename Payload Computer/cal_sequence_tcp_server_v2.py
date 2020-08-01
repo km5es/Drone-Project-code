@@ -110,7 +110,7 @@ def serial_radio_events():
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
-                        time.sleep(0.4)                     ### buffer time for the receiver to "catch up".
+                        time.sleep(0.25)                     ### buffer time for the receiver to "catch up".
                         ser.write(trigger_endacq)
                         reset_buffer()
         elif get_handshake == str(shutdown):
