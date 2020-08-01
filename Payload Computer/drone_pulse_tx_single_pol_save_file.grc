@@ -569,6 +569,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(1108, 76)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>head_0</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>512*8192</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(368, 12)</value>
     </param>
     <param>
@@ -1209,7 +1236,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>head</value>
+      <value>head_0</value>
     </param>
     <param>
       <key>type</key>
