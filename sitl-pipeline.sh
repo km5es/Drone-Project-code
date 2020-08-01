@@ -28,7 +28,7 @@ gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/tcp_toggle.py;'
 sleep 6;
 
 ### run GRC TCP client
-gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/open-loop-accept-tcp.py;'"
+gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/base-station-receiver.py;'"
 
 ### run QGroundControl
 ~/Downloads/QGroundControl.AppImage
