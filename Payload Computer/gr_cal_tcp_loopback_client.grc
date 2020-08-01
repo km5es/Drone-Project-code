@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>16*4096</value>
+      <value>512*8192</value>
     </param>
   </block>
   <block>
@@ -190,7 +190,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>freq</key>
@@ -198,7 +198,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(228, 356)</value>
+      <value>(148, 356)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -253,11 +253,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(180, 242)</value>
+      <value>(200, 250)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -289,7 +289,7 @@
     </param>
     <param>
       <key>vlen</key>
-      <value>min_buffer</value>
+      <value>1</value>
     </param>
   </block>
   <block>
@@ -532,7 +532,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(332, 264)</value>
+      <value>(460, 464)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2107,12 +2107,6 @@
   </connection>
   <connection>
     <source_block_id>blks2_tcp_source_0</source_block_id>
-    <sink_block_id>blocks_vector_to_stream_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_vector_to_stream_0</source_block_id>
     <sink_block_id>uhd_usrp_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
