@@ -88,7 +88,6 @@ def stream_file():
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
-            time.sleep(0.4)                                               ### buffer time for the receiver to "catch up".
             stop_acq_event.set()
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             trigger_event.clear()
@@ -111,6 +110,7 @@ def serial_radio_events():
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
+                        time.sleep(0.4)                     ### buffer time for the receiver to "catch up".
                         ser.write(trigger_endacq)
                         reset_buffer()
         elif get_handshake == str(shutdown):
