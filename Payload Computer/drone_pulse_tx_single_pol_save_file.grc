@@ -554,7 +554,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>int(pulses*(PASS))</value>
+      <value>ON+OFF</value>
     </param>
   </block>
   <block>
@@ -565,7 +565,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1051,7 +1051,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/kmakhija/GRC/qpsk_waveform</value>
+      <value>/home/kmakhija/Drone-Project/Payload Computer/qpsk_waveform</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1236,7 +1236,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>head_0</value>
+      <value>head</value>
     </param>
     <param>
       <key>type</key>

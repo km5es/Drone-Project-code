@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Fri Jul 31 20:10:15 2020
+# Generated: Fri Jul 31 20:26:21 2020
 ##################################################
 
 from gnuradio import eng_notation
@@ -31,8 +31,8 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6*4
-        self.min_buffer = min_buffer = 512*8192
+        self.samp_rate = samp_rate = 7.68e6*2
+        self.min_buffer = min_buffer = 4096*16
         self.freq = freq = 150e6
 
         ##################################################
@@ -55,7 +55,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         	port=8810,
         	server=False,
         )
-        (self.blks2_tcp_source_0).set_min_output_buffer(4194304)
+        (self.blks2_tcp_source_0).set_min_output_buffer(65536)
 
 
 
