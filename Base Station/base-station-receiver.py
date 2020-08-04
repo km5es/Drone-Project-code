@@ -6,6 +6,7 @@ Test sync between SDRs only. Do not include ROS.
 #TODO: Test data rate calculator.
 #TODO: keep the raw_input() call so that condition 3 can be calibrated for.
 #FIXME: multiple device access on port error still persists.
+    #FIXME: tracked this down somewhat. the manual_trigger_events() object is the culprit. how fix?
 
 import socket
 import serial
@@ -22,26 +23,24 @@ import rospy
 
 ##### Define global variables
 
-client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-ip=socket.gethostbyname("127.0.0.1")
-port=8800
-address=(ip,port)
-client.connect((address)) 
+client              = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+ip                  = socket.gethostbyname("127.0.0.1")
+port                = 8800
+address             = (ip,port)
+client_script_name  = 'tcp_toggle.py'
+path                = '/home/kmakhija/'
+toggle_ON           = 'start_tx'
+toggle_OFF          = 'stop_acq'
+handshake_start     = 'is_comms'
+handshake_conf      = 'serialOK'
+shutdown            = 'shutdown'
+acq_event           = Event()
+timeout             = 4
+ser                 = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
-client_script_name = 'tcp_toggle.py'
-
-path = '/home/kmakhija/'
-toggle_ON = 'start_tx'
-toggle_OFF = 'stop_acq'
-handshake_start = 'is_comms'
-handshake_conf = 'serialOK'
-shutdown = 'shutdown'
-
-acq_event = Event()
-timeout = 4
-
+client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
-ser = serial.Serial('/dev/ttyUSB0', 57600) 
+
 
 def reset_buffer():
     ser.reset_input_buffer()
@@ -85,7 +84,7 @@ def manual_trigger_events():
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
         ser.write(msg)
         if msg == str(shutdown):
-            print('Shutting down payload and this code.')
+            print(colored('Shutting down payload and this code.', 'red'))
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
@@ -102,6 +101,9 @@ def manual_trigger_events():
                 if get_stop_acq_trigger == str(toggle_OFF):
                     acq_event.clear()
                     reset_buffer()
+            else:
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+                pass
 
 
 def ros_events():
@@ -132,6 +134,9 @@ def ros_events():
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
+            else:
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+                pass
 
 
 if __name__ == '__main__':
@@ -144,7 +149,7 @@ if __name__ == '__main__':
         t3.start()
         t1.join()
         t2.join()
-        t3.start()
+        t3.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')

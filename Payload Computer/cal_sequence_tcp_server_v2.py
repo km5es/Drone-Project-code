@@ -25,29 +25,33 @@ import sys
 from threading import Thread, Event
 import time
 
+
 ### Define global variables
-port = 8810
-os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-togglePoint = 96                            # number of pulses after which GPIO is toggled
-ser = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
-sample_packet = 4096*16                     # Length of one pulse.
-client_script_name = 'gr_cal_tcp_loopback_client.py'
-s = socket.socket()                         # Create a socket object
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-host = socket.gethostbyname('127.0.0.1')    # Get local machine name
-s.bind((host, port))                        # Bind to the port
-s.listen(5)                                 # Now wait for client connection.
-trigger_msg = 'start_tx'                    
-trigger_endacq = 'stop_acq'
-shutdown = 'shutdown'
-handshake_start = 'is_comms'
-handshake_conf = 'serialOK'
-trigger_event = Event()
-stop_acq_event = Event()
+
+port                = 8810
+togglePoint         = 96                                    # number of pulses after which GPIO is toggled
+sample_packet       = 4096*16                               # Length of one pulse.
+ser                 = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
+s                   = socket.socket()                       # Create a socket object
+host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
+trigger_msg         = 'start_tx'                    
+trigger_endacq      = 'stop_acq'
+shutdown            = 'shutdown'
+handshake_start     = 'is_comms'
+handshake_conf      = 'serialOK'
+client_script_name  = 'gr_cal_tcp_loopback_client.py'
+trigger_event       = Event()
+stop_acq_event      = Event()
+
 
 ### Make TCP and serial connections
-print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
+
+os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind((host, port))                                        # Bind to the port
+s.listen(5)                                                 # Now wait for client connection.
 conn, addr = s.accept()
+print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 
 if ser.isOpen() == True:
@@ -59,7 +63,9 @@ if ser.isOpen() == True:
 if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
     msg_len = len(trigger_msg)
 
+
 ### Define objects
+
 def reset_buffer():
     ser.reset_input_buffer()
     ser.reset_output_buffer()

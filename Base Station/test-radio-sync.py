@@ -21,26 +21,25 @@ import psutil
 
 ##### Define global variables
 
-client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-ip=socket.gethostbyname("127.0.0.1")
-port=8800
-address=(ip,port)
-client.connect((address)) 
+client              = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+ip                  = socket.gethostbyname("127.0.0.1")
+port                = 8800
+address             = (ip,port)
+client_script_name  = 'tcp_toggle.py'
+path                = '/home/kmakhija/'
+toggle_ON           = 'start_tx'
+toggle_OFF          = 'stop_acq'
+handshake_start     = 'is_comms'
+handshake_conf      = 'serialOK'
+shutdown            = 'shutdown'
+acq_event           = Event()
+timeout             = 4
+ser                 = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
-client_script_name = 'tcp_toggle.py'
 
-path = '/home/kmakhija/'
-toggle_ON = 'start_tx'
-toggle_OFF = 'stop_acq'
-handshake_start = 'is_comms'
-handshake_conf = 'serialOK'
-shutdown = 'shutdown'
-
-acq_event = Event()
-timeout = 4
-
+client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
-ser = serial.Serial('/dev/ttyUSB0', 57600) 
+
 
 def reset_buffer():
     ser.reset_input_buffer()
@@ -84,7 +83,7 @@ def serial_radio_events():
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
         ser.write(msg)
         if msg == str(shutdown):
-            print('Shutting down payload and this code.')
+            print(colored('Shutting down payload and this code.', 'red'))
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
@@ -101,18 +100,20 @@ def serial_radio_events():
                 if get_stop_acq_trigger == str(toggle_OFF):
                     acq_event.clear()
                     reset_buffer()
+            else:
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+                pass
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            t1 = Thread(target=recv_data)
-            t2 = Thread(target=serial_radio_events)
-            t1.start()
-            t2.start()
-            t1.join()
-            t2.join()
-        except (serial.SerialException, socket.error):
-            print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
-            os.system('kill -9 $(fuser /dev/ttyUSB0)')
-            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+    try:
+        t1 = Thread(target=recv_data)
+        t2 = Thread(target=serial_radio_events)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+    except (serial.SerialException, socket.error):
+        print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
+        os.system('kill -9 $(fuser /dev/ttyUSB0)')
+        os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
