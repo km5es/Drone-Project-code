@@ -85,7 +85,7 @@ python ~catkin_ws/src/Drone-Project/Base\ Station/tcp_toggle.py
 ```
 Terminal 5:
 ```
-python ~catkin_ws/src/Drone-Project/Base\ Station/open-loop-accept-tcp.py
+python ~catkin_ws/src/Drone-Project/Base\ Station/base-station-receiver.py
 ```
 Run QGroundControl:
 ```
