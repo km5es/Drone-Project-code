@@ -36,7 +36,8 @@ handshake_conf      = 'serialOK'
 shutdown            = 'shutdown'
 acq_event           = Event()
 timeout             = 4
-ser                 = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
+ser                 = serial.Serial('/dev/ttyUSB0', 57600)
+ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
@@ -69,43 +70,13 @@ def recv_data():
                     break               
                 elif time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
-                    acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
+                    acq_event.clear()
                     reset_buffer()
                     break
             end = time.time()
 #                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
             print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'grey', 'on_green'))
-
-
-def manual_trigger_events():
-    '''
-    Manually trigger payload and initiate saving data on base station.
-    '''
-    while True:                                     
-        msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
-        ser.write(msg)
-        if msg == str(shutdown):
-            print(colored('Shutting down payload and this code.', 'red'))
-            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-            pass
-        elif msg == str(handshake_start):
-            get_handshake_conf = ser.read(len(toggle_ON))
-            print(get_handshake_conf)
-            if get_handshake_conf == str(handshake_conf):
-                reset_buffer()
-                print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                ser.write(toggle_ON)
-                acq_event.set()
-                get_stop_acq_trigger = ser.read(len(toggle_OFF))
-                print(get_stop_acq_trigger)
-                if get_stop_acq_trigger == str(toggle_OFF):
-                    acq_event.clear()
-                    reset_buffer()
-            else:
-                print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
-                pass
 
 
 def ros_events():
@@ -124,7 +95,7 @@ def ros_events():
             rospy.set_param('trigger/acknowledgement', False)
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
             ser.write(handshake_start)
-            get_handshake_conf = ser.read(len(handshake_conf))
+            get_handshake_conf = ser_timeout.read(len(handshake_conf))
             if get_handshake_conf == str(handshake_conf):
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
@@ -140,6 +111,36 @@ def ros_events():
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 rospy.set_param('trigger/acknowledgement', True)
                 reset_buffer()
+                pass
+
+
+def manual_trigger_events():
+    '''
+    Manually trigger payload and initiate saving data on base station.
+    '''
+    while True:                                     
+        msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
+        ser.write(msg)
+        if msg == str(shutdown):
+            print(colored('Shutting down payload and this code.', 'red'))
+            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+            pass
+        elif msg == str(handshake_start):
+            get_handshake_conf = ser_timeout.read(len(toggle_ON))
+            print(get_handshake_conf)
+            if get_handshake_conf == str(handshake_conf):
+                reset_buffer()
+                print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
+                ser.write(toggle_ON)
+                acq_event.set()
+                get_stop_acq_trigger = ser.read(len(toggle_OFF))
+                print(get_stop_acq_trigger)
+                if get_stop_acq_trigger == str(toggle_OFF):
+                    acq_event.clear()
+                    reset_buffer()
+            else:
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 pass
 
 

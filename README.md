@@ -27,7 +27,7 @@ source ubuntu_sim_ros_melodic.sh
 ```
 sudo apt-get install libprotobuf-dev libprotoc-dev protobuf-compiler libeigen3-dev libxml2-utils python-rospkg python-jinja2
 sudo apt-get install libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly –y
-pip install geographiclib
+pip install geographiclib, termcolor && pip3 install geographiclib, termcolor 
 ```
 
 4. PX4 firmware:
@@ -109,6 +109,7 @@ This is assuming the flight path is already uploaded to the vehicle. To RTL:
 ```
 commander mode auto:rtl
 ```
+To get it to work with QGC, uncheck the option for auto connecting to SiK radio in the Application Settings > General tab under "AutoConnect to the following devices."
 
 #### TODO:
 
