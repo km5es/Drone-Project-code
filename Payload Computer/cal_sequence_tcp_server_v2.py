@@ -32,6 +32,7 @@ port                = 8810
 togglePoint         = 96                                    # number of pulses after which GPIO is toggled
 sample_packet       = 4096*16                               # Length of one pulse.
 ser                 = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
+ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
 trigger_msg         = 'start_tx'                    
@@ -110,13 +111,13 @@ def serial_radio_events():
             print(colored('Received handshake request from base station.', 'cyan'))
             ser.write(handshake_conf)
             reset_buffer()
-            get_trigger_from_base = ser.read(msg_len)
+            get_trigger_from_base = ser_timeout.read(msg_len)   ### set timeout here for handshake   
             if get_trigger_from_base == str(trigger_msg):
                 trigger_event.set()
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
-                        time.sleep(0.25)                     ### buffer time for the receiver to "catch up".
+                        time.sleep(0.25)                        ### buffer time for the receiver to "catch up".
                         ser.write(trigger_endacq)
                         reset_buffer()
             else:

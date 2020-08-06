@@ -68,14 +68,14 @@ def recv_data():
                 if acq_event.is_set() == False:
                     break               
                 elif time.time() > start_timeout:
-                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
+                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
                     break
             end = time.time()
 #                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-            print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'green'))
+            print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'grey', 'on_green'))
 
 
 def manual_trigger_events():
@@ -104,7 +104,7 @@ def manual_trigger_events():
                     acq_event.clear()
                     reset_buffer()
             else:
-                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 pass
 
 
@@ -137,7 +137,7 @@ def ros_events():
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
             else:
-                print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+                print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 rospy.set_param('trigger/acknowledgement', True)
                 reset_buffer()
                 pass
