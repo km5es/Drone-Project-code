@@ -119,6 +119,9 @@ def serial_radio_events():
                         time.sleep(0.25)                     ### buffer time for the receiver to "catch up".
                         ser.write(trigger_endacq)
                         reset_buffer()
+            else:
+                print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
+                pass
         elif get_handshake == str(shutdown):
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))

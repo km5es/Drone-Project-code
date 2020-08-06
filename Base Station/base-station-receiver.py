@@ -70,6 +70,8 @@ def recv_data():
                 elif time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'magenta'))
                     acq_event.clear()
+                    rospy.set_param('trigger/acknowledgement', True)
+                    reset_buffer()
                     break
             end = time.time()
 #                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
@@ -136,6 +138,8 @@ def ros_events():
                     reset_buffer()
             else:
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'magenta'))
+                rospy.set_param('trigger/acknowledgement', True)
+                reset_buffer()
                 pass
 
 
