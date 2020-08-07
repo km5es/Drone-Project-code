@@ -11,7 +11,7 @@ date: 21st July 2020
 v2.0 now will transmit zeros while the trigger is not set. This will ensure an integer number of cycles on the LO to complete before the
 cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
 '''
-#FIXME: verify integrity of waveform
+#TODO: integrate the circular polarized waveform as well.
 #TODO: identify serial radios using vendor and make. Important.
 #TODO: redirect all print statements to a logfile. 
 #TODO: save GPS and temp info in a log file. Also save IMU data.
@@ -35,11 +35,13 @@ ser                 = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
 ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
-trigger_msg         = 'start_tx'                    
-trigger_endacq      = 'break_it'
-shutdown            = 'shutdown'
+startup_initiate    = 'pay_INIT'
+startup_confirm     = 'INITconf'
 handshake_start     = 'is_comms'
 handshake_conf      = 'serialOK'
+trigger_msg         = 'start_tx'                    
+trigger_endacq      = 'stop_acq'
+shutdown            = 'shutdown'
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
@@ -123,6 +125,10 @@ def serial_radio_events():
             else:
                 print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                 pass
+        elif get_handshake == startup_initiate:
+            print(colored('The base has started up and is talking.', 'grey', 'on_green'))
+            ser.write(startup_confirm)
+            reset_buffer()
         elif get_handshake == str(shutdown):
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))

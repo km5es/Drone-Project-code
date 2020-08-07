@@ -5,6 +5,7 @@ Test sync between SDRs only. Do not include ROS.
 """
 #TODO: Test data rate calculator.
 #TODO: maybe instead of a short keyword there should be a sequence of the same keywords?
+#TODO: metadata!
 
 import socket
 import serial
@@ -27,10 +28,12 @@ port                = 8800
 address             = (ip,port)
 client_script_name  = 'tcp_toggle.py'
 path                = '/home/kmakhija/'
-toggle_ON           = 'start_tx'
-toggle_OFF          = 'stop_acq'
+startup_initiate    = 'pay_INIT'
+startup_confirm     = 'INITconf'
 handshake_start     = 'is_comms'
 handshake_conf      = 'serialOK'
+toggle_ON           = 'start_tx'
+toggle_OFF          = 'stop_acq'
 shutdown            = 'shutdown'
 acq_event           = Event()
 timeout             = 4
@@ -50,7 +53,6 @@ def recv_data():
     '''
     Wait for acq_event to begin and stop saving data.
     '''
-    print('Waiting for trigger from payload to begin saving data.')
     while True:
         if acq_event.is_set():
             print('Trigger from payload recd. Saving data now.')
@@ -83,8 +85,13 @@ def ros_events():
     """
     if ser.isOpen() == True:
         reset_buffer()
-        print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
-        print(ser)
+        ser.write(startup_initiate)
+        get_startup_confirmation = ser_timeout.read(len(startup_confirm))
+        if get_startup_confirmation == startup_confirm:
+            print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
+        else:
+            print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
+        print(ser, ser_timeout)
     else:
         print(colored('No serial connection', 'magenta'))
     while not rospy.is_shutdown():
