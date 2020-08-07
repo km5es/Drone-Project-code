@@ -36,10 +36,10 @@ ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
 trigger_msg         = 'start_tx'                    
-trigger_endacq      = 'stop_acq'
+trigger_endacq      = 'break_it'
 shutdown            = 'shutdown'
 handshake_start     = 'is_comms'
-handshake_conf      = 'break_it'
+handshake_conf      = 'serialOK'
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()

@@ -4,9 +4,7 @@ Author: KM
 Test sync between SDRs only. Do not include ROS.
 """
 #TODO: Test data rate calculator.
-#TODO: keep the raw_input() call so that condition 3 can be calibrated for.
-#FIXME: multiple device access on port error still persists.
-    #FIXME: tracked this down somewhat. the manual_trigger_events() object is the culprit. how fix?
+#TODO: maybe instead of a short keyword there should be a sequence of the same keywords?
 
 import socket
 import serial
