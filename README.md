@@ -27,7 +27,7 @@ source ubuntu_sim_ros_melodic.sh
 ```
 sudo apt-get install libprotobuf-dev libprotoc-dev protobuf-compiler libeigen3-dev libxml2-utils python-rospkg python-jinja2
 sudo apt-get install libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly –y
-pip install geographiclib, termcolor && pip3 install geographiclib, termcolor 
+pip install geographiclib termcolor && pip3 install geographiclib termcolor 
 ```
 
 4. PX4 firmware:
