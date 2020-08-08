@@ -1,7 +1,12 @@
 #!/usr/bin/env python2.7
+# client
 """
-Author: KM
-Test sync between SDRs only. Do not include ROS.
+Base station code. Looks for when the drone has reached a waypoint and triggers payload to begin transmitting the
+cal signal. There is also a concurrent thread that allows for manual initialization of the cal signal and/or
+forced shutdown of the payload and base station.
+
+Author: Krishna Makhija
+data: 6th August 2020
 """
 #TODO: Test data rate calculator.
 #TODO: maybe instead of a short keyword there should be a sequence of the same keywords?
@@ -27,16 +32,16 @@ ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
 client_script_name  = 'tcp_toggle.py'
-path                = '/home/kmakhija/'
-startup_initiate    = 'pay_INIT'
-startup_confirm     = 'INITconf'
-handshake_start     = 'is_comms'
-handshake_conf      = 'serialOK'
-toggle_ON           = 'start_tx'
-toggle_OFF          = 'stop_acq'
-shutdown            = 'shutdown'
+path                = '/home/kmakhija/'             # data files save path
+startup_initiate    = 'pay_INIT'                    # check to see if payload is running
+startup_confirm     = 'INITconf'                    # confirmation msg from payload if running
+handshake_start     = 'is_comms'                    # begin handshake prior to save data
+handshake_conf      = 'serialOK'                    # confirmation from payload before save
+toggle_ON           = 'start_tx'                    # message to payload to start cal
+toggle_OFF          = 'stop_acq'                    # message from payload to stop saving
+shutdown            = 'shutdown'                    # force shutdown of all SDRs
 acq_event           = Event()
-timeout             = 4
+timeout             = 4                             # time after which saving data will stop if no trigger
 ser                 = serial.Serial('/dev/ttyUSB0', 57600)
 ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 

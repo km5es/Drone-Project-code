@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# server.py
+# server
 '''
 This script will combine with gr_cal_tcp_loopback_client.py to generate a cal signal from the drone. It reads from serial radio for
 a trigger to begin the sequence. Once that is received, a TCP connection is established with the aforementioned GRC script, and a file
@@ -31,17 +31,17 @@ import time
 port                = 8810
 togglePoint         = 96                                    # number of pulses after which GPIO is toggled
 sample_packet       = 4096*16                               # Length of one pulse.
-ser                 = serial.Serial('/dev/ttyUSB0', 57600)  # timeout?
+ser                 = serial.Serial('/dev/ttyUSB0', 57600)  
 ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
-startup_initiate    = 'pay_INIT'
-startup_confirm     = 'INITconf'
-handshake_start     = 'is_comms'
-handshake_conf      = 'serialOK'
-trigger_msg         = 'start_tx'                    
-trigger_endacq      = 'stop_acq'
-shutdown            = 'shutdown'
+startup_initiate    = 'pay_INIT'                            # check to see if payload is running
+startup_confirm     = 'INITconf'                            # confirmation msg from payload if running
+handshake_start     = 'is_comms'                            # begin handshake prior to save data
+handshake_conf      = 'serialOK'                            # confirmation from payload before save
+trigger_msg         = 'start_tx'                            # message to payload to start cal                
+trigger_endacq      = 'stop_acq'                            # message from payload to stop saving
+shutdown            = 'shutdown'                            # force shutdown of all SDRs
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
@@ -60,7 +60,7 @@ print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'
 if ser.isOpen() == True:
     ser.reset_input_buffer()
     ser.reset_output_buffer()
-    print(colored('Serial connection to base is UP. Waiting for trigger.', 'green'))
+    print(colored('Serial connection to payload is UP. Waiting for trigger.', 'green'))
     print(ser)
 
 if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
