@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import csv
@@ -66,7 +66,7 @@ def get_mission():
 
 def save_events():
 
-    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Nav/logs/mission_events.csv')
+    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project/logs/mission_events.csv')
 
     with open(file_path, mode = 'w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter = ',', quoting = csv.QUOTE_NONNUMERIC)
@@ -76,7 +76,7 @@ def save_events():
 
 def save_poses():
 
-    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Nav/logs/pose_logs.csv')
+    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project/logs/pose_logs.csv')
 
     with open(file_path, mode = 'w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter = ',', quoting = csv.QUOTE_NONNUMERIC)

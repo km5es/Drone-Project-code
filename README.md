@@ -119,5 +119,13 @@ To get it to work with QGC, uncheck the option for auto connecting to SiK radio 
 
 - [x] Add the ROS nodes and mission.csv file/folders as well
 
+- [ ] Add install geographiclib shell script
+
+- [ ] Add Fast-DDS tar file
+
+- [ ] Add mission logs folder from Drone-Nav
+
+- [ ] Add instruction to change the home position of the drone to Milton 
+
 - [ ] Add 3D CAD files and RF stuff? 
 
