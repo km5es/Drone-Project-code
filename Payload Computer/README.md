@@ -18,7 +18,7 @@ crontab -e
 ```
 And then add the following line to the end of the file:
 ```
-@reboot bash ~/Drone-Project/Payload\ Computer/start_cal_v2.sh >~/cronlog 2>&1
+@reboot bash ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh >~/cronlog 2>&1
 ```
 To recover logs:
 ```
