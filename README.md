@@ -1,4 +1,4 @@
-# Drone-Project
+# Drone-Project-code
 ![cal-illustration](oth_withBeam_gradient.png)
 
 ## Description
@@ -6,7 +6,7 @@ A high accuracy drone-based calibrator targeted towards low-frequency radio astr
 ```
 mkdir /home/$USER/catkin_ws/src/ -p
 cd /home/$USER/catkin_ws/src
-git clone https://github.com/km5es/Drone-Project.git
+git clone https://github.com/km5es/Drone-Project-code.git
 ```
 
 ## Dependencies:
@@ -23,7 +23,7 @@ source ubuntu_sim_ros_melodic.sh
 ```
 2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository for convenience. 
 ```
-cd ~/catkin_ws/src/Drone-Project/
+cd ~/catkin_ws/src/Drone-Project-code/
 mkdir /home/$USER/Fast-DDS/
 tar -xzvf eProsima_Fast-DDS-2.0.0-Linux.tgz -C /home/$USER/Fast-DDS/
 cd /home/$USER/Fast-DDS/
@@ -52,7 +52,7 @@ HEADLESS=1 make px4_sitl gazebo_solo
 ```
 > **Note**: If the build script complains about geographiclib_datasets do the following:
 ```
-cd ~/catkin_ws/src/Drone-Project/
+cd ~/catkin_ws/src/Drone-Project-code/
 chmod +x install_geographiclib_datasets
 sudo ./install_geographiclib_datasets
 ```
@@ -102,11 +102,11 @@ rosrun beam_mapping drone_project.py
 ```
 Terminal 4:
 ```
-python ~catkin_ws/src/Drone-Project/Base\ Station/tcp_toggle.py
+python ~catkin_ws/src/Drone-Project-code/Base\ Station/tcp_toggle.py
 ```
 Terminal 5:
 ```
-python ~catkin_ws/src/Drone-Project/Base\ Station/base-station-receiver.py
+python ~catkin_ws/src/Drone-Project-code/Base\ Station/base-station-receiver.py
 ```
 Run QGroundControl:
 ```
@@ -118,7 +118,7 @@ Enter flight path and begin mission.
 
 ### Run entire SITL autonomy pipeline
 ```
-cd ~/catkin_ws/src/Drone-Project/
+cd ~/catkin_ws/src/Drone-Project-code/
 source sitl-pipeline.sh
 ```
 QGC is not working properly with this shell script as of now. To get the pipeline to run do this in the PX4 terminal:

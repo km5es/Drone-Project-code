@@ -23,12 +23,12 @@ sleep 2.5;
 gnome-terminal -e "bash -c 'rosrun beam_mapping drone_project.py;'"
 
 ### run GRC TCP server
-gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/tcp_toggle.py;'"
+gnome-terminal -e "bash -c 'python ~/Drone-Project-code/Base\ Station/tcp_toggle.py;'"
 
 sleep 6;
 
 ### run GRC TCP client
-gnome-terminal -e "bash -c 'python ~/Drone-Project/Base\ Station/base-station-receiver.py;'"
+gnome-terminal -e "bash -c 'python ~/Drone-Project-code/Base\ Station/base-station-receiver.py;'"
 
 ### run QGroundControl
 ~/Downloads/QGroundControl.AppImage
