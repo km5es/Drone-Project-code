@@ -21,7 +21,7 @@ Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP
 ```
 source ubuntu_sim_ros_melodic.sh
 ```
-2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository. 
+2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository for convenience. 
 ```
 cd ~/catkin_ws/src/Drone-Project/
 mkdir /home/$USER/Fast-DDS/
@@ -72,6 +72,13 @@ chmod +x ./QGroundControl.AppImage
 cd /home/$USER/catkin_ws/
 catkin_make
 ```
+7. Finally, to set default take-off positions of the drone to Milton airfield add these lines to the bashrc file:
+```
+export PX4_HOME_LAT=37.994125
+export PX4_HOME_LON=-78.397535
+export PX4_HOME_ALT=28.5
+```
+Replace coordinates as necessary.
 
 ## Autonomy Pipeline
 The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). Here's a flow diagram of the entire process:
@@ -139,7 +146,7 @@ To get it to work with QGC, uncheck the option for auto connecting to SiK radio 
 
 - [x] Add mission logs folder from Drone-Nav
 
-- [ ] Add instruction to change the home position of the drone to Milton 
+- [x] Add instruction to change the home position of the drone to Milton 
 
 - [ ] Add 3D CAD files and RF stuff? 
 
