@@ -10,7 +10,7 @@ Current candidates for the payload computer are: [Raspberry Pi 4B](https://www.r
 How to set things up on the payload computer. Clone the repo on the payload computer:
 ```
 cd /home/$USER/
-git clone https://github.com/km5es/Drone-Project.git
+git clone https://github.com/km5es/Drone-Project-code.git
 ```
 Add a cron job:
 ```
