@@ -21,7 +21,15 @@ Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP
 ```
 source ubuntu_sim_ros_melodic.sh
 ```
-2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all).
+2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository. 
+```
+cd ~/catkin_ws/src/Drone-Project/
+mkdir /home/$USER/Fast-DDS/
+tar -xzvf eProsima_Fast-DDS-2.0.0-Linux.tgz -C /home/$USER/Fast-DDS/
+cd /home/$USER/Fast-DDS/
+chmod +x install.sh
+sudo ./install.sh
+```
 
 3. Some additional dependencies that the shell script does not address (after getting repeated build errors):
 ```
@@ -41,6 +49,12 @@ make px4_sitl gazebo_solo
 Full instructions to be found [here](https://dev.px4.io/v1.9.0/en/setup/building_px4.html). To run in headless mode:
 ```
 HEADLESS=1 make px4_sitl gazebo_solo
+```
+> **Note**: If the build script complains about geographiclib_datasets do the following:
+```
+cd ~/catkin_ws/src/Drone-Project/
+chmod +x install_geographiclib_datasets
+sudo ./install_geographiclib_datasets
 ```
 5. Install QGroundControl. Detailed instructions [here](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html). Before downloading the app image do this:
 ```
@@ -119,11 +133,11 @@ To get it to work with QGC, uncheck the option for auto connecting to SiK radio 
 
 - [x] Add the ROS nodes and mission.csv file/folders as well
 
-- [ ] Add install geographiclib shell script
+- [x] Add install geographiclib shell script
 
-- [ ] Add Fast-DDS tar file
+- [x] Add Fast-DDS tar file
 
-- [ ] Add mission logs folder from Drone-Nav
+- [x] Add mission logs folder from Drone-Nav
 
 - [ ] Add instruction to change the home position of the drone to Milton 
 
