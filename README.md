@@ -102,11 +102,11 @@ rosrun beam_mapping drone_project.py
 ```
 Terminal 4:
 ```
-python ~catkin_ws/src/Drone-Project-code/Base\ Station/tcp_toggle.py
+python ~/catkin_ws/src/Drone-Project-code/Base\ Station/tcp_toggle.py
 ```
 Terminal 5:
 ```
-python ~catkin_ws/src/Drone-Project-code/Base\ Station/base-station-receiver.py
+python ~/catkin_ws/src/Drone-Project-code/Base\ Station/base-station-receiver.py
 ```
 Run QGroundControl:
 ```

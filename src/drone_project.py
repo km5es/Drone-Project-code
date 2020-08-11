@@ -35,7 +35,7 @@ event_info      = []
 
 def get_mission():
 
-    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Nav/mission/waypoints.csv')
+    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project-code/mission/waypoints.csv')
 
     with open(file_path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter = ',')
@@ -66,7 +66,7 @@ def get_mission():
 
 def save_events():
 
-    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project/logs/mission_events.csv')
+    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project-code/logs/mission_events.csv')
 
     with open(file_path, mode = 'w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter = ',', quoting = csv.QUOTE_NONNUMERIC)
@@ -76,7 +76,7 @@ def save_events():
 
 def save_poses():
 
-    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project/logs/pose_logs.csv')
+    file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project-code/logs/pose_logs.csv')
 
     with open(file_path, mode = 'w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter = ',', quoting = csv.QUOTE_NONNUMERIC)
