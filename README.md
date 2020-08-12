@@ -17,11 +17,13 @@ Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP
 > **Note**: GNU Radio v3.8 and higher use Python 3. A complete migration to Python 3 is not possible because rospy uses Python 2.7. Perhaps ROS Noetic might use Python 3 but UHD is not currently working on Ubuntu 20.04 which means that the only other way around this would be to switch everything over to C++. 
 
 ### ROS Melodic + SITL toolchain
-1. Start [here](https://dev.px4.io/v1.9.0/en/setup/dev_env_linux_ubuntu.html). A convenience shell script will install ROS, Gazebo, MAVROS, Geographiclib and everything else. It will also set up a catkin workspace.
+
+#### 1. Start [here](https://dev.px4.io/v1.9.0/en/setup/dev_env_linux_ubuntu.html). A convenience shell script will install ROS, Gazebo, MAVROS, Geographiclib and everything else. It will also set up a catkin workspace.
 ```
 source ubuntu_sim_ros_melodic.sh
 ```
-2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository for convenience. 
+
+#### 2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository for convenience. 
 ```
 cd ~/catkin_ws/src/Drone-Project-code/
 mkdir /home/$USER/Fast-DDS/
@@ -31,14 +33,14 @@ chmod +x install.sh
 sudo ./install.sh
 ```
 
-3. Some additional dependencies that the shell script does not address (after getting repeated build errors):
+#### 3. Some additional dependencies that the shell script does not address (after getting repeated build errors):
 ```
 sudo apt-get install libprotobuf-dev libprotoc-dev protobuf-compiler libeigen3-dev libxml2-utils python-rospkg python-jinja2
 sudo apt-get install libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly –y
 pip install geographiclib termcolor && pip3 install geographiclib termcolor 
 ```
 
-4. PX4 firmware:
+#### 4. PX4 firmware:
 ```
 cd $HOME
 mkdir /src/ && cd ~/src/
@@ -56,7 +58,8 @@ cd ~/catkin_ws/src/Drone-Project-code/
 chmod +x install_geographiclib_datasets
 sudo ./install_geographiclib_datasets
 ```
-5. Install QGroundControl. Detailed instructions [here](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html). Before downloading the app image do this:
+
+#### 5. Install QGroundControl. Detailed instructions [here](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html). Before downloading the app image do this:
 ```
 sudo usermod -a -G dialout $USER
 sudo apt-get remove modemmanager -y
@@ -67,12 +70,14 @@ Log out and log back in. Then download the app image file from [here](https://s3
 chmod +x ./QGroundControl.AppImage
 ./QGroundControl.AppImage  (or double click)
 ```
-6. Build the ROS node:
+
+#### 6. Build the ROS node:
 ```
 cd /home/$USER/catkin_ws/
 catkin_make
 ```
-7. Finally, to set default take-off positions of the drone to Milton airfield add these lines to the bashrc file:
+
+#### 7. Finally, to set default take-off positions of the drone to Milton airfield add these lines to the bashrc file:
 ```
 export PX4_HOME_LAT=37.994125
 export PX4_HOME_LON=-78.397535

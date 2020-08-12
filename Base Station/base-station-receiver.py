@@ -42,6 +42,7 @@ toggle_OFF          = 'stop_acq'                    # message from payload to st
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
 acq_event           = Event()
 timeout             = 4                             # time after which saving data will stop if no trigger
+repeat_keyword      = 32                             # number of times to repeat a telem msg
 ser                 = serial.Serial('/dev/ttyUSB0', 57600)
 ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
@@ -49,9 +50,37 @@ client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 
 
+def send_telem(keyword, serial_object, repeat_keyword):
+    """
+    Send keyword over telemetry radio for a total of repeat_keyword times.
+    """
+    for n in range(repeat_keyword):
+        serial_object.write(keyword)
+        n += 1
+
+
+def recv_telem(recvd_msg, keyword):
+    """
+    Search received telem message for operative keyword. Return True is keyword is found. False otherwise.
+    """
+    return keyword in recvd_msg
+
+
 def reset_buffer():
+    """
+    Clear telemetry radio buffers whenever possible.
+    """
     ser.reset_input_buffer()
     ser.reset_output_buffer()
+
+
+def temp_connect():
+    client_temp  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    ip_temp      = socket.gethostbyname("127.0.0.1")
+    port_temp    = 7890
+    address      = (ip_temp, port_temp)
+    client_temp.connect((address))
+#    temp_data    = client_temp.recv(32)
 
 
 def recv_data():
@@ -61,22 +90,27 @@ def recv_data():
     while True:
         if acq_event.is_set():
             print('Trigger from payload recd. Saving data now.')
-            timestring = time.strftime("%H%M%S-%d%m%Y")         
-            filename = path + timestring + str("_milton.dat")
-            f = open(filename, "w")
+            timestring      = time.strftime("%H%M%S-%d%m%Y")         
+            filename        = path + timestring + str("_milton.dat")
+            f               = open(filename, "w")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
 #                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-            start = time.time()
-            start_timeout = start + timeout
+#            file_meta       = path + timestring + str("_meta.dat")
+#            f_meta          = open(file_meta, "w")
+#            temp_connect()
+            start           = time.time()
+            start_timeout   = start + timeout            
             while True:
-                SDRdata = client.recv(4096*8*16, socket.MSG_WAITALL)
+                SDRdata     = client.recv(4096*8*16, socket.MSG_WAITALL)
                 f.write(SDRdata)
+#                temp_data   = client_temp.recv(32)
+#                f_meta.write(temp_data)
                 if acq_event.is_set() == False:
                     break               
                 elif time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
-                    rospy.set_param('trigger/acknowledgement', True)
                     acq_event.clear()
+                    rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
                     break
             end = time.time()
@@ -158,13 +192,13 @@ if __name__ == '__main__':
     try:
         t1 = Thread(target=recv_data)
         t2 = Thread(target=ros_events)
-        t3 = Thread(target=manual_trigger_events)
+#        t3 = Thread(target=manual_trigger_events)
         t1.start()
         t2.start()
-        t3.start()
+#        t3.start()
         t1.join()
         t2.join()
-        t3.join()
+#        t3.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')

@@ -39,9 +39,10 @@ startup_initiate    = 'pay_INIT'                            # check to see if pa
 startup_confirm     = 'INITconf'                            # confirmation msg from payload if running
 handshake_start     = 'is_comms'                            # begin handshake prior to save data
 handshake_conf      = 'serialOK'                            # confirmation from payload before save
-trigger_msg         = 'start_tx'                            # message to payload to start cal                
-trigger_endacq      = 'stop_acq'                            # message from payload to stop saving
+toggle_ON           = 'start_tx'                            # message to payload to start cal                
+toggle_OFF          = 'stop_acq'                            # message from payload to stop saving
 shutdown            = 'shutdown'                            # force shutdown of all SDRs
+repeat_keyword      = 32
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
@@ -63,13 +64,25 @@ if ser.isOpen() == True:
     print(colored('Serial connection to payload is UP. Waiting for trigger.', 'green'))
     print(ser)
 
-if len(trigger_msg) == len(trigger_endacq) == len(shutdown):
-    msg_len = len(trigger_msg)
+if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
+    msg_len = len(toggle_ON)
 
 
 ### Define objects
 
+def send_telem(keyword, serial_object, repeat_keyword):
+    """
+    Send keyword over telemetry radio for a total of repeat_keyword times.
+    """
+    for n in range(repeat_keyword):
+        serial_object.write(keyword)
+        n += 1
+
+
 def reset_buffer():
+    """
+    Clear telemetry radio buffers whenever possible.
+    """
     ser.reset_input_buffer()
     ser.reset_output_buffer()
 
@@ -108,28 +121,35 @@ def serial_radio_events():
     object to the base to stop acquisiiton.
     '''
     while True:
-        get_handshake = ser.read(msg_len)
-        if get_handshake == handshake_start:
+        get_handshake = ser.read(msg_len*repeat_keyword)
+#        if get_handshake == handshake_start:
+        if handshake_start in get_handshake == True:
             print(colored('Received handshake request from base station.', 'cyan'))
-            ser.write(handshake_conf)
+#            ser.write(handshake_conf)
+            send_telem(handshake_conf, ser, repeat_keyword)
             reset_buffer()
-            get_trigger_from_base = ser_timeout.read(msg_len)   ### set timeout here for handshake   
-            if get_trigger_from_base == str(trigger_msg):
+            get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake   
+#            if get_trigger_from_base == str(toggle_ON):
+            if toggle_ON in get_trigger_from_base == True:
                 trigger_event.set()
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
-                        time.sleep(0.25)                        ### buffer time for the receiver to "catch up".
-                        ser.write(trigger_endacq)
+                        time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
+#                        ser.write(toggle_OFF)
+                        send_telem(toggle_OFF, ser, repeat_keyword)
                         reset_buffer()
             else:
                 print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                 pass
-        elif get_handshake == startup_initiate:
+#        elif get_handshake == startup_initiate:
+        elif startup_initiate in get_handshake == True:
             print(colored('The base has started up and is talking.', 'grey', 'on_green'))
-            ser.write(startup_confirm)
+#            ser.write(startup_confirm)
+            send_telem(startup_confirm, ser, repeat_keyword)
             reset_buffer()
-        elif get_handshake == str(shutdown):
+#        elif get_handshake == str(shutdown):
+        elif shutdown in get_handshake == True:
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
             break
