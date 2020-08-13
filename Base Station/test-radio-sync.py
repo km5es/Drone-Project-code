@@ -118,7 +118,7 @@ def serial_radio_events():
         elif msg == str(handshake_start):
             get_handshake_conf = ser.read(msg_len*repeat_keyword)
             print(get_handshake_conf)
-            if handshake_conf in get_handshake_conf == True:
+            if handshake_conf in get_handshake_conf:
 #            if get_handshake_conf == str(handshake_conf):
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
@@ -128,7 +128,7 @@ def serial_radio_events():
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
                 print(get_stop_acq_trigger)
 #                if get_stop_acq_trigger == str(toggle_OFF):
-                if toggle_OFF in get_stop_acq_trigger == True:
+                if toggle_OFF in get_stop_acq_trigger:
                     acq_event.clear()
                     reset_buffer()
             else:

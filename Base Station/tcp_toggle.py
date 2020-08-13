@@ -109,24 +109,24 @@ def temp_over_socket(top_block_cls=tcp_toggle, options=None):
 
     tb = top_block_cls()
     port    = 7890
-    s       = socket.socket()                       # Create a socket object
-    host    = socket.gethostbyname('127.0.0.1')     # Get local machine name
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind((host, port))                            # Bind to the port
-#    while True:
-    s.listen(100)                                   # Now wait for client connection.
-    conn, addr = s.accept()
-    print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
-    print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
-    while conn is not False:
-        conn.send(tb.get_temp)
-        time.sleep(0.25)
+    #s       = socket.socket()                       # Create a socket object
+    #host    = socket.gethostbyname('127.0.0.1')     # Get local machine name
+    #s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    #s.bind((host, port))                            # Bind to the port
+#   # while True:
+    #s.listen(100)                                   # Now wait for client connection.
+    #conn, addr = s.accept()
+    #print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
+    #print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
+    #while conn is not False:
+    #    conn.send(tb.get_temp)
+    #    time.sleep(0.25)
 
 if __name__ == '__main__':
-#    main()
-    t1 = Thread(target = main)
-    t2 = Thread(target = temp_over_socket)
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
+    main()
+#    t1 = Thread(target = main)
+#    t2 = Thread(target = temp_over_socket)
+#    t1.start()
+#    t2.start()
+#    t1.join()
+#    t2.join()

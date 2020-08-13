@@ -14,7 +14,7 @@ As of now, everything is tested on Ubuntu 18.04. Here are (some) of the addition
 
 ### UHD and GNU Radio 
 Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP_Open-Source_Toolchain_(UHD_and_GNU_Radio)_on_Linux). Tested with UHD 3.13.0.0 and 3.15.0.0 and GNU Radio v3.7.13.4. 
-> **Note**: GNU Radio v3.8 and higher use Python 3. A complete migration to Python 3 is not possible because rospy uses Python 2.7. Perhaps ROS Noetic might use Python 3 but UHD is not currently working on Ubuntu 20.04 which means that the only other way around this would be to switch everything over to C++. 
+> **Note**: GNU Radio v3.8 and higher use Python 3. A complete migration to Python 3 is TBD. 
 
 ### ROS Melodic + SITL toolchain
 

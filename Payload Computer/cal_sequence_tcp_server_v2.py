@@ -86,6 +86,7 @@ def reset_buffer():
     ser.reset_input_buffer()
     ser.reset_output_buffer()
 
+
 def stream_file():
     '''
     Stream zeros unless a trigger is set. When triggered transmit cal sequence.
@@ -114,6 +115,7 @@ def stream_file():
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             trigger_event.clear()
 
+
 def serial_radio_events():
     '''
     This object is for serial comms. When a handshake request is received, an event will be set in the stream_file() object which 
@@ -123,14 +125,14 @@ def serial_radio_events():
     while True:
         get_handshake = ser.read(msg_len*repeat_keyword)
 #        if get_handshake == handshake_start:
-        if handshake_start in get_handshake == True:
+        if handshake_start in get_handshake:
             print(colored('Received handshake request from base station.', 'cyan'))
 #            ser.write(handshake_conf)
             send_telem(handshake_conf, ser, repeat_keyword)
             reset_buffer()
             get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake   
 #            if get_trigger_from_base == str(toggle_ON):
-            if toggle_ON in get_trigger_from_base == True:
+            if toggle_ON in get_trigger_from_base:
                 trigger_event.set()
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
@@ -143,16 +145,17 @@ def serial_radio_events():
                 print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                 pass
 #        elif get_handshake == startup_initiate:
-        elif startup_initiate in get_handshake == True:
+        elif startup_initiate in get_handshake:
             print(colored('The base has started up and is talking.', 'grey', 'on_green'))
 #            ser.write(startup_confirm)
             send_telem(startup_confirm, ser, repeat_keyword)
             reset_buffer()
 #        elif get_handshake == str(shutdown):
-        elif shutdown in get_handshake == True:
+        elif shutdown in get_handshake:
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
             break
+
 
 if __name__ == '__main__':
     t1 = Thread(target=serial_radio_events)

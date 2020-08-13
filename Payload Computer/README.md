@@ -7,7 +7,20 @@ This folder contains all the codes needed to run the calibration signal using th
 
 Current candidates for the payload computer are: [Raspberry Pi 4B](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/), [NVIDIA Jetson TX2](https://developer.nvidia.com/embedded/jetson-tx2) with the [Orbitty carrier board](http://connecttech.com/product/orbitty-carrier-for-nvidia-jetson-tx2-tx1/), and an [ODROID XU4](https://www.hardkernel.com/shop/odroid-xu4-special-price/).
 
-How to set things up on the payload computer. Clone the repo on the payload computer:
+Here's how to set things up on the payload computer. 
+
+### Dependencies
+Some dependencies are not listed on the Ettus website. I kept getting cmake errors on the Raspberry Pi 4B when trying to build from the UHd repo. Start by doing this:
+```
+sudo apt install python-pip python3-pip aptitude
+pip install serial pyserial termcolor numpy scipy mako
+```
+Then install GNU Radio and UHD by following instructions from the main README file.
+
+### ROS
+The Raspbery Pi version of ROS can be downloaded by following instructions [here](ROSberryPi_link) when using Raspbian. For a vanilla Ubuntu 18.04 or Mate 18.04 use [this](melodic_install) instead.
+
+### Clone the repo on the payload computer:
 ```
 cd /home/$USER/
 git clone https://github.com/km5es/Drone-Project-code.git
@@ -24,3 +37,6 @@ To recover logs:
 ```
 cat ~/cronlog
 ```
+
+[ROSberryPi]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
+[melodic_install]: http://wiki.ros.org/melodic/Installation/Ubuntu
