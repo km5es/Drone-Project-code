@@ -42,21 +42,25 @@ toggle_OFF          = 'stop_acq'                    # message from payload to st
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
 acq_event           = Event()
 timeout             = 4                             # time after which saving data will stop if no trigger
-repeat_keyword      = 32                             # number of times to repeat a telem msg
+repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial('/dev/ttyUSB0', 57600)
 ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 
+if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
+    msg_len = len(toggle_ON)
+
+### Define objects
 
 def send_telem(keyword, serial_object, repeat_keyword):
     """
     Send keyword over telemetry radio for a total of repeat_keyword times.
     """
     for n in range(repeat_keyword):
-        serial_object.write(keyword)
-        n += 1
+        new_keyword = keyword + n*keyword
+    serial_object.write(new_keyword)
 
 
 def recv_telem(recvd_msg, keyword):
@@ -123,14 +127,15 @@ def ros_events():
     Check for ROS-based events like when the drone has reached WP, and trigger data acquisition.
     """
     if ser.isOpen() == True:
+        print(ser, ser_timeout)
         reset_buffer()
-        ser.write(startup_initiate)
-        get_startup_confirmation = ser_timeout.read(len(startup_confirm))
-        if get_startup_confirmation == startup_confirm:
+#        ser.write(startup_initiate)
+        send_telem(startup_initiate, ser, repeat_keyword)
+        get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
+        if startup_confirm in get_startup_confirmation:
             print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
         else:
             print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
-        print(ser, ser_timeout)
     else:
         print(colored('No serial connection', 'magenta'))
     while not rospy.is_shutdown():
@@ -138,16 +143,18 @@ def ros_events():
             rospy.set_param('trigger/command', False)
             rospy.set_param('trigger/acknowledgement', False)
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
-            ser.write(handshake_start)
-            get_handshake_conf = ser_timeout.read(len(handshake_conf))
-            if get_handshake_conf == str(handshake_conf):
+#            ser.write(handshake_start)
+            send_telem(handshake_start, ser, repeat_keyword)
+            get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
+            if handshake_conf in get_handshake_conf:
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                ser.write(toggle_ON)
+#                ser.write(toggle_ON)
+                send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
-                get_stop_acq_trigger = ser.read(len(toggle_OFF))
+                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
                 print(get_stop_acq_trigger)
-                if get_stop_acq_trigger == str(toggle_OFF):
+                if toggle_OFF in get_stop_acq_trigger:
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
@@ -164,23 +171,25 @@ def manual_trigger_events():
     '''
     while True:                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
-        ser.write(msg)
+#        ser.write(msg)
+        send_telem(msg, ser, repeat_keyword)
         if msg == str(shutdown):
             print(colored('Shutting down payload and this code.', 'red'))
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
         elif msg == str(handshake_start):
-            get_handshake_conf = ser_timeout.read(len(toggle_ON))
+            get_handshake_conf = ser_timeout.read(msg_len)
             print(get_handshake_conf)
-            if get_handshake_conf == str(handshake_conf):
+            if handshake_conf in get_handshake_conf:
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                ser.write(toggle_ON)
+#                ser.write(toggle_ON)
+                send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
-                get_stop_acq_trigger = ser.read(len(toggle_OFF))
+                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
                 print(get_stop_acq_trigger)
-                if get_stop_acq_trigger == str(toggle_OFF):
+                if toggle_OFF in get_stop_acq_trigger:
                     acq_event.clear()
                     reset_buffer()
             else:
