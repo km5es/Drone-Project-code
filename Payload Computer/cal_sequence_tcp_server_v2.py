@@ -75,8 +75,9 @@ def send_telem(keyword, serial_object, repeat_keyword):
     Send keyword over telemetry radio for a total of repeat_keyword times.
     """
     for n in range(repeat_keyword):
-        serial_object.write(keyword)
+        keyword = keyword + keyword
         n += 1
+    serial_object.write(keyword)
 
 
 def reset_buffer():
