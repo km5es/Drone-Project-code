@@ -34,7 +34,7 @@ handshake_conf      = 'serialOK'
 shutdown            = 'shutdown'
 acq_event           = Event()
 timeout             = 4
-repeat_keyword      = 32
+repeat_keyword      = 8
 ser                 = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
 
