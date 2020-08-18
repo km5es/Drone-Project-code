@@ -9,8 +9,9 @@ Author: Krishna Makhija
 data: 6th August 2020
 """
 #TODO: Test data rate calculator.
-#TODO: maybe instead of a short keyword there should be a sequence of the same keywords?
 #TODO: metadata!
+    #FIXME: should I have so many concurrent threads? Only 4 cores on the RPi .. make it a process instead?
+#TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
 
 import socket
 import serial
@@ -22,8 +23,10 @@ import timeit
 import time
 from serial.serialutil import SerialException
 from threading import Thread, Event
-import psutil
+#import psutil
 import rospy
+from geometry_msgs.msg import PoseStamped
+from mavros_msgs.msg import PositionTarget
 
 ##### Define global variables
 
@@ -31,8 +34,10 @@ client              = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
-client_script_name  = 'tcp_toggle.py'
+client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = '/home/kmakhija/'             # data files save path
+metadata            = path + 'meta.dat'             # metadata file (contains temp, IMU, and GPSDO data)
+file                = open(metadata, 'w')           # open metadata file for writing
 startup_initiate    = 'pay_INIT'                    # check to see if payload is running
 startup_confirm     = 'INITconf'                    # confirmation msg from payload if running
 handshake_start     = 'is_comms'                    # begin handshake prior to save data
@@ -40,17 +45,22 @@ handshake_conf      = 'serialOK'                    # confirmation from payload 
 toggle_ON           = 'start_tx'                    # message to payload to start cal
 toggle_OFF          = 'stop_acq'                    # message from payload to stop saving
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
-acq_event           = Event()
+acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial('/dev/ttyUSB0', 57600)
 ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
 
+
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 
+
 if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
     msg_len = len(toggle_ON)
+else:
+    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
+
 
 ### Define objects
 
@@ -63,19 +73,63 @@ def send_telem(keyword, serial_object, repeat_keyword):
     serial_object.write(new_keyword)
 
 
-def recv_telem(recvd_msg, keyword):
-    """
-    Search received telem message for operative keyword. Return True is keyword is found. False otherwise.
-    """
-    return keyword in recvd_msg
-
-
 def reset_buffer():
     """
     Clear telemetry radio buffers whenever possible.
     """
     ser.reset_input_buffer()
     ser.reset_output_buffer()
+
+
+def callback_local(data):
+    """
+    Callback object for drone's local position.
+    """
+    file.write("\t\t%s\t%s\t%s" % (data.pose.position.x,
+                                   data.pose.position.y, data.pose.position.z))
+    rospy.sleep(0.2)
+
+
+def callback_setpoint(data):
+    """
+    Callback object for drone's  setpoint position.
+    """
+    file.write("\t\t\t\t\t%s\t%s\t%s\n" %
+               (data.position.x, data.position.y, data.position.z))
+    rospy.sleep(0.2)
+
+
+def callback_SDR(data):
+    """
+    Callback object for SDR temperature.
+    """
+    current_time = time.strftime("%H%M%S-%d%m%Y")
+    file.write("%s\t%s\t" % (current_time, data))
+    rospy.sleep(0.2)
+
+
+def get_metadata():
+    """
+    ROS listener node for IMU data.
+    """
+    file.write("Timestamp\tTemperature\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\n")
+    rospy.init_node('get_metadata', anonymous=True)
+    while True:
+        if acq_event.is_set():
+            print(colored('Saving metadata in ' +
+                          str(metadata), 'grey', 'on_white'))
+            start = time.time()
+            start_timeout = start + timeout
+            rospy.Subscriber('sdr_temperature', Float32, callback_SDR)
+            rospy.Subscriber('/mavros/local_position/pose',
+                             PoseStamped, callback_local)
+            rospy.Subscriber('/mavros/setpoint_raw/target_local',
+                             PositionTarget, callback_setpoint)
+            rospy.spin()
+            if acq_event.is_set() == False:
+                break
+            elif time.time() > start_timeout:
+                break
 
 
 def temp_connect():
@@ -197,18 +251,25 @@ def manual_trigger_events():
                 pass
 
 
-if __name__ == '__main__':
+def main():
     try:
-        t1 = Thread(target=recv_data)
-        t2 = Thread(target=ros_events)
-#        t3 = Thread(target=manual_trigger_events)
+        t1 = Thread(target = recv_data)
+        t2 = Thread(target = ros_events)
+        t3 = Thread(target = manual_trigger_events)
+        t4 = Thread(target = get_metadata)
         t1.start()
         t2.start()
-#        t3.start()
+        t3.start()
+        t4.start()
         t1.join()
         t2.join()
-#        t3.join()
+        t3.join()
+        t4.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')
         os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+
+
+if __name__ == '__main__':
+    main()
