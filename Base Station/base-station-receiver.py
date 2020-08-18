@@ -224,7 +224,7 @@ def manual_trigger_events():
     Manually trigger payload and initiate saving data on base station.
     '''
     while True:                                     
-        msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
+        msg = input("Enter serial comms message here: ")        # send is_comms handshake request
 #        ser.write(msg)
         send_telem(msg, ser, repeat_keyword)
         if msg == str(shutdown):
