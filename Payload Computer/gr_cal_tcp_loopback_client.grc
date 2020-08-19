@@ -50,7 +50,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 4096*16
+    value: '256'
   states:
     bus_sink: false
     bus_source: false
@@ -246,9 +246,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1000, 490]
+    coordinate: [1009, 676]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: device_transport
   id: parameter
   parameters:
@@ -716,7 +716,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1112, 613]
+    coordinate: [1343, 606]
     rotation: 0
     state: enabled
 - name: zeromq_sub_source_0
@@ -732,7 +732,7 @@ blocks:
     pass_tags: 'False'
     timeout: '100'
     type: complex
-    vlen: '1'
+    vlen: min_buffer
   states:
     bus_sink: false
     bus_source: false
@@ -742,7 +742,8 @@ blocks:
     state: true
 
 connections:
-- [zeromq_sub_source_0, '0', uhd_usrp_sink_0, '0']
+- [blocks_vector_to_stream_0, '0', uhd_usrp_sink_0, '0']
+- [zeromq_sub_source_0, '0', blocks_vector_to_stream_0, '0']
 
 metadata:
   file_format: 1
