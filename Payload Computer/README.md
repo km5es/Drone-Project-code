@@ -10,15 +10,41 @@ Current candidates for the payload computer are: [Raspberry Pi 4B](https://www.r
 Here's how to set things up on the payload computer. 
 
 ### Dependencies
-Some dependencies are not listed on the Ettus website. I kept getting cmake errors on the Raspberry Pi 4B when trying to build from the UHd repo. Start by doing this:
-```
-sudo apt install python-pip python3-pip aptitude
-pip install serial pyserial termcolor numpy scipy mako
-```
-Then install GNU Radio and UHD by following instructions from the main README file.
+Currently testing everything using Ubuntu 20.04, ROS Noetic, Python 3.0, GNU Radio 3.8, and UHD 3.15. 
 
-### ROS
-The Raspbery Pi version of ROS can be downloaded by following instructions [here][ROSberryPi_link] when using Raspbian. For a vanilla Ubuntu 18.04 or Mate 18.04 use [this][melodic_install] instead.
+#### SDR-related dependencies
+Instructions [here][uhd] and [here][uhd2].
+```
+sudo apt-get install libboost-all-dev libusb-1.0-0-dev python-mako doxygen python-docutils cmake build-essential
+sudo apt-get install libuhd-dev libuhd003 uhd-host
+```
+>****Note:**** If libuhd003 is not found, skip installing it. This will still give you the latest version of UHD and GNU Radio and it seems to work fine for me now.
+
+
+#### ROS
+The Raspbery Pi version of ROS can be downloaded by following instructions [here][ROSberryPi_link] when using Raspbian. For a vanilla Ubuntu 18.04 or Mate 18.04 use [this][noetic_install] instead. 
+Add the following to the ~/.bashrc file:
+```
+source /opt/ros/noetic/setup.bash
+source /home/ubuntu/catkin_ws/devel/setup.bash
+export PYTHONPATH=/usr/lib/python3/dist-packages:/usr/lib/python3/site-packages:$PYTHONPATH
+export LD_LIBRARY_PATH=/usr/lib:$LD_LIBRARY_PATH
+```
+
+Then set up a catkin workspace:
+```
+mkdir ~/catkin_ws/src/ -p && cd ~/catkin_ws/
+catkin_make
+```
+
+
+#### Additional dependencies
+```
+sudo apt install python3-pip aptitude git
+pip3 install serial pyserial termcolor numpy scipy mako
+sudo apt install ros-noetic-mavros
+```
+
 
 ### Clone the repo on the payload computer:
 ```
@@ -38,5 +64,7 @@ To recover logs:
 cat ~/cronlog
 ```
 
+[uhd]: https://files.ettus.com/manual/page_build_guide.html
+[uhd2]: https://files.ettus.com/manual/page_install.html
 [ROSberryPi_link]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
-[melodic_install]: http://wiki.ros.org/melodic/Installation/Ubuntu
+[noetic_install]: http://wiki.ros.org/noetic/Installation/Ubuntu
