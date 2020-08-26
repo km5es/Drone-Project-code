@@ -10,7 +10,6 @@
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
 # GNU Radio version: 3.8.1.0
 
-from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
 import sys
@@ -31,14 +30,14 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 7.68e6*2
-        self.min_buffer = min_buffer = 256
+        self.min_buffer = min_buffer = 256**2
         self.freq = freq = 150e6
 
         ##################################################
         # Blocks
         ##################################################
-        self.zeromq_sub_source_0 = zeromq.sub_source(gr.sizeof_gr_complex, min_buffer, 'tcp://127.0.0.1:8810', 100, False, -1)
-        self.zeromq_sub_source_0.set_min_output_buffer(256)
+        self.zeromq_sub_source_0 = zeromq.sub_source(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:8810', 100, False, -1)
+        self.zeromq_sub_source_0.set_min_output_buffer(65536)
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
             ",".join(("", "")),
             uhd.stream_args(
@@ -53,16 +52,13 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_gain(20, 0)
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
         self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec())
-        self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
-        self.blocks_vector_to_stream_0.set_min_output_buffer(256)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_vector_to_stream_0, 0), (self.uhd_usrp_sink_0, 0))
-        self.connect((self.zeromq_sub_source_0, 0), (self.blocks_vector_to_stream_0, 0))
+        self.connect((self.zeromq_sub_source_0, 0), (self.uhd_usrp_sink_0, 0))
 
     def get_samp_rate(self):
         return self.samp_rate
