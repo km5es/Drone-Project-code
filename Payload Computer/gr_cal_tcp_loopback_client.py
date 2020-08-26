@@ -23,8 +23,13 @@ from gnuradio import zeromq
 
 class gr_cal_tcp_loopback_client(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, device_transport=send_frame_size=8192, num_send_frames=512):
         gr.top_block.__init__(self, "gr_cal_tcp_loopback_client")
+
+        ##################################################
+        # Parameters
+        ##################################################
+        self.device_transport = device_transport
 
         ##################################################
         # Variables
@@ -39,7 +44,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.zeromq_sub_source_0 = zeromq.sub_source(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:8810', 100, False, -1)
         self.zeromq_sub_source_0.set_min_output_buffer(65536)
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
-            ",".join(("", "")),
+            ",".join(('device_transport', "")),
             uhd.stream_args(
                 cpu_format="fc32",
                 args='',
@@ -59,6 +64,12 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         # Connections
         ##################################################
         self.connect((self.zeromq_sub_source_0, 0), (self.uhd_usrp_sink_0, 0))
+
+    def get_device_transport(self):
+        return self.device_transport
+
+    def set_device_transport(self, device_transport):
+        self.device_transport = device_transport
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -81,8 +92,15 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
 
+def argument_parser():
+    description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
+    parser = ArgumentParser(description=description)
+    return parser
+
 
 def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
+    if options is None:
+        options = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print("Error: failed to enable real-time scheduling.")
     tb = top_block_cls()

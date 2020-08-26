@@ -258,14 +258,14 @@ blocks:
     label: ''
     short_id: ''
     type: ''
-    value: str(send_frame_size=8192, num_send_frames=512)
+    value: send_frame_size=8192, num_send_frames=512
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
     coordinate: [344, 6]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
@@ -343,7 +343,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 334]
+    coordinate: [675, 276]
     rotation: 0
     state: disabled
 - name: qtgui_time_sink_x_0
@@ -554,7 +554,7 @@ blocks:
     clock_source6: ''
     clock_source7: ''
     comment: ''
-    dev_addr: '""'
+    dev_addr: device_transport
     dev_args: '""'
     gain0: '20'
     gain1: '0'
