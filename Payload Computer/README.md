@@ -51,7 +51,23 @@ sudo apt install ros-noetic-mavros
 cd /home/$USER/
 git clone https://github.com/km5es/Drone-Project-code.git
 ```
-Add a cron job:
+
+#### Configure USB rules:
+USB udev rules need to be configured using instructions found [here][uhd_install_from_git]. For convenience, the instructions are reproduced here as well.
+```
+cd /home/$USER/Drone-Project-code/Payload\ Computer
+sudo cp uhd-usrp.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+sudo groupadd usrp
+sudo usermod -aG usrp $USER
+```
+Then add the following line to `/etc/security/limits.conf`
+```
+@usrp - rtprio  99
+```
+
+Log out and log back in. Might be safer to simply reboot the payload computer. Finally, add a cron job:
 ```
 crontab -e
 ```
@@ -63,8 +79,10 @@ To recover logs:
 ```
 cat ~/cronlog
 ```
+>__NOTE__: As of August 2020, there are several issues with USB performances on RPi running Ubuntu 20.04 and Python 3.0/GNU Radio 3.8. Going to revert to Ubuntu 18.04 and GNU Radio 3.7.13.4 for now.
 
 [uhd]: https://files.ettus.com/manual/page_build_guide.html
 [uhd2]: https://files.ettus.com/manual/page_install.html
 [ROSberryPi_link]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
 [noetic_install]: http://wiki.ros.org/noetic/Installation/Ubuntu
+[uhd_install_from_git]: https://kb.ettus.com/Building_and_Installing_the_USRP_Open-Source_Toolchain_(UHD_and_GNU_Radio)_on_Linux
