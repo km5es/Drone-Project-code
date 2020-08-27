@@ -156,9 +156,9 @@ def serial_radio_events():
             reset_buffer()
 #        elif get_handshake == str(shutdown):
         elif shutdown in get_handshake.decode():
-            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-            break
+            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+
 
 
 def main():

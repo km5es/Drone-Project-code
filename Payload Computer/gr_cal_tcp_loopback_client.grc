@@ -43,19 +43,19 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [268, 8]
+    coordinate: [282, 3]
     rotation: 0
     state: enabled
 - name: min_buffer
   id: variable
   parameters:
     comment: ''
-    value: 256**2
+    value: 512*8200*2
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 4]
+    coordinate: [534, 3]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -67,188 +67,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 8]
+    coordinate: [193, 3]
     rotation: 0
     state: enabled
-- name: analog_sig_source_x_0
-  id: analog_sig_source_x
-  parameters:
-    affinity: ''
-    alias: ''
-    amp: '0.5'
-    comment: ''
-    freq: '1000'
-    maxoutbuf: '0'
-    minoutbuf: min_buffer
-    offset: '0'
-    phase: '0'
-    samp_rate: samp_rate
-    type: complex
-    waveform: analog.GR_SIN_WAVE
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [148, 356]
-    rotation: 0
-    state: disabled
-- name: blks2_tcp_source_0
-  id: blks2_tcp_source
-  parameters:
-    addr: 127.0.0.1
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: min_buffer
-    port: '8810'
-    server: 'False'
-    type: complex
-    vlen: min_buffer
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [281, 297]
-    rotation: 0
-    state: disabled
-- name: blocks_file_sink_0
-  id: blocks_file_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    append: 'False'
-    comment: ''
-    file: /mnt/DA14988F1498706D/Google Drive/UVa/Research/PhD Research/GRC/GRC_1804/qpsk_waveform_transfer
-    type: complex
-    unbuffered: 'False'
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [648, 406]
-    rotation: 0
-    state: disabled
-- name: blocks_file_source_0
-  id: blocks_file_source
-  parameters:
-    affinity: ''
-    alias: ''
-    begin_tag: pmt.PMT_NIL
-    comment: ''
-    file: /mnt/DA14988F1498706D/Google Drive/UVa/Research/PhD Research/GRC/GRC_1804/qpsk_waveform_transfer
-    length: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    repeat: 'True'
-    type: complex
-    vlen: '1024'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [192, 140]
-    rotation: 0
-    state: disabled
-- name: blocks_socket_pdu_0
-  id: blocks_socket_pdu
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    host: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    mtu: '10000'
-    port: '52001'
-    tcp_no_delay: 'False'
-    type: TCP_SERVER
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [41, 264]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle_0
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1024'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [432, 116]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle_1
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [592, 96]
-    rotation: 0
-    state: disabled
-- name: blocks_udp_source_0
-  id: blocks_udp_source
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    eof: 'True'
-    ipaddr: 127.0.0.1
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    port: '1234'
-    psize: '1472'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [358, 572]
-    rotation: 0
-    state: disabled
-- name: blocks_vector_to_stream_0
-  id: blocks_vector_to_stream
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: min_buffer
-    num_items: min_buffer
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [997, 402]
-    rotation: 0
-    state: disabled
 - name: device_transport
   id: parameter
   parameters:
@@ -263,184 +84,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [344, 6]
-    rotation: 0
-    state: enabled
-- name: qtgui_freq_sink_x_0
-  id: qtgui_freq_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    average: '1.0'
-    axislabels: 'True'
-    bw: samp_rate
-    color1: '"blue"'
-    color10: '"dark blue"'
-    color2: '"red"'
-    color3: '"green"'
-    color4: '"black"'
-    color5: '"cyan"'
-    color6: '"magenta"'
-    color7: '"yellow"'
-    color8: '"dark red"'
-    color9: '"dark green"'
-    comment: ''
-    ctrlpanel: 'True'
-    fc: '0'
-    fftsize: '1024'
-    freqhalf: 'True'
-    grid: 'True'
-    gui_hint: ''
-    label: Relative Gain
-    label1: ''
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    legend: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    name: '""'
-    nconnections: '1'
-    showports: 'True'
-    tr_chan: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_tag: '""'
-    type: complex
-    units: dB
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    wintype: firdes.WIN_BLACKMAN_hARRIS
-    ymax: '10'
-    ymin: '-140'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [675, 276]
-    rotation: 0
-    state: disabled
-- name: qtgui_time_sink_x_0
-  id: qtgui_time_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    axislabels: 'True'
-    color1: blue
-    color10: dark blue
-    color2: red
-    color3: green
-    color4: black
-    color5: cyan
-    color6: magenta
-    color7: yellow
-    color8: dark red
-    color9: dark green
-    comment: ''
-    ctrlpanel: 'True'
-    entags: 'True'
-    grid: 'True'
-    gui_hint: ''
-    label1: ''
-    label10: ''
-    label2: ''
-    label3: ''
-    label4: ''
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    legend: 'True'
-    marker1: '-1'
-    marker10: '-1'
-    marker2: '-1'
-    marker3: '-1'
-    marker4: '-1'
-    marker5: '-1'
-    marker6: '-1'
-    marker7: '-1'
-    marker8: '-1'
-    marker9: '-1'
-    name: '""'
-    nconnections: '1'
-    size: 1024*100
-    srate: samp_rate
-    stemplot: 'False'
-    style1: '1'
-    style10: '1'
-    style2: '1'
-    style3: '1'
-    style4: '1'
-    style5: '1'
-    style6: '1'
-    style7: '1'
-    style8: '1'
-    style9: '1'
-    tr_chan: '0'
-    tr_delay: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_slope: qtgui.TRIG_SLOPE_POS
-    tr_tag: '""'
-    type: complex
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    ylabel: Amplitude
-    ymax: '1'
-    ymin: '-1'
-    yunit: '""'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [648, 162]
+    coordinate: [364, 2]
     rotation: 0
     state: disabled
 - name: uhd_usrp_sink_0
@@ -554,7 +198,7 @@ blocks:
     clock_source6: ''
     clock_source7: ''
     comment: ''
-    dev_addr: device_transport
+    dev_addr: recv_frame_size=8200, num_recv_frames=2048
     dev_args: '""'
     gain0: '20'
     gain1: '0'
@@ -589,7 +233,7 @@ blocks:
     gain8: '0'
     gain9: '0'
     len_tag_name: ''
-    lo_export0: 'False'
+    lo_export0: 'True'
     lo_export1: 'False'
     lo_export10: 'False'
     lo_export11: 'False'
@@ -654,7 +298,7 @@ blocks:
     lo_source8: internal
     lo_source9: internal
     maxoutbuf: '0'
-    minoutbuf: '0'
+    minoutbuf: min_buffer
     nchan: '1'
     norm_gain0: 'False'
     norm_gain1: 'False'
@@ -716,7 +360,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1197, 619]
+    coordinate: [635, 135]
     rotation: 0
     state: enabled
 - name: zeromq_sub_source_0
@@ -730,14 +374,14 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: min_buffer
     pass_tags: 'False'
-    timeout: '100'
+    timeout: '10000'
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [728, 655]
+    coordinate: [182, 224]
     rotation: 0
     state: true
 
