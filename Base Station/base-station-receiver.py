@@ -70,7 +70,7 @@ def send_telem(keyword, serial_object, repeat_keyword):
     """
     for n in range(repeat_keyword):
         new_keyword = keyword + n*keyword
-    serial_object.write(new_keyword)
+    serial_object.write(new_keyword.encode())
 
 
 def reset_buffer():
@@ -150,7 +150,7 @@ def recv_data():
             print('Trigger from payload recd. Saving data now.')
             timestring      = time.strftime("%H%M%S-%d%m%Y")         
             filename        = path + timestring + str("_milton.dat")
-            f               = open(filename, "w")
+            f               = open(filename, "wb")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
 #                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
 #            file_meta       = path + timestring + str("_meta.dat")
@@ -186,7 +186,7 @@ def ros_events():
 #        ser.write(startup_initiate)
         send_telem(startup_initiate, ser, repeat_keyword)
         get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
-        if startup_confirm in get_startup_confirmation:
+        if startup_confirm in get_startup_confirmation.decode():
             print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
         else:
             print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
@@ -200,7 +200,7 @@ def ros_events():
 #            ser.write(handshake_start)
             send_telem(handshake_start, ser, repeat_keyword)
             get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
-            if handshake_conf in get_handshake_conf:
+            if handshake_conf in get_handshake_conf.decode():
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
 #                ser.write(toggle_ON)
@@ -208,7 +208,7 @@ def ros_events():
                 acq_event.set()
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
                 print(get_stop_acq_trigger)
-                if toggle_OFF in get_stop_acq_trigger:
+                if toggle_OFF in get_stop_acq_trigger.decode():
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
@@ -233,9 +233,9 @@ def manual_trigger_events():
             os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
         elif msg == str(handshake_start):
-            get_handshake_conf = ser_timeout.read(msg_len)
+            get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
             print(get_handshake_conf)
-            if handshake_conf in get_handshake_conf:
+            if handshake_conf in get_handshake_conf.decode():
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
 #                ser.write(toggle_ON)
@@ -243,7 +243,7 @@ def manual_trigger_events():
                 acq_event.set()
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
                 print(get_stop_acq_trigger)
-                if toggle_OFF in get_stop_acq_trigger:
+                if toggle_OFF in get_stop_acq_trigger.decode():
                     acq_event.clear()
                     reset_buffer()
             else:
