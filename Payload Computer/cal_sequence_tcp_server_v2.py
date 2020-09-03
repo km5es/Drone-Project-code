@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# ZMQ publisher
+# server
 '''
 This script will combine with gr_cal_tcp_loopback_client.py to generate a cal signal from the drone. It reads from serial radio for
 a trigger to begin the sequence. Once that is received, a TCP connection is established with the aforementioned GRC script, and a file
@@ -24,7 +24,6 @@ from datetime import datetime
 import sys
 from threading import Thread, Event
 import time
-import zmq
 
 
 ### Define global variables
@@ -48,19 +47,16 @@ client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
 
-ctx = zmq.Context()
-sock = ctx.socket(zmq.PUB)
-sock.bind("tcp://*:" + str(port))
 
 ### Make TCP and serial connections
 
-#os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-#s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#s.bind((host, port))                                        # Bind to the port
-#s.listen(5)                                                 # Now wait for client connection.
-#conn, addr = s.accept()
-#print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
-#print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
+os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind((host, port))                                        # Bind to the port
+s.listen(5)                                                 # Now wait for client connection.
+conn, addr = s.accept()
+print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
+print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 
 if ser.isOpen() == True:
     ser.reset_input_buffer()
@@ -80,7 +76,7 @@ def send_telem(keyword, serial_object, repeat_keyword):
     """
     for n in range(repeat_keyword):
         new_keyword = keyword + n*keyword
-    serial_object.write(new_keyword.encode())
+    serial_object.write(new_keyword)
 
 
 def reset_buffer():
@@ -101,14 +97,14 @@ def stream_file():
     f = open(filename,'rb')
     cal_signal = f.read()
     while trigger_event.is_set() == False:
-        sock.send(condition_LO)
+        conn.send(condition_LO)
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             pulses = 0
             for pulses in range(togglePoint):
-                sock.send(cal_signal)
+                conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint/2:
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
@@ -129,14 +125,14 @@ def serial_radio_events():
     while True:
         get_handshake = ser.read(msg_len*repeat_keyword)
 #        if get_handshake == handshake_start:
-        if handshake_start in get_handshake.decode():
+        if handshake_start in get_handshake:
             print(colored('Received handshake request from base station.', 'cyan'))
 #            ser.write(handshake_conf)
             send_telem(handshake_conf, ser, repeat_keyword)
             reset_buffer()
             get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake   
 #            if get_trigger_from_base == str(toggle_ON):
-            if toggle_ON in get_trigger_from_base.decode():
+            if toggle_ON in get_trigger_from_base:
                 trigger_event.set()
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
@@ -149,32 +145,22 @@ def serial_radio_events():
                 print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                 pass
 #        elif get_handshake == startup_initiate:
-        elif startup_initiate in get_handshake.decode():
+        elif startup_initiate in get_handshake:
             print(colored('The base has started up and is talking.', 'grey', 'on_green'))
 #            ser.write(startup_confirm)
             send_telem(startup_confirm, ser, repeat_keyword)
             reset_buffer()
 #        elif get_handshake == str(shutdown):
-        elif shutdown in get_handshake.decode():
+        elif shutdown in get_handshake:
+            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+            break
 
 
-
-def main():
-    """
-    Initiate threads, raise exceptions and open/close socket connections.
-    """
+if __name__ == '__main__':
     t1 = Thread(target=serial_radio_events)
     t2 = Thread(target=stream_file)
     t1.start()
     t2.start()
     t1.join()
     t2.join()
-    
-    sock.close()
-    ctx.term()
-
-
-if __name__ == '__main__':
-    main()
