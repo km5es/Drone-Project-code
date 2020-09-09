@@ -57,7 +57,7 @@ def listener():
     rospy.set_param('trigger/metadata', False)
     while not rospy.is_shutdown():
         time.sleep(0.001)
-        if rospy.get_param('trigger/metadata') == True:
+        while rospy.get_param('trigger/metadata') == True:
             print(colored('Saving metadata in ' + str(metadata), 'grey', 'on_white'))
             rospy.Subscriber('/mavros/local_position/pose',
                              PoseStamped, callback_local)

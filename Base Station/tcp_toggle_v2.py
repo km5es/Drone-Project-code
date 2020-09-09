@@ -14,6 +14,10 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
+from threading import Thread
+import socket
+import rospy
+from std_msgs.msg import Float32
 
 
 class tcp_toggle(gr.top_block):
@@ -80,20 +84,58 @@ class tcp_toggle(gr.top_block):
         self.uhd_usrp_source_0.set_center_freq(self.freq, 0)
         self.uhd_usrp_source_0.set_center_freq(self.freq, 1)
 
+    def get_temp(self):
+        return self.uhd_usrp_source_0.get_sensor('temp').to_real()
+
 
 def main(top_block_cls=tcp_toggle, options=None):
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
-
+    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
+    rospy.init_node('SDR_temperature_node', anonymous=True)
+    rate = rospy.Rate(5) # 5 Hz
+    
     tb = top_block_cls()
     tb.start()
-    try:
-        raw_input('Press Enter to quit: ')
-    except EOFError:
-        pass
+
+    while not rospy.is_shutdown():
+        temp = tb.get_temp()
+#        rospy.loginfo(temp)
+        pub.publish(temp)
+        rate.sleep()
+
     tb.stop()
     tb.wait()
 
 
+def temp_over_socket(top_block_cls=tcp_toggle, options=None):
+    """
+    When a ROS event is set, this object will send temp data over a socket connection to its companion
+    script.
+    """
+    if gr.enable_realtime_scheduling() != gr.RT_OK:
+        print "Error: failed to enable real-time scheduling."
+
+    tb = top_block_cls()
+    port    = 7890
+    #s       = socket.socket()                       # Create a socket object
+    #host    = socket.gethostbyname('127.0.0.1')     # Get local machine name
+    #s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    #s.bind((host, port))                            # Bind to the port
+#   # while True:
+    #s.listen(100)                                   # Now wait for client connection.
+    #conn, addr = s.accept()
+    #print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
+    #print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
+    #while conn is not False:
+    #    conn.send(tb.get_temp)
+    #    time.sleep(0.25)
+
 if __name__ == '__main__':
     main()
+#    t1 = Thread(target = main)
+#    t2 = Thread(target = temp_over_socket)
+#    t1.start()
+#    t2.start()
+#    t1.join()
+#    t2.join()
