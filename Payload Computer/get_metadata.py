@@ -13,11 +13,12 @@ import time
 from termcolor import colored
 from std_msgs.msg import Float32
 
-path        = '/home/ubuntu/'             # data files save path
-metadata    = path + 'meta.dat'
-file        = open(metadata, 'w')
-acq_event   = Event()
-timeout     = 4
+path            = '/home/kmakhija/'             # data files save path
+metadata        = path + 'meta.dat'
+file            = open(metadata, 'w')
+acq_event       = Event()
+timeout         = 4
+refresh_rate    = 10.0                          # 10 Hz for now
 
 def callback_local(data):
     """
@@ -25,7 +26,7 @@ def callback_local(data):
     """
     file.write("\t\t%s\t%s\t%s" % (data.pose.position.x,
                                    data.pose.position.y, data.pose.position.z))
-    rospy.sleep(0.2)
+    rospy.sleep(1/refresh_rate)
 
 
 def callback_setpoint(data):
@@ -34,7 +35,7 @@ def callback_setpoint(data):
     """
     file.write("\t\t\t\t\t%s\t%s\t%s\n" %
                (data.position.x, data.position.y, data.position.z))
-    rospy.sleep(0.2)
+    rospy.sleep(1/refresh_rate)
 
 
 def callback_SDR(data):
@@ -43,7 +44,7 @@ def callback_SDR(data):
     """
     current_time = time.strftime("%H%M%S-%d%m%Y")
     file.write("%s\t%s\t" % (current_time, data))
-    rospy.sleep(0.2)
+    rospy.sleep(1/refresh_rate)
 
 
 def listener():
@@ -54,20 +55,22 @@ def listener():
     """
     file.write('Timestamp\tTemperature\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\n')
     rospy.init_node('get_metadata', anonymous=True)
-    rospy.set_param('trigger/metadata', False)
+    rospy.set_param('trigger/metadata_ON', False)
     while not rospy.is_shutdown():
         time.sleep(0.001)
-        if rospy.get_param('trigger/metadata') == True:
+        if rospy.get_param('trigger/metadata_ON') == True:
             print(colored('Saving metadata in ' + str(metadata), 'grey', 'on_white'))
             rospy.Subscriber('/mavros/local_position/pose',
                              PoseStamped, callback_local)
             rospy.Subscriber('/mavros/setpoint_raw/target_local',
                              PositionTarget, callback_setpoint)
             rospy.Subscriber('sdr_temperature', Float32, callback_SDR)
-            rospy.spin()
-            if rospy.get_param('trigger/metadata') == False:
+            if rospy.get_param('trigger/metadata_OFF') == True:
+                rospy.set_param('trigger/metadata_ON', False)
                 print('Finished saving metadata for this WP.')
-                break
+
+#            rospy.spin()
+
 
 
 if __name__ == '__main__':

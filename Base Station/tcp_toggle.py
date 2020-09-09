@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Tue Sep  8 22:29:21 2020
+# Generated: Tue Sep  8 23:02:57 2020
 ##################################################
 
 from gnuradio import blocks
@@ -30,6 +30,7 @@ class tcp_toggle(gr.top_block):
         ##################################################
         # Blocks
         ##################################################
+        self.blocks_throttle_1 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_null_source_0 = blocks.null_source(gr.sizeof_gr_complex*1)
         self.blks2_tcp_sink_0 = grc_blks2.tcp_sink(
         	itemsize=gr.sizeof_gr_complex*1,
@@ -43,13 +44,15 @@ class tcp_toggle(gr.top_block):
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_null_source_0, 0), (self.blks2_tcp_sink_0, 0))
+        self.connect((self.blocks_null_source_0, 0), (self.blocks_throttle_1, 0))
+        self.connect((self.blocks_throttle_1, 0), (self.blks2_tcp_sink_0, 0))
 
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
+        self.blocks_throttle_1.set_sample_rate(self.samp_rate)
 
     def get_min_buffer(self):
         return self.min_buffer
