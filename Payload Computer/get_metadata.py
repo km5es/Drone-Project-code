@@ -57,7 +57,7 @@ def listener():
     rospy.set_param('trigger/metadata', False)
     while not rospy.is_shutdown():
         time.sleep(0.001)
-        while rospy.get_param('trigger/metadata') == True:
+        if rospy.get_param('trigger/metadata') == True:
             print(colored('Saving metadata in ' + str(metadata), 'grey', 'on_white'))
             rospy.Subscriber('/mavros/local_position/pose',
                              PoseStamped, callback_local)
@@ -67,7 +67,7 @@ def listener():
             rospy.spin()
             if rospy.get_param('trigger/metadata') == False:
                 print('Finished saving metadata for this WP.')
-                pass
+                break
 
 
 if __name__ == '__main__':
