@@ -80,6 +80,8 @@ class gr_cal_tcp_loopback_client(gr.top_block):
     def set_freq(self, freq):
         self.freq = freq
 
+#    def get_temp(self):
+#        return self.uhd_usrp_source_0.get_sensor('temp').to_real()
 
 def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
@@ -95,9 +97,19 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
         options, _ = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
+#    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
+#    rospy.init_node('SDR_temperature_node', anonymous=True)
+#    rate = rospy.Rate(5) # 5 Hz
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
+
+#    while not rospy.is_shutdown():
+#        temp = tb.get_temp()
+##        rospy.loginfo(temp)
+#        pub.publish(temp)
+#        rate.sleep()
+
     tb.wait()
 
 
