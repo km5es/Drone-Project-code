@@ -100,7 +100,7 @@ def main(top_block_cls=tcp_toggle, options=None):
 
     while not rospy.is_shutdown():
         temp = tb.get_temp()
-        rospy.loginfo(temp)
+#        rospy.loginfo(temp)
         pub.publish(temp)
         rate.sleep()
 

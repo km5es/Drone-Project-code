@@ -251,6 +251,12 @@ def manual_trigger_events():
                 pass
 
 
+def heartbeat():
+    """
+    Send telem heartbeat to ensure payload comms are okay.
+    """
+
+
 def main():
     try:
         t1 = Thread(target = recv_data)
