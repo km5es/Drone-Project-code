@@ -45,6 +45,8 @@ handshake_conf      = 'serialOK'                    # confirmation from payload 
 toggle_ON           = 'start_tx'                    # message to payload to start cal
 toggle_OFF          = 'stop_acq'                    # message from payload to stop saving
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
+startup_SDR         = 'beginSDR'                            # boot up SDR codes.
+reboot_payload      = '_reboot_'                            # reboot payload computer
 acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
@@ -132,15 +134,6 @@ def get_metadata():
                 break
 
 
-def temp_connect():
-    client_temp  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    ip_temp      = socket.gethostbyname("127.0.0.1")
-    port_temp    = 7890
-    address      = (ip_temp, port_temp)
-    client_temp.connect((address))
-#    temp_data    = client_temp.recv(32)
-
-
 def recv_data():
     '''
     Wait for acq_event to begin and stop saving data.
@@ -153,16 +146,11 @@ def recv_data():
             f               = open(filename, "w")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
 #                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-#            file_meta       = path + timestring + str("_meta.dat")
-#            f_meta          = open(file_meta, "w")
-#            temp_connect()
             start           = time.time()
             start_timeout   = start + timeout            
             while True:
                 SDRdata     = client.recv(4096*8*16, socket.MSG_WAITALL)
                 f.write(SDRdata)
-#                temp_data   = client_temp.recv(32)
-#                f_meta.write(temp_data)
                 if acq_event.is_set() == False:
                     break               
                 elif time.time() > start_timeout:
@@ -262,15 +250,12 @@ def main():
         t1 = Thread(target = recv_data)
         t2 = Thread(target = ros_events)
         t3 = Thread(target = manual_trigger_events)
-        t4 = Thread(target = get_metadata)
         t1.start()
         t2.start()
         t3.start()
-        t4.start()
         t1.join()
         t2.join()
         t3.join()
-        t4.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')

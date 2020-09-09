@@ -62,7 +62,7 @@ def main():
         serial_msg = ser.read(msg_len*repeat_keyword)
         print(serial_msg)
         if startup_SDR in serial_msg:
-            os.system('sh start_cal_v2.sh')
+            os.system('sh start_cal_v2.sh >> sdrlog.dat')
         elif reboot_payload in serial_msg:
             os.system('sudo reboot now')
         elif test_hello in serial_msg:

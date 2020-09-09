@@ -24,7 +24,7 @@ from datetime import datetime
 import sys
 from threading import Thread, Event
 import time
-
+import rospy
 
 ### Define global variables
 
@@ -134,9 +134,11 @@ def serial_radio_events():
 #            if get_trigger_from_base == str(toggle_ON):
             if toggle_ON in get_trigger_from_base:
                 trigger_event.set()
+                rospy.set_param('trigger/metadata', True)
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
+                        rospy.set_param('trigger/metadata', False)
                         time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
 #                        ser.write(toggle_OFF)
                         send_telem(toggle_OFF, ser, repeat_keyword)
