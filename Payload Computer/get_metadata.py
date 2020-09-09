@@ -54,6 +54,7 @@ def listener():
     """
     file.write('Timestamp\tTemperature\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\n')
     rospy.init_node('get_metadata', anonymous=True)
+    rospy.set_param('trigger/metadata', False)
     while not rospy.is_shutdown():
         time.sleep(0.001)
         if rospy.get_param('trigger/metadata') == True:
