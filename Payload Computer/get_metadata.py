@@ -15,7 +15,7 @@ import time
 from termcolor import colored
 from std_msgs.msg import Float32
 
-path            = '/home/kmakhija/'             # data files save path
+path            = '/home/ubuntu/'             # data files save path
 local_pose      = path + 'local_pose_meta.dat'
 set_target      = path + 'set_target_meta.dat'
 refresh_rate    = 10.0
