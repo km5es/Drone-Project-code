@@ -12,5 +12,5 @@ roslaunch mavros px4.launch fcu_url:="/dev/ttyACM0:57600" &
 sleep 8;
 
 ### start get_metadata.py
-gnome-terminal -e "bash -c 'python get_metadata.py;'"
+python get_metadata.py &
 
