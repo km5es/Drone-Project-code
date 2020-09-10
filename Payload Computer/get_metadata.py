@@ -22,7 +22,7 @@ def main():
     Initiate metadata file and write to it.
     """
     rospy.init_node('get_metadata', anonymous=True)
-    rospy.set_param('trigger/metadata_ON', False)
+    rospy.set_param('trigger/metadata', False)
     file = open(metadata, "w+")
     file.write("Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\tTemperature\n")
     file.close()
@@ -30,7 +30,7 @@ def main():
     print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
     while not rospy.is_shutdown():
         time.sleep(0.001)
-        if rospy.get_param('trigger/metadata_ON') == True:
+        if rospy.get_param('trigger/metadata') == True:
             print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' + str(metadata), 'grey', 'on_white'))
             file = open(metadata, "a+")
             file.write("Waypoint #%s\n" %(wp_num))
@@ -42,8 +42,7 @@ def main():
 #                sdr_temp        = rospy.wait_for_message('sdr_temperature', Float32)
                 file.write("%s\t%s\t%s\t%s\t" %(current_time, local_pose.pose.position.x, local_pose.pose.position.y, local_pose.pose.position.z))
                 file.write("%s\t%s\t%s\n" %(set_target.position.x, set_target.position.y, set_target.position.z))
-                if rospy.get_param('trigger/metadata_OFF') == True:
-                    rospy.set_param('trigger/metadata_ON', False)
+                if rospy.get_param('trigger/metadata') == False:
                     print('Finished saving metadata for this WP.')
                     file.close()
                     break

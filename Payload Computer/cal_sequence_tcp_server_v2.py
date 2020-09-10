@@ -14,7 +14,7 @@ cal signal is transmitted. This ensures each transmission is phase consistent wi
 #TODO: integrate the circular polarized waveform as well.
 #TODO: identify serial radios using vendor and make. Important.
 #TODO: redirect all print statements to a logfile. 
-#TODO: save GPS and temp info in a log file. Also save IMU data.
+
 
 import socket
 from termcolor import colored
@@ -46,7 +46,7 @@ repeat_keyword      = 4
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
-
+metadata_acq_time   = 10
 
 ### Make TCP and serial connections
 
@@ -116,11 +116,12 @@ def stream_file():
             trigger_event.clear()
 
 
-def serial_radio_events():
+def sync_events():
     '''
     This object is for serial comms. When a handshake request is received, an event will be set in the stream_file() object which 
     will begin the calibration. When calibration is finished an event is set in stream_file() which sends a serial msg from this
     object to the base to stop acquisiiton.
+    In addition, ROS flags will be set to begin and stop metadata generation.
     '''
     while True:
         get_handshake = ser.read(msg_len*repeat_keyword)
@@ -138,11 +139,12 @@ def serial_radio_events():
                 while trigger_event.is_set() == True:
                     if stop_acq_event.is_set():
                         stop_acq_event.clear()
-                        rospy.set_param('trigger/metadata', False)
                         time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
 #                        ser.write(toggle_OFF)
                         send_telem(toggle_OFF, ser, repeat_keyword)
                         reset_buffer()
+                        time.sleep(metadata_acq_time)
+                        rospy.set_param('trigger/metadata', False)
             else:
                 print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                 pass
@@ -160,8 +162,8 @@ def serial_radio_events():
 
 
 if __name__ == '__main__':
-    t1 = Thread(target=serial_radio_events)
-    t2 = Thread(target=stream_file)
+    t1 = Thread(target = sync_events)
+    t2 = Thread(target = stream_file)
     t1.start()
     t2.start()
     t1.join()
