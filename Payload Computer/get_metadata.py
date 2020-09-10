@@ -18,7 +18,7 @@ from std_msgs.msg import Float32
 path            = '/home/ubuntu/'             # data files save path
 local_pose      = path + 'local_pose_meta.dat'
 set_target      = path + 'set_target_meta.dat'
-refresh_rate    = 10.0
+refresh_rate    = 25.0
 
 
 def callback_local(data):
