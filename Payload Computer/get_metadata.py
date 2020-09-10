@@ -5,6 +5,9 @@ saving metadata from the USB connection. Note that it requires MAVROS to be runn
 Author: Krishna Makhija
 date: Sep 8th 2020
 """
+#FIXME: This code does not work with MAVROS in ACM mode. Why? Maybe I need to set up the FC?
+    #FIXME: kind of got it to work. not sure about the setpoint topic though. maybe just set it to save in another file for now?
+
 import rospy
 from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import PositionTarget
@@ -13,13 +16,41 @@ import time
 from termcolor import colored
 from std_msgs.msg import Float32
 
-path        = '/home/ubuntu/'             # data files save path
-metadata    = path + 'meta.dat'
+path            = '/home/kmakhija/'             # data files save path
+metadata        = path + 'meta.dat'
+refresh_rate    = 10.0
 
 
-def main():
+def callback_local(data):
     """
-    Initiate metadata file and write to it.
+    Callback object for drone's local position and timestamp.
+    """
+    current_time = time.strftime("%H%M%S-%d%m%Y")
+    file_a.write("%s\t%s\t%s\t%s" % (current_time, data.pose.position.x,
+                                    data.pose.position.y, data.pose.position.z))
+    rospy.sleep(1/refresh_rate)
+
+
+def callback_setpoint(data):
+    """
+    Callback object for drone's setpoint position.
+    """
+    file_a.write("%s\t%s\t%s\n" %
+               (data.position.x, data.position.y, data.position.z))
+    rospy.sleep(1/refresh_rate)
+
+
+def callback_SDR(data):
+    """
+    Callback object for SDR temperature.
+    """
+    file.write("%s\t" % (data))
+    rospy.sleep(1/refresh_rate)
+
+
+def main_sitl():
+    """
+    Initiate metadata file and write to it. Apparently, this only works with the SITL sims. Go figure.
     """
     rospy.init_node('get_metadata', anonymous=True)
     rospy.set_param('trigger/metadata', False)
@@ -37,14 +68,44 @@ def main():
             wp_num += 1
             while True:
                 current_time    = time.strftime("%H%M%S-%d%m%Y")
+                print(current_time)
                 local_pose      = rospy.wait_for_message('/mavros/local_position/pose', PoseStamped)
                 set_target      = rospy.wait_for_message('/mavros/setpoint_raw/target_local', PositionTarget)
 #                sdr_temp        = rospy.wait_for_message('sdr_temperature', Float32)
                 file.write("%s\t%s\t%s\t%s\t" %(current_time, local_pose.pose.position.x, local_pose.pose.position.y, local_pose.pose.position.z))
                 file.write("%s\t%s\t%s\n" %(set_target.position.x, set_target.position.y, set_target.position.z))
+                
                 if rospy.get_param('trigger/metadata') == False:
                     print('Finished saving metadata for this WP.')
                     file.close()
+                    break
+
+
+def main():
+    """
+    main function for acquiring metadata at waypoints.
+    """
+    global file_a
+    file = open(metadata, "w+")
+    file.write("Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\tTemperature\n")
+    file.close()
+    rospy.init_node('get_metadata', anonymous=True)
+    rospy.set_param('trigger/metadata', False)
+    wp_num = 0
+    print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
+    while not rospy.is_shutdown():
+        time.sleep(0.001)
+        if rospy.get_param('trigger/metadata') == True:
+            print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' + str(metadata), 'grey', 'on_white'))
+            file_a = open(metadata, "a+")
+            file_a.write("Waypoint #%s\n" %(wp_num))
+            wp_num += 1
+            while True:
+                #rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback_local)
+                rospy.Subscriber('/mavros/setpoint_raw/target_local', PositionTarget, callback_setpoint)
+                if rospy.get_param('trigger/metadata') == False:
+                    print('Finished saving metadata for this WP.')
+                    file_a.close()
                     break
 
 
