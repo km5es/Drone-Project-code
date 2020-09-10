@@ -14,7 +14,7 @@ cal signal is transmitted. This ensures each transmission is phase consistent wi
 #TODO: integrate the circular polarized waveform as well.
 #TODO: identify serial radios using vendor and make. Important.
 #TODO: redirect all print statements to a logfile. 
-
+#TODO: replace all print statements with file.write() for logging. or rather, add that in. save in logs dir
 
 import socket
 from termcolor import colored
