@@ -13,7 +13,7 @@ import time
 from termcolor import colored
 from std_msgs.msg import Float32
 
-path        = '/home/kmakhija/'             # data files save path
+path        = '/home/ubuntu/'             # data files save path
 metadata    = path + 'meta.dat'
 
 
