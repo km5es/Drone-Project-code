@@ -13,65 +13,41 @@ import time
 from termcolor import colored
 from std_msgs.msg import Float32
 
-path            = '/home/kmakhija/'             # data files save path
-metadata        = path + 'meta.dat'
-file            = open(metadata, 'w')
-acq_event       = Event()
-timeout         = 4
-refresh_rate    = 10.0                          # 10 Hz for now
-
-def callback_local(data):
-    """
-    Callback object for drone's local position.
-    """
-    file.write("\t\t%s\t%s\t%s" % (data.pose.position.x,
-                                   data.pose.position.y, data.pose.position.z))
-    rospy.sleep(1/refresh_rate)
+path        = '/home/kmakhija/'             # data files save path
+metadata    = path + 'meta.dat'
 
 
-def callback_setpoint(data):
+def main():
     """
-    Callback object for drone's  setpoint position.
+    Initiate metadata file and write to it.
     """
-    file.write("\t\t\t\t\t%s\t%s\t%s\n" %
-               (data.position.x, data.position.y, data.position.z))
-    rospy.sleep(1/refresh_rate)
-
-
-def callback_SDR(data):
-    """
-    Callback object for SDR temperature.
-    """
-    current_time = time.strftime("%H%M%S-%d%m%Y")
-    file.write("%s\t%s\t" % (current_time, data))
-    rospy.sleep(1/refresh_rate)
-
-
-def listener():
-    """
-    ROS listener node for IMU data. This should go on the payload computer. Set a ros param through the
-    payload code when cal begins and ends. Another node listens for that and initiates and disables meta
-    data generation. Why do it this way? Because you can't multithread this for some reason.
-    """
-    file.write('Timestamp\tTemperature\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\n')
     rospy.init_node('get_metadata', anonymous=True)
     rospy.set_param('trigger/metadata_ON', False)
+    file = open(metadata, "w+")
+    file.write("Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\tTemperature\n")
+    file.close()
+    wp_num = 0
+    print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
     while not rospy.is_shutdown():
         time.sleep(0.001)
         if rospy.get_param('trigger/metadata_ON') == True:
-            print(colored('Saving metadata in ' + str(metadata), 'grey', 'on_white'))
-            rospy.Subscriber('/mavros/local_position/pose',
-                             PoseStamped, callback_local)
-            rospy.Subscriber('/mavros/setpoint_raw/target_local',
-                             PositionTarget, callback_setpoint)
-            rospy.Subscriber('sdr_temperature', Float32, callback_SDR)
-            if rospy.get_param('trigger/metadata_OFF') == True:
-                rospy.set_param('trigger/metadata_ON', False)
-                print('Finished saving metadata for this WP.')
-
-#            rospy.spin()
-
+            print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' + str(metadata), 'grey', 'on_white'))
+            file = open(metadata, "a+")
+            file.write("Waypoint #%s\n" %(wp_num))
+            wp_num += 1
+            while True:
+                current_time    = time.strftime("%H%M%S-%d%m%Y")
+                local_pose      = rospy.wait_for_message('/mavros/local_position/pose', PoseStamped)
+                set_target      = rospy.wait_for_message('/mavros/setpoint_raw/target_local', PositionTarget)
+#                sdr_temp        = rospy.wait_for_message('sdr_temperature', Float32)
+                file.write("%s\t%s\t%s\t%s\t" %(current_time, local_pose.pose.position.x, local_pose.pose.position.y, local_pose.pose.position.z))
+                file.write("%s\t%s\t%s\n" %(set_target.position.x, set_target.position.y, set_target.position.z))
+                if rospy.get_param('trigger/metadata_OFF') == True:
+                    rospy.set_param('trigger/metadata_ON', False)
+                    print('Finished saving metadata for this WP.')
+                    file.close()
+                    break
 
 
 if __name__ == '__main__':
-    listener()
+    main()
