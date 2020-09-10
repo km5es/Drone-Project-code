@@ -1,12 +1,11 @@
 """
 This script will run on startup on the payload computer. When a flag is set through ROS, it will begin 
 saving metadata from the USB connection. Note that it requires MAVROS to be running in parallel to work.
+Note also that data from each ROS topic is saved in a separate file.
 
 Author: Krishna Makhija
 date: Sep 8th 2020
 """
-#FIXME: This code does not work with MAVROS in ACM mode. Why? Maybe I need to set up the FC?
-    #FIXME: kind of got it to work. not sure about the setpoint topic though. maybe just set it to save in another file for now?
 
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -17,7 +16,8 @@ from termcolor import colored
 from std_msgs.msg import Float32
 
 path            = '/home/kmakhija/'             # data files save path
-metadata        = path + 'meta.dat'
+local_pose      = path + 'local_pose_meta.dat'
+setpoint        = path + 'setpoint_meta.dat'
 refresh_rate    = 10.0
 
 
@@ -26,7 +26,7 @@ def callback_local(data):
     Callback object for drone's local position and timestamp.
     """
     current_time = time.strftime("%H%M%S-%d%m%Y")
-    file_a.write("%s\t%s\t%s\t%s" % (current_time, data.pose.position.x,
+    local_pose_f_a.write("%s\t%s\t%s\t%s\n" % (current_time, data.pose.position.x,
                                     data.pose.position.y, data.pose.position.z))
     rospy.sleep(1/refresh_rate)
 
@@ -35,8 +35,10 @@ def callback_setpoint(data):
     """
     Callback object for drone's setpoint position.
     """
-    file_a.write("%s\t%s\t%s\n" %
-               (data.position.x, data.position.y, data.position.z))
+    current_time = time.strftime("%H%M%S-%d%m%Y")
+#    setpoint_f_a.write("%s\t%s\t%s\t%s\n" %
+#               (current_time, data.position.x, data.position.y, data.position.z))
+    setpoint_f_a.write("%s" %(current_time))
     rospy.sleep(1/refresh_rate)
 
 
@@ -46,6 +48,41 @@ def callback_SDR(data):
     """
     file.write("%s\t" % (data))
     rospy.sleep(1/refresh_rate)
+
+
+def main():
+    """
+    main function for acquiring metadata at waypoints.
+    """
+    global local_pose_f_a
+    global setpoint_f_a
+    local_pose_f = open(local_pose, "w+")
+    local_pose_f.write("Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\n")
+    local_pose_f.close()
+    setpoint_f = open(setpoint, "w+")
+    setpoint_f.write("Timestamp\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\n")
+    setpoint_f.close()
+    rospy.init_node('get_metadata', anonymous=True)
+    rospy.set_param('trigger/metadata', False)
+    wp_num = 0
+    print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
+    while not rospy.is_shutdown():
+        time.sleep(0.001)
+        if rospy.get_param('trigger/metadata') == True:
+            print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' + str(local_pose) + ' and ' + str(setpoint), 'grey', 'on_white'))
+            local_pose_f_a = open(local_pose, "a+")
+            setpoint_f_a = open(setpoint, "a+")
+            local_pose_f_a.write("Waypoint #%s\n" %(wp_num))
+            setpoint_f_a.write("Waypoint #%s\n" %(wp_num))
+            wp_num += 1
+            while True:
+                rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback_local)
+                rospy.Subscriber('/mavros/setpoint_raw/target_local', PositionTarget, callback_setpoint)
+                if rospy.get_param('trigger/metadata') == False:
+                    print('Finished saving metadata for this WP.')
+                    local_pose_f_a.close()
+                    setpoint_f_a.close()
+                    break
 
 
 def main_sitl():
@@ -71,7 +108,7 @@ def main_sitl():
                 print(current_time)
                 local_pose      = rospy.wait_for_message('/mavros/local_position/pose', PoseStamped)
                 set_target      = rospy.wait_for_message('/mavros/setpoint_raw/target_local', PositionTarget)
-#                sdr_temp        = rospy.wait_for_message('sdr_temperature', Float32)
+                sdr_temp        = rospy.wait_for_message('sdr_temperature', Float32)
                 file.write("%s\t%s\t%s\t%s\t" %(current_time, local_pose.pose.position.x, local_pose.pose.position.y, local_pose.pose.position.z))
                 file.write("%s\t%s\t%s\n" %(set_target.position.x, set_target.position.y, set_target.position.z))
                 
@@ -81,33 +118,8 @@ def main_sitl():
                     break
 
 
-def main():
-    """
-    main function for acquiring metadata at waypoints.
-    """
-    global file_a
-    file = open(metadata, "w+")
-    file.write("Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\tSetpoint (x)\tSetpoint (y)\tSetpoint (z)\tTemperature\n")
-    file.close()
-    rospy.init_node('get_metadata', anonymous=True)
-    rospy.set_param('trigger/metadata', False)
-    wp_num = 0
-    print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
-    while not rospy.is_shutdown():
-        time.sleep(0.001)
-        if rospy.get_param('trigger/metadata') == True:
-            print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' + str(metadata), 'grey', 'on_white'))
-            file_a = open(metadata, "a+")
-            file_a.write("Waypoint #%s\n" %(wp_num))
-            wp_num += 1
-            while True:
-                #rospy.Subscriber('/mavros/local_position/pose', PoseStamped, callback_local)
-                rospy.Subscriber('/mavros/setpoint_raw/target_local', PositionTarget, callback_setpoint)
-                if rospy.get_param('trigger/metadata') == False:
-                    print('Finished saving metadata for this WP.')
-                    file_a.close()
-                    break
-
-
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except ValueError:
+        pass
