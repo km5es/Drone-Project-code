@@ -18,7 +18,13 @@ pip install serial pyserial termcolor numpy scipy mako
 Then install GNU Radio and UHD by following instructions from the main README file.
 
 ### ROS
-The Raspbery Pi version of ROS can be downloaded by following instructions [here][ROSberryPi_link] when using Raspbian. For a vanilla Ubuntu 18.04 or Mate 18.04 use [this][melodic_install] instead.
+The Raspbery Pi version of ROS can be downloaded by following instructions [here][ROSberryPi_link] when using Raspbian. For a vanilla Ubuntu 18.04 or Mate 18.04 use [this][melodic_install] instead. 
+
+For acquiring metadata the flight controller needs to be connected to the payload computer using a USB interface.
+For the ROS topics to be heard by the payload computer, a MAVROS node needs to be running. Install MAVROS package:
+```
+sudo apt install ros-melodic-mavros
+```
 
 ### Clone the repo on the payload computer:
 ```
@@ -31,11 +37,13 @@ crontab -e
 ```
 And then add the following line to the end of the file:
 ```
-@reboot bash ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh >~/cronlog 2>&1
+@reboot ~/Drone-Project-code/Payload\ Computer/connect_to_fc.sh >~/fc_connect 2>&1
+@reboot ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh >~/cal_log 2>&1
 ```
 To recover logs:
 ```
-cat ~/cronlog
+cat ~/cal_log
+cat ~/fc_connect
 ```
 
 [ROSberryPi_link]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
