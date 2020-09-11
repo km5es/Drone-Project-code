@@ -1,6 +1,7 @@
 #!/bin/bash
 #kill -9 $(fuser /dev/ttyUSB0)
-source /home/ubuntu/.bashrc
+/home/ubuntu/.bashrc
+. /home/ubuntu/.bashrc
 
 lsof -t -i tcp:8810 | xargs kill -9
 cd ~/Drone-Project-code/Payload\ Computer/
