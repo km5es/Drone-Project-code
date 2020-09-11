@@ -2,7 +2,7 @@
 #### Used within cron job to start MAVROS and get_metadata.py
 ##### author: Krishna Makhija
 ###### date: Sep 9th 2020
-source ~/.bashrc
+source /home/ubuntu/.bashrc
 
 ### wait for FC to boot up
 sleep 8;
