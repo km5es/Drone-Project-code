@@ -88,6 +88,7 @@ def recv_data():
     Wait for acq_event to begin and stop saving data.
     '''
     while True:
+        sleep(1e-6)
         if acq_event.is_set():
             print('Trigger from payload recd. Saving data now.')
             timestring      = time.strftime("%H%M%S-%d%m%Y")         
@@ -130,6 +131,7 @@ def ros_events():
     else:
         print(colored('No serial connection', 'magenta'))
     while not rospy.is_shutdown():
+        sleep(1e-6)
         if rospy.get_param('trigger/command'):
             rospy.set_param('trigger/command', False)
             rospy.set_param('trigger/acknowledgement', False)
@@ -160,7 +162,8 @@ def manual_trigger_events():
     '''
     Manually trigger payload and initiate saving data on base station.
     '''
-    while True:                                     
+    while True:
+        sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
 #        ser.write(msg)
         send_telem(msg, ser, repeat_keyword)
