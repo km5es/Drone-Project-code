@@ -86,9 +86,9 @@ export PX4_HOME_ALT=28.5
 Replace coordinates as necessary.
 
 ## Autonomy Pipeline
-The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). Here's a flow diagram of the entire process:
+The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). Here is a flow diagram of the entire process:
 
-![pipeline](autonomy_pipeline.jpg)
+![pipeline](autonomy_pipeline_updated.png)
 
 Once the PX4 firmware is up and running, this is how one could simulate the entire pipeline using SITL + Gazebo + ROS + GNURadio/UHD.
 
@@ -139,19 +139,5 @@ To get it to work with QGC, uncheck the option for auto connecting to SiK radio 
 
 #### TODO:
 
-- [x] Add shell script that performs all of the above.
-
-- [x] Add the GNU Radio codes used for generating the calibration waveforms.
-
-- [x] Add the ROS nodes and mission.csv file/folders as well
-
-- [x] Add install geographiclib shell script
-
-- [x] Add Fast-DDS tar file
-
-- [x] Add mission logs folder from Drone-Nav
-
-- [x] Add instruction to change the home position of the drone to Milton 
-
-- [ ] Add 3D CAD files and RF stuff? 
+- [] Add more logs (just events in base and payload.)
 
