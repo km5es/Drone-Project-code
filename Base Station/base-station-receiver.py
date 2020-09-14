@@ -50,8 +50,8 @@ reboot_payload      = '_reboot_'                            # reboot payload com
 acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
-ser                 = serial.Serial('/dev/ttyUSB0', 57600)
-ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
+ser                 = serial.Serial('/dev/ttyPAYLOAD', 57600)
+ser_timeout         = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
 
 
 client.connect((address))

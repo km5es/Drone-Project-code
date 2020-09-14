@@ -29,7 +29,7 @@ event_info      = []
 
 # Begin walk around test (debug only!)
 
-#mission = [[38.0320166, -78.5110083], [38.0321571, -78.5109306], [38.0322860, -78.5108581]]
+#mission = [[38.032276, -78.511203], [38.031997, -78.511043]]
 
 # End walk around test
 
