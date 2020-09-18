@@ -5,7 +5,7 @@ This folder contains all the codes needed to run the calibration signal using th
 * Both the TCP [client](gr_cal_tcp_loopback_client.py) and [server](cal_sequence_tcp_server.py) files need to be added to cron jobs on the payload computer. The [qpsk_waveform](qpsk_Waveform) file needs to be in the same (working) directory. So does the [zeros](zeros) file.
 * A shell script, [start_cal_v2.sh](start_cal_v2.sh) runs both at startup and saves a log of all output to the home directory.
 
-Current candidates for the payload computer are: [Raspberry Pi 4B](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/), [NVIDIA Jetson TX2](https://developer.nvidia.com/embedded/jetson-tx2) with the [Orbitty carrier board](http://connecttech.com/product/orbitty-carrier-for-nvidia-jetson-tx2-tx1/), and an [ODROID XU4](https://www.hardkernel.com/shop/odroid-xu4-special-price/).
+Current candidates for the payload computer are: [Raspberry Pi 4B](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/), [NVIDIA Jetson TX2](https://developer.nvidia.com/embedded/jetson-tx2) with the [Orbitty carrier board](http://connecttech.com/product/orbitty-carrier-for-nvidia-jetson-tx2-tx1/), and an [ODROID XU4](https://www.hardkernel.com/shop/odroid-xu4-special-price/). I am currently moving ahead with a Raspberry Pi 4B with Ubuntu server 18.04.
 
 Here's how to set things up on the payload computer. 
 
@@ -31,7 +31,31 @@ sudo apt install ros-melodic-mavros
 cd /home/$USER/
 git clone https://github.com/km5es/Drone-Project-code.git
 ```
-Add a cron job:
+#### Set up payload for running the ROS + SDR code
+The payload computer will be interfaced via USB to the FC, SDR, and telemetry radios. The Pixhawk 3 Pro is set to have its TELEM1, TELEM2, and TELEM3/4 ports to transmit MAVLink compatible messages. Relevant FC params:
+```
+MAV_2_CONFIG = TELEM3/4
+SER_TEL2_BAUD = 921600
+```
+The FC is interfaced to the Pi using a custom cable and a FTDI to JST-GH [adapter][]. Since there could be conflicting USB port allocations at boot-up one needs to add symlinks to each device. This is done by plugging in each device into a USB port and:
+```
+udevadm info /dev/ttyUSB0 | grep 'VENDOR_ID\|ID_MODEL_ID\|ID_SERIAL_SHORT'
+```
+Here is an example output when the FC is plugged in:
+```
+E: ID_MODEL_ID=6015
+E: ID_SERIAL_SHORT=DM01KU0E
+E: ID_VENDOR_ID=0403
+```
+Enter those data in `/etc/udev/rules.d/99-pixhawk.rules` like so:
+```
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="DM01KU0E", SYMLINK+="ttyFC"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="DN01GA3P", SYMLINK+="ttyTELEM"
+```
+Reboot for it to take effect. 
+>**Note:** The scripts here use the symlinks mentioned above. Please be sure to either change that in the code, or use the exact same symlinks.
+
+Finally, add a cron job to run these scripts at startup.
 ```
 crontab -e
 ```
@@ -48,3 +72,4 @@ cat ~/Drone-Project-code/logs/cal_log
 
 [ROSberryPi_link]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
 [melodic_install]: http://wiki.ros.org/melodic/Installation/Ubuntu
+[adapter]: https://store.mrobotics.io/USB-FTDI-Serial-to-JST-GH-p/mro-ftdi-jstgh01-mr.htm

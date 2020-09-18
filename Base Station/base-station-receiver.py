@@ -8,9 +8,6 @@ forced shutdown of the payload and base station.
 Author: Krishna Makhija
 data: 6th August 2020
 """
-#TODO: Test data rate calculator.
-#TODO: metadata!
-    #FIXME: should I have so many concurrent threads? Only 4 cores on the RPi .. make it a process instead?
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
 
 import socket
@@ -35,9 +32,10 @@ ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
 client_script_name  = 'tcp_toggle.py'               # TCP client name
-path                = '/home/kmakhija/'             # data files save path
-metadata            = path + 'meta.dat'             # metadata file (contains temp, IMU, and GPSDO data)
-file                = open(metadata, 'w')           # open metadata file for writing
+path                = '~'                           # path for saving SDR data
+logs_path           = '~/catkin_ws/src/Drone-Project-code/logs/'             
+log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_base_station_events.log")
+log_events          = open(log_name, "w") 
 startup_initiate    = 'pay_INIT'                    # check to see if payload is running
 startup_confirm     = 'INITconf'                    # confirmation msg from payload if running
 handshake_start     = 'is_comms'                    # begin handshake prior to save data
@@ -45,8 +43,8 @@ handshake_conf      = 'serialOK'                    # confirmation from payload 
 toggle_ON           = 'start_tx'                    # message to payload to start cal
 toggle_OFF          = 'stop_acq'                    # message from payload to stop saving
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
-startup_SDR         = 'beginSDR'                            # boot up SDR codes.
-reboot_payload      = '_reboot_'                            # reboot payload computer
+startup_SDR         = 'beginSDR'                    # boot up SDR codes.
+reboot_payload      = '_reboot_'                    # reboot payload computer
 acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
@@ -56,6 +54,7 @@ ser_timeout         = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
 
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
+log_events.write("Timestamp\tSerial Data\tEvent\n")
 
 
 if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
@@ -83,6 +82,14 @@ def reset_buffer():
     ser.reset_output_buffer()
 
 
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    timestring = time.strftime("%H%M%S-%d%m%Y")
+    return timestring
+
+
 def recv_data():
     '''
     Wait for acq_event to begin and stop saving data.
@@ -91,7 +98,7 @@ def recv_data():
         sleep(1e-6)
         if acq_event.is_set():
             print('Trigger from payload recd. Saving data now.')
-            timestring      = time.strftime("%H%M%S-%d%m%Y")         
+            timestring      = get_timestamp()         
             filename        = path + timestring + str("_milton.dat")
             f               = open(filename, "w")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
@@ -105,6 +112,7 @@ def recv_data():
                     break               
                 elif time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
+                    log_events.write(get_timestamp() + "\t\tNo stop_acq recd, TIMEOUT\n")
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
@@ -124,35 +132,45 @@ def ros_events():
 #        ser.write(startup_initiate)
         send_telem(startup_initiate, ser, repeat_keyword)
         get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
+        log_events.write(get_timestamp() + "\t" + get_startup_confirmation + "\n")
         if startup_confirm in get_startup_confirmation:
             print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
+            log_events.write("\t\tInitial comms with payload UP\n")
         else:
             print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
+            log_events.write("\t\tInitial comms with payload DOWN\n")
     else:
         print(colored('No serial connection', 'magenta'))
+        log_events.write(get_timestamp() + "\t\t" + "Serial comms on BASE DOWN\n")
     while not rospy.is_shutdown():
         sleep(1e-6)
         if rospy.get_param('trigger/command'):
             rospy.set_param('trigger/command', False)
             rospy.set_param('trigger/acknowledgement', False)
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
+            log_events.write(get_timestamp() + "\t\t" + "Drone reached WP.\n")
 #            ser.write(handshake_start)
             send_telem(handshake_start, ser, repeat_keyword)
             get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
+            log_events.write(get_timestamp() + "\t" + get_handshake_conf + "\n")
             if handshake_conf in get_handshake_conf:
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
+                log_events.write("\t\tHandshake recd, toggle SDR ON\n")
 #                ser.write(toggle_ON)
                 send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
                 print(get_stop_acq_trigger)
+                log_events.write(get_timestamp() + "\t" + get_stop_acq_trigger + "\n")
                 if toggle_OFF in get_stop_acq_trigger:
+                    log_events.write("\t\tData acquisition toggled OFF\n")
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
             else:
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
+                log_events.write(get_timestamp() + "\t\tHandshake failed no acquisition\n")
                 rospy.set_param('trigger/acknowledgement', True)
                 reset_buffer()
                 pass
