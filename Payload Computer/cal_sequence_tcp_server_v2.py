@@ -31,8 +31,8 @@ import rospy
 port                = 8810
 togglePoint         = 96                                    # number of pulses after which GPIO is toggled
 sample_packet       = 4096*16                               # Length of one pulse.
-ser                 = serial.Serial('/dev/ttyUSB0', 57600)  
-ser_timeout         = serial.Serial('/dev/ttyUSB0', 57600, timeout=2)
+ser                 = serial.Serial('/dev/ttyTELEM', 57600)  
+ser_timeout         = serial.Serial('/dev/ttyTELEM', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
