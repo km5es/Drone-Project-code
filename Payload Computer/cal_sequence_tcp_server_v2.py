@@ -32,6 +32,8 @@ ser                 = serial.Serial('/dev/ttyTELEM', 57600)
 ser_timeout         = serial.Serial('/dev/ttyTELEM', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
+heartbeat_check     = 'hrt_beat'                            # heartbeat every n secs
+heartbeat_conf      = 'OK_hrtbt'                            # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
 startup_confirm     = 'INITconf'                            # confirmation msg from payload if running
 handshake_start     = 'is_comms'                            # begin handshake prior to save data
@@ -51,6 +53,7 @@ log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_event
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
+
 ### Make TCP and serial connections
 
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
@@ -63,6 +66,7 @@ logging.info("TCP server waiting for connection with GRC client flowgraph")
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(addr))
 
+
 if ser.isOpen() == True:
     ser.reset_input_buffer()
     ser.reset_output_buffer()
@@ -73,11 +77,13 @@ else:
     print(colored('No serial connection', 'magenta'))
     logging.warning('Payload serial is DOWN')
 
+
 if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
     msg_len = len(toggle_ON)
 else:
     raise Exception("Check custom messages to serial radios. Are they the right lengths?")
     logging.warning("Custom msgs through serial not equal length. Sync might not work.")
+
 
 ### Define objects
 
@@ -109,6 +115,7 @@ def stream_file():
     cal_signal = f.read()
     while trigger_event.is_set() == False:
         conn.send(condition_LO)
+
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
@@ -140,6 +147,7 @@ def sync_events():
     while True:
         get_handshake = ser.read(msg_len*repeat_keyword)
         logging.debug("serial data: " +str(get_handshake))
+
         if handshake_start in get_handshake:
             print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
             logging.info("Received handshake from base. Sending confirmation")
@@ -162,16 +170,22 @@ def sync_events():
                 print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                 logging.info("No start cal trigger from base")
                 pass
+
         elif startup_initiate in get_handshake:
             print(colored('The base has started up and is talking.', 'grey', 'on_green'))
             logging.info("The base has started up and is talking")
             send_telem(startup_confirm, ser, repeat_keyword)
             reset_buffer()
+
+        elif heartbeat_check in get_handshake:
+            send_telem(heartbeat_conf, ser, repeat_keyword)
+
         elif shutdown in get_handshake:
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
             logging.info("Manual kill command from base recd. Shutting down SDR code")
             break
+
         elif reboot_payload in get_handshake:
             print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
             logging.info(">>>REBOOTING PAYLOAD<<<")
@@ -179,6 +193,9 @@ def sync_events():
 
 
 def main():
+    """
+    Initiate threads.
+    """
     t1 = Thread(target = sync_events)
     t2 = Thread(target = stream_file)
     t1.start()

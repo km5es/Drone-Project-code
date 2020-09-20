@@ -28,7 +28,7 @@ client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_base_station_events.log") 
-heartbeat           = 'hrt_beat'                    # heartbeat every n secs
+heartbeat_check     = 'hrt_beat'                    # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                    # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                    # check to see if payload is running
 startup_confirm     = 'INITconf'                    # confirmation msg from payload if running
@@ -46,6 +46,7 @@ ser                 = serial.Serial('/dev/ttyPAYLOAD', 57600)
 ser_timeout         = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
+
 
 ### Establish TCP connections
 
@@ -94,12 +95,14 @@ def recv_data():
     '''
     while True:
         sleep(1e-6)
+
         if acq_event.is_set():
             print('Trigger from payload recd. Saving data now.')
             timestring      = get_timestamp()         
             filename        = path + timestring + str("_milton.dat")
             f               = open(filename, "w")
             print(colored('Saving data now in ' + str(filename), 'cyan'))
+            logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
 #                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
             start           = time.time()
             start_timeout   = start + timeout            
@@ -110,7 +113,7 @@ def recv_data():
                     break               
                 elif time.time() > start_timeout:
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
-                    logging.debug('No stop_acq recd. Acquisition time out in 'str(timeout) + ' seconds.')
+                    logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
                     acq_event.clear()
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
@@ -138,9 +141,11 @@ def ros_events():
         else:
             print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
             logging.warning('Comms to payload DOWN')
+
     else:
         print(colored('No serial connection', 'magenta'))
         logging.warning('Base serial is DOWN')
+
     while not rospy.is_shutdown():
         sleep(1e-6)
         if rospy.get_param('trigger/command'):
@@ -154,7 +159,6 @@ def ros_events():
             if handshake_conf in get_handshake_conf:
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                logging.info('Handshake confirmation recd -- acquiring data')
                 send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
@@ -181,12 +185,14 @@ def manual_trigger_events():
         sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
         send_telem(msg, ser, repeat_keyword)
+
         if msg == str(shutdown):
             print(colored('Shutting down payload and this code.', 'red'))
             logging.info("Manual kill switch. Shutting down payload and base station")
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
+
         elif msg == str(handshake_start):
             get_handshake_conf = ser_timeout.read(msg_len)
             print(get_handshake_conf)
@@ -215,19 +221,36 @@ def heartbeat():
     """
     Send telem heartbeat to ensure payload comms are okay.
     """
+    while True:
+        sleep(3.5)
+        if not acq_event.is_set() and not rospy.get_param('trigger/command'):
+            send_telem(heartbeat_check, ser, repeat_keyword)
+            get_heartbeat = ser_timeout.read(msg_len)
+            if heartbeat_conf in get_heartbeat:
+                pass
+            else:
+                print(colored('Heartbeat not received from payload. Calibration MAY not work.', 'red'))
+                logging.warning('Heartbeat NOT received. Calibration MAY not work. serial data: ' +str(get_heartbeat))
+                pass
 
 
 def main():
+    """
+    Initiate threads.
+    """
     try:
         t1 = Thread(target = recv_data)
         t2 = Thread(target = ros_events)
         t3 = Thread(target = manual_trigger_events)
+        t4 = Thread(target = heartbeat)
         t1.start()
         t2.start()
         t3.start()
+        t4.start()
         t1.join()
         t2.join()
         t3.join()
+        t4.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')

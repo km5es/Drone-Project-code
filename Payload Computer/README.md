@@ -64,11 +64,13 @@ And then add the following line to the end of the file:
 @reboot ~/Drone-Project-code/Payload\ Computer/connect_to_fc.sh >~/Drone-Project-code/logs/fc_connect 2>&1
 @reboot ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh >~/Drone-Project-code/logs/cal_log 2>&1
 ```
-To recover logs:
+To recover logs of the stdout from the above cron jobs:
 ```
 cat ~/Drone-Project-code/logs/fc_connect
 cat ~/Drone-Project-code/logs/cal_log
 ```
+>**Note:** The stdout of the ROS and SDR codes are in fc_connect and cal_log. However, detailed and timestamped event logs are saved in the `./logs` folder within the git repo.
+
 
 [ROSberryPi_link]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
 [melodic_install]: http://wiki.ros.org/melodic/Installation/Ubuntu

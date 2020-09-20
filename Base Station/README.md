@@ -33,7 +33,10 @@ Finally, to run the code:
 ```
 sh ~/catkin_ws/src/Drone-Project-code/Base\ Station/begin_mission.sh
 ```
->**NOTE:** ttyDRONE is the radio connected to TELEM1 on the FC, ttyMAVROS is the one connected to TELEM2 and ttyPAYLOAD is connected to the payload computer. These have to be set up in advance using [3DRradioconfig.exe][].
+Detailed event logs are saved in `./logs` folder (relative to main git repo dir). The filenames contain timestamps so each time the above shell script is initiated there will be a new log file created. 
+
+
+>**NOTE:** ttyDRONE is the radio connected to TELEM1 on the FC, ttyMAVROS is the one connected to TELEM2 and ttyPAYLOAD is connected to the payload computer. These have to be set up in advance using [3DRradioconfig.exe][] to ensure they do not interfere with each other.
 
 
 **References:**
