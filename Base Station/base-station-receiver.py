@@ -3,27 +3,20 @@
 """
 Base station code. Looks for when the drone has reached a waypoint and triggers payload to begin transmitting the
 cal signal. There is also a concurrent thread that allows for manual initialization of the cal signal and/or
-forced shutdown of the payload and base station.
+forced shutdown of the payload and base station. Logs are saved in the /logs directory of the repo.
 
 Author: Krishna Makhija
 data: 6th August 2020
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
 
-import socket
-import serial
-import os
-import sys
+import socket, serial, os, sys, rospy, logging, timeit, time
+#import psutil
 from time import sleep
 from termcolor import colored
-import timeit
-import time
+from os.path import expanduser
 from serial.serialutil import SerialException
 from threading import Thread, Event
-#import psutil
-import rospy
-from os.path import expanduser
-import logging
 
 ##### Define global variables
 
@@ -52,6 +45,7 @@ ser_timeout         = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
+### Establish TCP connections
 
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
@@ -133,7 +127,6 @@ def ros_events():
         print(ser, ser_timeout)
         reset_buffer()
         logging.info('Base serial is UP')
-#        ser.write(startup_initiate)
         send_telem(startup_initiate, ser, repeat_keyword)
         get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
         logging.debug('serial data: ' +str(get_startup_confirmation))
@@ -153,7 +146,6 @@ def ros_events():
             rospy.set_param('trigger/acknowledgement', False)
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
             logging.info('Drone reached WP -- starting handshake')
-#            ser.write(handshake_start)
             send_telem(handshake_start, ser, repeat_keyword)
             get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
             logging.debug('serial data: ' +str(get_handshake_conf))
@@ -161,7 +153,6 @@ def ros_events():
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
                 logging.info('Handshake confirmation recd -- acquiring data')
-#                ser.write(toggle_ON)
                 send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
@@ -187,7 +178,6 @@ def manual_trigger_events():
     while True:
         sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
-#        ser.write(msg)
         send_telem(msg, ser, repeat_keyword)
         if msg == str(shutdown):
             print(colored('Shutting down payload and this code.', 'red'))
@@ -204,7 +194,6 @@ def manual_trigger_events():
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
                 logging.info('Handshake confirmation recd -- acquiring data')
-#                ser.write(toggle_ON)
                 send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
                 get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)

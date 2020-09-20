@@ -7,14 +7,13 @@ Author: Krishna Makhija
 date: Sep 8th 2020
 """
 
-import rospy
-from geometry_msgs.msg import PoseStamped
-from mavros_msgs.msg import PositionTarget
-from threading import Event, Thread
-import time
+import rospy, time
+from os.path import expanduser
 from termcolor import colored
 from std_msgs.msg import Float32
-from os.path import expanduser
+from threading import Event, Thread
+from geometry_msgs.msg import PoseStamped
+from mavros_msgs.msg import PositionTarget
 
 path            = expanduser("~") + "/"             # data files save path
 local_pose      = path + 'local_pose_meta.dat'
@@ -27,7 +26,7 @@ def callback_local(data):
     Callback object for drone's local position and timestamp.
     """
     try:
-        time.sleep(0.001)
+        time.sleep(0.01)
         current_time = time.strftime("%H%M%S-%d%m%Y")
         local_pose_f_a.write("%s\t%s\t%s\t%s\n" % (current_time, data.pose.position.x,
                                                    data.pose.position.y, data.pose.position.z))
@@ -41,7 +40,7 @@ def callback_setpoint(data):
     Callback object for drone's setpoint position and timestamp.
     """
     try:
-        time.sleep(0.001)
+        time.sleep(0.01)
         current_time = time.strftime("%H%M%S-%d%m%Y")
         set_target_f_a.write("%s\t%s\t%s\t%s\n" %
                              (current_time, data.position.x, data.position.y, data.position.z))
@@ -78,7 +77,7 @@ def main():
     wp_num = 0
     print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
     while not rospy.is_shutdown():
-        time.sleep(0.001)
+        time.sleep(0.01)
         if rospy.get_param('trigger/metadata') == True:
             print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' +
                           str(local_pose) + ' and ' + str(set_target), 'grey', 'on_white'))
