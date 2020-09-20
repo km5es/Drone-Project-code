@@ -6,10 +6,11 @@ cal signal. There is also a concurrent thread that allows for manual initializat
 forced shutdown of the payload and base station. Logs are saved in the /logs directory of the repo.
 
 Author: Krishna Makhija
-data: 6th August 2020
+date: 6th August 2020
+modified: 20th Sep 2020
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
-    #FIXME: Heartbeat feature is not working properly. Timing it right seems tricky. 
+    #FIXME: Heartbeat feature is not working properly. Timing across threads is tricky. Tabling for now.
 
 import socket, serial, os, sys, rospy, logging, timeit, time
 #import psutil
@@ -243,15 +244,15 @@ def main():
         t1 = Thread(target = recv_data)
         t2 = Thread(target = ros_events)
         t3 = Thread(target = manual_trigger_events)
-        t4 = Thread(target = heartbeat)
+#        t4 = Thread(target = heartbeat)
         t1.start()
         t2.start()
         t3.start()
-        t4.start()
+#        t4.start()
         t1.join()
         t2.join()
         t3.join()
-        t4.join()
+#        t4.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')
