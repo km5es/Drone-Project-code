@@ -11,6 +11,8 @@ modified: 20th Sep 2020
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
     #FIXME: Heartbeat feature is not working properly. Timing across threads is tricky. Tabling for now.
+    #FIXME: One way to work around this would be to have long sleep durations and low timeouts. But that is 
+    #FIXME: still risky because sometimes I get half a message which "folds" over. Hmm...
 
 import socket, serial, os, sys, rospy, logging, timeit, time
 #import psutil
