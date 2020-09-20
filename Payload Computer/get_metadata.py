@@ -14,8 +14,9 @@ from threading import Event, Thread
 import time
 from termcolor import colored
 from std_msgs.msg import Float32
+from os.path import expanduser
 
-path            = '/home/ubuntu/'             # data files save path
+path            = expanduser("~") + "/"             # data files save path
 local_pose      = path + 'local_pose_meta.dat'
 set_target      = path + 'set_target_meta.dat'
 refresh_rate    = 25.0
@@ -26,6 +27,7 @@ def callback_local(data):
     Callback object for drone's local position and timestamp.
     """
     try:
+        time.sleep(0.001)
         current_time = time.strftime("%H%M%S-%d%m%Y")
         local_pose_f_a.write("%s\t%s\t%s\t%s\n" % (current_time, data.pose.position.x,
                                                    data.pose.position.y, data.pose.position.z))
@@ -39,6 +41,7 @@ def callback_setpoint(data):
     Callback object for drone's setpoint position and timestamp.
     """
     try:
+        time.sleep(0.001)
         current_time = time.strftime("%H%M%S-%d%m%Y")
         set_target_f_a.write("%s\t%s\t%s\t%s\n" %
                              (current_time, data.position.x, data.position.y, data.position.z))
