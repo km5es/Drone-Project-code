@@ -9,6 +9,7 @@ Author: Krishna Makhija
 data: 6th August 2020
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
+    #FIXME: Heartbeat feature is not working properly. Timing it right seems tricky. 
 
 import socket, serial, os, sys, rospy, logging, timeit, time
 #import psutil
@@ -141,7 +142,6 @@ def ros_events():
         else:
             print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
             logging.warning('Comms to payload DOWN')
-
     else:
         print(colored('No serial connection', 'magenta'))
         logging.warning('Base serial is DOWN')
@@ -222,7 +222,6 @@ def heartbeat():
     Send telem heartbeat to ensure payload comms are okay.
     """
     while True:
-        sleep(3.5)
         if not acq_event.is_set() and not rospy.get_param('trigger/command'):
             send_telem(heartbeat_check, ser, repeat_keyword)
             get_heartbeat = ser_timeout.read(msg_len)
@@ -232,6 +231,8 @@ def heartbeat():
                 print(colored('Heartbeat not received from payload. Calibration MAY not work.', 'red'))
                 logging.warning('Heartbeat NOT received. Calibration MAY not work. serial data: ' +str(get_heartbeat))
                 pass
+            reset_buffer()
+            sleep(1)
 
 
 def main():

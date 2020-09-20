@@ -179,14 +179,17 @@ def sync_events():
 
         elif heartbeat_check in get_handshake:
             send_telem(heartbeat_conf, ser, repeat_keyword)
+            reset_buffer()
 
         elif shutdown in get_handshake:
+            reset_buffer()
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
             logging.info("Manual kill command from base recd. Shutting down SDR code")
             break
 
         elif reboot_payload in get_handshake:
+            reset_buffer()
             print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
             logging.info(">>>REBOOTING PAYLOAD<<<")
             os.system('sudo reboot now')
