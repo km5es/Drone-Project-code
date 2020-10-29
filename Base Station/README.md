@@ -23,9 +23,10 @@ SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{seria
 ```
 The other radios can be entered into symlinks as well like so:
 ```
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D308M5SK", SYMLINK+="ttyDRONE"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D308LRXZ", SYMLINK+="ttyMAVROS"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="DN01GAMJ", SYMLINK+="ttyPAYLOAD"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D308M5SK", SYMLINK+="ttyPAYLOAD"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="DN01GAMJ", SYMLINK+="ttyDRONE"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="018E1FA2", SYMLINK+="ttyMAVROS"
+
 ```
 Note, that you would have to reboot the computer for this to take effect. Once that is done, each of these serial objects can be uniquely mapped/called in the scripts using, for example, `/dev/ttyPAYLOAD` instead of getting confused with `/dev/ttyUSB0`.
 

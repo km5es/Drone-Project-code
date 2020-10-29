@@ -50,7 +50,7 @@ E: ID_VENDOR_ID=0403
 Enter those data in `/etc/udev/rules.d/99-pixhawk.rules` like so:
 ```
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="DM01KU0E", SYMLINK+="ttyFC"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="DN01GA3P", SYMLINK+="ttyTELEM"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D308LPAN", SYMLINK+="ttyTELEM"
 ```
 Reboot for it to take effect. 
 >**Note:** The scripts here use the symlinks mentioned above. Please be sure to either change that in the code, or use the exact same symlinks.
