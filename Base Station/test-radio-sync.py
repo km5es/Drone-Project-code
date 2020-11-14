@@ -17,7 +17,7 @@ import timeit
 import time
 from serial.serialutil import SerialException
 from threading import Thread, Event
-import psutil
+#import psutil
 
 ##### Define global variables
 
@@ -53,6 +53,22 @@ def send_telem(keyword, serial_object, repeat_keyword):
     for n in range(repeat_keyword):
         new_keyword = keyword + n*keyword
     serial_object.write(new_keyword)
+
+
+def imu_metadata():
+    """
+    Use MAVROS to save IMU data at each waypoint.
+    """
+    filename = path + 'meta.dat'
+    metadata = open(filename, 'w')
+    metadata.write('Local Position (x)\tSet Point (x)' )
+    while True:
+        if acq_event.is_set():
+            print('Generating metadata file in ' +str(path))
+            local_position_x  = os.system('rostopic echo /mavros/local_position/pose | grep x')
+            set_point_x       = os.system('rostopic echo /mavros/setpoint_raw/target_local | grep x')
+            metadata.write(local_position_x + "\t" + set_point_x)
+            sleep(0.1)
 
 
 def reset_buffer():
@@ -140,7 +156,7 @@ if __name__ == '__main__':
     try:
         t1 = Thread(target=recv_data)
         t2 = Thread(target=serial_radio_events)
-#        t3 = Thread (target = temp_connect)
+#        t3 = Thread (target=imu_metadata)
         t1.start()
         t2.start()
 #        t3.start()
