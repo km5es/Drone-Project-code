@@ -1,5 +1,5 @@
 # Drone-Project-code
-![cal-illustration](oth_withBeam_gradient.png)
+<img src="calibration_animation.gif" width=1000 align=center>
 
 ## Description
 A high accuracy drone-based calibrator targeted towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. More details inside each folder. Clone the repo into a catkin workspace:
@@ -122,22 +122,9 @@ Enter flight path and begin mission.
 >***NOTE:*** The exact sequence shown above needs to be maintained for the simulations to work.
 
 ### Run entire SITL autonomy pipeline
+Convenience shell script to run the SITL pipeline:
 ```
 cd ~/catkin_ws/src/Drone-Project-code/
 source sitl-pipeline.sh
 ```
-QGC is not working properly with this shell script as of now. To get the pipeline to run do this in the PX4 terminal:
-```
-commander mode auto:mission
-commander arm
-```
-This is assuming the flight path is already uploaded to the vehicle. To RTL:
-```
-commander mode auto:rtl
-```
-To get it to work with QGC, uncheck the option for auto connecting to SiK radio in the Application Settings > General tab under "AutoConnect to the following devices."
-
-#### TODO:
-
-- [] Add more logs (just events in base and payload.)
 
