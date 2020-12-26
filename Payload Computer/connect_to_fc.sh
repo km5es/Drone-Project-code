@@ -3,7 +3,7 @@
 ##### author: Krishna Makhija
 ###### date: Sep 9th 2020
 source ~/.bashrc
-source /opt/ros/melodic/setup.bash
+source /opt/ros/$(rosversion -d)/setup.bash
 
 ### wait for FC to boot up
 sleep 8;
