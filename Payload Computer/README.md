@@ -61,8 +61,8 @@ crontab -e
 ```
 And then add the following line to the end of the file:
 ```
-@reboot ~/Drone-Project-code/Payload\ Computer/connect_to_fc.sh >~/Drone-Project-code/logs/fc_connect 2>&1
-@reboot ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh >~/Drone-Project-code/logs/cal_log 2>&1
+@reboot bash -c 'source /opt/ros/melodic/setup.bash; ~/Drone-Project-code/Payload\ Computer/connect_to_fc.sh' >~/Drone-Project-code/logs/fc_connect 2>&1
+@reboot bash -c 'source /opt/ros/melodic/setup.bash; ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh' >~/Drone-Project-code/logs/cal_log 2>&1
 ```
 To recover logs of the stdout from the above cron jobs:
 ```
@@ -75,3 +75,6 @@ cat ~/Drone-Project-code/logs/cal_log
 [ROSberryPi_link]: http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Melodic%20on%20the%20Raspberry%20Pi
 [melodic_install]: http://wiki.ros.org/melodic/Installation/Ubuntu
 [adapter]: https://store.mrobotics.io/USB-FTDI-Serial-to-JST-GH-p/mro-ftdi-jstgh01-mr.htm
+
+@reboot bash -c 'source /opt/ros/kinetic/setup.bash; ~/Drone-Project-code/Payload\ Computer/connect_to_fc.sh' >~/Drone-Project-code/logs/fc_connect 2>&1
+@reboot bash -c 'source /opt/ros/kinetic/setup.bash; ~/Drone-Project-code/Payload\ Computer/start_cal_v2.sh' >~/Drone-Project-code/logs/cal_log 2>&1
