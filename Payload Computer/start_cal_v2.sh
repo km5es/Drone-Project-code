@@ -1,7 +1,7 @@
 #!/bin/bash
 #kill -9 $(fuser /dev/ttyUSB0)
-bash -c 'source ~/.bashrc'
-bash -c 'source /opt/ros/$(rosversion -d)/setup.bash'
+source ~/.bashrc
+source /opt/ros/melodic/setup.bash
 
 lsof -t -i tcp:8810 | xargs kill -9
 cd ~/Drone-Project-code/Payload\ Computer/
