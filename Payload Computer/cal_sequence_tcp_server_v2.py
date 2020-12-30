@@ -25,13 +25,14 @@ from os.path import expanduser
 
 ### Define global variables
 
-port                = 8810
 togglePoint         = 96                                    # number of pulses after which GPIO is toggled
 sample_packet       = 4096*16                               # Length of one pulse.
-ser                 = serial.Serial('/dev/ttyTELEM', 57600)  
-ser_timeout         = serial.Serial('/dev/ttyTELEM', 57600, timeout=2)
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
+port                = 8810
+base_station        = socket.socket()
+base_station_ip     = socket.gethostbyname('10.42.0.1')
+base_station_port   = 14000
 heartbeat_check     = 'hrt_beat'                            # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                            # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
@@ -56,6 +57,13 @@ logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(mo
 
 ### Make TCP and serial connections
 
+try:
+    ser                 = serial.Serial('/dev/ttyTELEM', 57600)  
+    ser_timeout         = serial.Serial('/dev/ttyTELEM', 57600, timeout=2)
+except:
+    print("No telemetry found. Checking for Wi-Fi link...")
+    pass
+
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))                                        # Bind to the port
@@ -65,6 +73,18 @@ print(colored('TCP server listening for connection from GRC flowgraph.', 'green'
 logging.info("TCP server waiting for connection with GRC client flowgraph")
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(addr))
+
+try:
+    base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
+    base_station.listen(5)                                                 # Now wait for client connection.
+    base_conn, base_addr = base_station.accept()
+    print(colored('Connected to base station via wi-fi.', 'green'))
+    logging.info("Connected to base station via wi-fi.")
+except:
+    print('No wireless connection to base station found. Is there a telemetry link?')
+    logging.info("No wireless connection to base station found.")
+    pass
 
 
 if ser.isOpen() == True:
