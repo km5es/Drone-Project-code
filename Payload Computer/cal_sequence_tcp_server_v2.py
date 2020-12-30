@@ -74,13 +74,13 @@ logging.info("TCP server waiting for connection with GRC client flowgraph")
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(addr))
 
-try:
-    base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
-    base_station.listen(5)                                                 # Now wait for client connection.
-    base_conn, base_addr = base_station.accept()
-    print(colored('Connected to base station via wi-fi.', 'green'))
-    logging.info("Connected to base station via wi-fi.")
+
+base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
+base_station.listen(5)                                                 # Now wait for client connection.
+base_conn, base_addr = base_station.accept()
+print(colored('Connected to base station via wi-fi.', 'green'))
+logging.info("Connected to base station via wi-fi.")
 #except:
 #    print('No wireless connection to base station found. Is there a telemetry link?')
 #    logging.info("No wireless connection to base station found.")
