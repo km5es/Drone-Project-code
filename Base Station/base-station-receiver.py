@@ -7,12 +7,14 @@ forced shutdown of the payload and base station. Logs are saved in the /logs dir
 
 Author: Krishna Makhija
 date: 6th August 2020
-modified: 20th Sep 2020
+last modified: 30th Dec 2020
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
     #FIXME: Heartbeat feature is not working properly. Timing across threads is tricky. Tabling for now.
     #FIXME: One way to work around this would be to have long sleep durations and low timeouts. But that is 
     #FIXME: still risky because sometimes I get half a message which "folds" over. Hmm...
+#TODO: make it so the entire pipeline works over wi-fi AND telemetry. Is that possible?
+
 
 import socket, serial, os, sys, rospy, logging, timeit, time
 #import psutil
@@ -28,6 +30,10 @@ client              = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
+pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+pi_ip               = socket.gethostbyname("10.42.0.102")
+pi_port             = 14000
+pi_address          = (pi_ip, pi_port)
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/'             
@@ -46,13 +52,26 @@ reboot_payload      = '_reboot_'                    # reboot payload computer
 acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
-ser                 = serial.Serial('/dev/ttyPAYLOAD', 57600)
-ser_timeout         = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
 
-### Establish TCP connections
+### Establish connections
+
+try:
+    ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
+    ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
+except:
+    print("No telemetry found. Checking for Wi-Fi link...")
+    pass
+
+try:
+    pi.connect((pi_address))
+    print(colored('Connection established to Raspberry Pi on local network.', 'green'))
+except:
+    print('No connection to Raspberry Pi found.')
+    pass
+
 
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
@@ -70,7 +89,7 @@ else:
 
 def send_telem(keyword, serial_object, repeat_keyword):
     """
-    Send keyword over telemetry radio for a total of repeat_keyword times.
+    Send keyword over telemetry radio or wireless connection for a total of repeat_keyword times.
     """
     for n in range(repeat_keyword):
         new_keyword = keyword + n*keyword
