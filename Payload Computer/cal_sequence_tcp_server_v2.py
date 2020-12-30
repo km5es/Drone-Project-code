@@ -32,7 +32,7 @@ host                = socket.gethostbyname('127.0.0.1')     # Get local machine 
 port                = 8810
 base_station        = socket.socket()
 base_station_ip     = socket.gethostbyname('10.42.0.1')
-base_station_port   = 14000
+base_station_port   = 8000
 heartbeat_check     = 'hrt_beat'                            # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                            # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
@@ -81,10 +81,10 @@ try:
     base_conn, base_addr = base_station.accept()
     print(colored('Connected to base station via wi-fi.', 'green'))
     logging.info("Connected to base station via wi-fi.")
-except:
-    print('No wireless connection to base station found. Is there a telemetry link?')
-    logging.info("No wireless connection to base station found.")
-    pass
+#except:
+#    print('No wireless connection to base station found. Is there a telemetry link?')
+#    logging.info("No wireless connection to base station found.")
+#    pass
 
 
 if ser.isOpen() == True:
