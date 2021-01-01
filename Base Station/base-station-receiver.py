@@ -14,9 +14,10 @@ last modified: 30th Dec 2020
     #FIXME: One way to work around this would be to have long sleep durations and low timeouts. But that is 
     #FIXME: still risky because sometimes I get half a message which "folds" over. Hmm...
 #TODO: make it so the entire pipeline works over wi-fi AND telemetry. Is that possible?
+    #FIXME: for now, I've added an argument which lets you choose betn wifi and telemetry.
 
 
-import socket, serial, os, sys, rospy, logging, timeit, time
+import socket, serial, os, sys, rospy, logging, timeit, time, argparse
 #import psutil
 from time import sleep
 from termcolor import colored
@@ -31,9 +32,11 @@ ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
 pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-pi_ip               = socket.gethostbyname("10.42.0.102")
-pi_port             = 8000
-pi_address          = (pi_ip, pi_port)
+addr                = "10.42.0.102"                 # default TCP address of payload
+pi_port             = 12000
+xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+xu4_addr            = "10.42.0.249"
+xu4_port            = 12000
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/'             
@@ -52,26 +55,69 @@ reboot_payload      = '_reboot_'                    # reboot payload computer
 acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
+ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
+ser_timeout         = serial.Serial()
+network             = 'wifi'
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
+
+### argparse
+
+parser = argparse.ArgumentParser(description="Activate payload calibration when drone reaches WP. Manually trigger it by typing 'pay_INIT'")
+parser.add_argument('-n', '--network', type=str, help='Choose type of communications. Options are telemetry or wifi.')
+parser.add_argument('-a', '--address', type=str, help='IP address of TCP server (payload computer).')
+parser.add_argument('-p', '--port', type=int, help='TCP port of the payload computer.')
+args = parser.parse_args()
+
+if args.network:
+    network = args.network
+
+if args.port:
+    pi_port = args.port
+
+if args.address:
+    addr = args.address
+
+if network == 'wifi':
+    print(colored('Connecting to the drone via ' + str(network) + ' on tcp://' + str(addr) + ':' + str(pi_port), 'green'))
+
+elif network == 'telemetry':
+    print(colored('Connecting to the drone via ' + str(network), 'green'))
 
 
 ### Establish connections
 
+pi_ip           = socket.gethostbyname(addr)
+pi_address      = (pi_ip, pi_port)
+xu4_ip          = socket.gethostbyname(xu4_addr)
+xu4_address     = (xu4_ip, xu4_port)
+
 try:
     ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
     ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
+    logging.info("Serial radio link established.")
 except:
-    print("No telemetry found. Checking for Wi-Fi link...")
+    print("No telemetry found. Check for Wi-Fi link...")
+    logging.warning("No serial telemetry found")
     pass
 
 try:
     pi.connect((pi_address))
-    print(colored('Connection established to Raspberry Pi on local network.', 'green'))
+    print(colored('Connection established to payload computer.', 'green'))
+    logging.info("Connection established to payload computer on tcp://" + str(addr) + ':' + str(pi_port))
 except:
-    print('No connection to Raspberry Pi found.')
+    print('No TCP connection to payload computer found.')
+    logging.warning('No TCP connection to payload computer found.')
     pass
 
+try:
+    xu4.connect((xu4_address))
+    print(colored('Connection established to ODROID XU4.', 'green'))
+    logging.info("Connection established to ODROID XU4 on tcp://" + str(addr) + ':' + str(pi_port))
+except:
+    print('No connection to ODROID XU4 found.')
+    logging.warning("No connection to ODROID XU4 found.")
+    pass
 
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
@@ -93,15 +139,43 @@ def send_telem(keyword, serial_object, repeat_keyword):
     """
     for n in range(repeat_keyword):
         new_keyword = keyword + n*keyword
-    serial_object.write(new_keyword)
+    if network == 'telemetry':
+        serial_object.write(new_keyword)
+    if network == 'wifi':
+        try:
+            pi.send(new_keyword)
+            xu4.send(new_keyword)
+        except NameError:
+            pass
+
+
+def recv_telem(msg_len, serial_object, repeat_keyword):
+    """
+    Receive messages from the payload via telemetry or TCP.
+    """
+    if network == 'telemetry':
+        message = serial_object.read(msg_len*repeat_keyword)
+    if network == 'wifi':
+        try:
+            message = pi.recv(msg_len*repeat_keyword)
+        except:
+            pass
+        try:
+            message = xu4.recv(msg_len*repeat_keyword)
+        except:
+            pass
+    return message
 
 
 def reset_buffer():
     """
     Clear telemetry radio buffers whenever possible.
     """
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
+    try:
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+    except serial.SerialException:
+        pass
 
 
 def get_timestamp():
@@ -156,7 +230,8 @@ def ros_events():
         reset_buffer()
         logging.info('Base serial is UP')
         send_telem(startup_initiate, ser, repeat_keyword)
-        get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
+#        get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
+        get_startup_confirmation = recv_telem(msg_len, ser_timeout, repeat_keyword)
         logging.debug('serial data: ' +str(get_startup_confirmation))
         if startup_confirm in get_startup_confirmation:
             print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
@@ -176,14 +251,16 @@ def ros_events():
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
             logging.info('Drone reached WP -- starting handshake')
             send_telem(handshake_start, ser, repeat_keyword)
-            get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
+#            get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
+            get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
             logging.debug('serial data: ' +str(get_handshake_conf))
             if handshake_conf in get_handshake_conf:
                 reset_buffer()
                 print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
                 send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
-                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
+#                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
+                get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
                 print(get_stop_acq_trigger)
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
                 if toggle_OFF in get_stop_acq_trigger:
@@ -216,7 +293,8 @@ def manual_trigger_events():
             pass
 
         elif msg == str(handshake_start):
-            get_handshake_conf = ser_timeout.read(msg_len)
+#            get_handshake_conf = ser_timeout.read(msg_len)
+            get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
             print(get_handshake_conf)
             logging.info("Manual payload trigger")
             logging.debug("serial data: " +str(get_handshake_conf))
@@ -226,7 +304,8 @@ def manual_trigger_events():
                 logging.info('Handshake confirmation recd -- acquiring data')
                 send_telem(toggle_ON, ser, repeat_keyword)
                 acq_event.set()
-                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
+#                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
+                get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
                 print(get_stop_acq_trigger)
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
                 if toggle_OFF in get_stop_acq_trigger:
@@ -246,7 +325,8 @@ def heartbeat():
     while True:
         if not acq_event.is_set() and not rospy.get_param('trigger/command'):
             send_telem(heartbeat_check, ser, repeat_keyword)
-            get_heartbeat = ser_timeout.read(msg_len)
+#            get_heartbeat = ser_timeout.read(msg_len)
+            get_heartbeat = recv_telem(msg_len, ser_timeout, repeat_keyword)
             if heartbeat_conf in get_heartbeat:
                 pass
             else:

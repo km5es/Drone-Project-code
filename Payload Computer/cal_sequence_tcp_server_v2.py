@@ -16,7 +16,7 @@ cal signal is transmitted. This ensures each transmission is phase consistent wi
 #TODO: integrate the circular polarized waveform as well.
 #TODO: log data using payload daemon?
 
-import socket, serial, os, sys, time, rospy, logging
+import socket, serial, os, sys, time, rospy, logging, argparse
 from termcolor import colored
 from datetime import datetime
 from threading import Thread, Event
@@ -30,9 +30,9 @@ sample_packet       = 4096*16                               # Length of one puls
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
 port                = 8810
-base_station        = socket.socket()
-base_station_ip     = socket.gethostbyname('0.0.0.0')
-base_station_port   = 8000
+base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+base_station_ip     = socket.gethostbyname()
+base_station_port   = 12000
 heartbeat_check     = 'hrt_beat'                            # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                            # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
@@ -51,9 +51,30 @@ metadata_acq_time   = 10
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + '/Drone-Project-code/logs/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
+network             = 'wifi'
+ser                 = serial.Serial()
+ser_timeout         = serial.Serial()
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
+### argparse
+
+parser = argparse.ArgumentParser(description="Activate payload calibration when drone reaches WP. Manually trigger it by typing 'pay_INIT'")
+parser.add_argument('-n', '--network', type=str, help='Choose type of communications. Options are telemetry or wifi.')
+parser.add_argument('-p', '--port', type=int, help='TCP port of the payload computer.')
+args = parser.parse_args()
+
+if args.network:
+    network = args.network
+
+if args.port:
+    base_station_port = args.port
+
+if network == 'wifi':
+    print(colored('Connecting to the drone via ' + str(network),  'green'))
+
+elif network == 'telemetry':
+    print(colored('Connecting to the drone via ' + str(network), 'green'))
 
 ### Make TCP and serial connections
 
@@ -61,9 +82,11 @@ try:
     ser                 = serial.Serial('/dev/ttyTELEM', 57600)  
     ser_timeout         = serial.Serial('/dev/ttyTELEM', 57600, timeout=2)
 except:
-    print("No telemetry found. Checking for Wi-Fi link...")
+    print("No telemetry found. Check for Wi-Fi link...")
+    logging.warning("No serial telemetry found")
     pass
 
+## connect to GRC flowgraph
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))                                        # Bind to the port
@@ -74,13 +97,13 @@ logging.info("TCP server waiting for connection with GRC client flowgraph")
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(addr))
 
-
+## connect to base station
 base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
 base_station.listen(5)                                                 # Now wait for client connection.
 base_conn, base_addr = base_station.accept()
-print(colored('Connected to base station via wi-fi.', 'green'))
-logging.info("Connected to base station via wi-fi.")
+print(colored('Connected to base station via wifi.', 'green'))
+logging.info("Connected to base station via wifi.")
 #except:
 #    print('No wireless connection to base station found. Is there a telemetry link?')
 #    logging.info("No wireless connection to base station found.")
@@ -109,19 +132,39 @@ else:
 
 def send_telem(keyword, serial_object, repeat_keyword):
     """
-    Send keyword over telemetry radio for a total of repeat_keyword times.
+    Send keyword over telemetry radio or wireless connection for a total of repeat_keyword times.
     """
     for n in range(repeat_keyword):
         new_keyword = keyword + n*keyword
-    serial_object.write(new_keyword)
+    if network == 'telemetry':
+        serial_object.write(new_keyword)
+    if network == 'wifi':
+        base_conn.send(new_keyword)
+
+
+def recv_telem(msg_len, serial_object, repeat_keyword):
+    """
+    Receive messages from the payload via telemetry or TCP.
+    """
+    if network == 'telemetry':
+        message = serial_object.read(msg_len*repeat_keyword)
+    if network == 'wifi':
+        try:
+            message = base_conn.recv(msg_len*repeat_keyword)
+        except:
+            pass
+    return message
 
 
 def reset_buffer():
     """
     Clear telemetry radio buffers whenever possible.
     """
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
+    try:
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+    except serial.SerialException:
+        pass
 
 
 def stream_file():
@@ -165,7 +208,8 @@ def sync_events():
     In addition, ROS flags will be set to begin and stop metadata generation.
     '''
     while True:
-        get_handshake = ser.read(msg_len*repeat_keyword)
+#        get_handshake = ser.read(msg_len*repeat_keyword)
+        get_handshake = recv_telem(msg_len, ser, repeat_keyword)
         logging.debug("serial data: " +str(get_handshake))
 
         if handshake_start in get_handshake:
@@ -173,7 +217,8 @@ def sync_events():
             logging.info("Received handshake from base. Sending confirmation")
             send_telem(handshake_conf, ser, repeat_keyword)
             reset_buffer()
-            get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake
+#            get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake
+            get_trigger_from_base = recv_telem(msg_len, ser_timeout, repeat_keyword)
             logging.debug("serial data: " +str(get_trigger_from_base))
             if toggle_ON in get_trigger_from_base:
                 trigger_event.set()
