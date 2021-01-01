@@ -144,8 +144,11 @@ def send_telem(keyword, serial_object, repeat_keyword):
     if network == 'wifi':
         try:
             pi.send(new_keyword)
+        except:
+            pass
+        try:
             xu4.send(new_keyword)
-        except NameError:
+        except:
             pass
 
 
