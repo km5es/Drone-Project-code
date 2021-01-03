@@ -153,12 +153,13 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     """
     if network == 'telemetry':
         message = serial_object.read(msg_len*repeat_keyword)
+        return message
     if network == 'wifi':
         try:
             message = base_conn.recv(msg_len*repeat_keyword)
+            return message
         except:
             pass
-    return message
 
 
 def reset_buffer():
