@@ -99,6 +99,17 @@ logging.info('Connection to GRC flowgraph established on ' + str(addr))
 
 ## connect to base station
 
+base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
+base_station.listen(5)                                                 # Now wait for client connection.
+base_conn, base_addr = base_station.accept()
+print(colored('Connected to base station via wifi.', 'green'))
+logging.info("Connected to base station via wifi.")
+#except:
+#    print('No wireless connection to base station found. Is there a telemetry link?')
+#    logging.info("No wireless connection to base station found.")
+#    pass
+
 if ser.isOpen() == True:
     ser.reset_input_buffer()
     ser.reset_output_buffer()
@@ -253,16 +264,6 @@ def main():
     """
     Initiate threads.
     """
-    base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
-    base_station.listen(5)                                                 # Now wait for client connection.
-    base_conn, base_addr = base_station.accept()
-    print(colored('Connected to base station via wifi.', 'green'))
-    logging.info("Connected to base station via wifi.")
-    #except:
-    #    print('No wireless connection to base station found. Is there a telemetry link?')
-    #    logging.info("No wireless connection to base station found.")
-    #    pass
     while True:
         t1 = Thread(target = sync_events)
         t2 = Thread(target = stream_file)
