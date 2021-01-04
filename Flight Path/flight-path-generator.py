@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Nov 15 16:39:45 2018
-Modified Oct 25th 2019 for functionality to create WP file.
+Modified 3rd Jan 2021 for firmware specific flight paths.
 
 Script to calculate GPS coordinates for entering into QGroundControl. Haversine formula accounts for distance "as the crow flies" 
 but we need 300 m radius from the AUT disregarding the curvature of earth. This script calculates an arc length that accounts for 
@@ -52,17 +52,19 @@ heading = 0
 theta = np.deg2rad(np.linspace(0, 180, 19))     # bearing
 latStart = 37.994125                          
 longStart = -78.397535                        # Milton Airfield
-missionStart_alt = 15
+missionStart_alt = 10
 wp_hold_time = 0
 passes = 18
+firmware = "Ardupilot"
 
 parser = argparse.ArgumentParser(description='Generate a flight path for beam mapping with waypoints at every 10 degrees in theta/phi. The WP are outputted in a file titled hemisphere_waypoints.waypoints')
-parser.add_argument('--radius', type=float, help='radius of each pass over-the-horizon. Default = 60m')
-parser.add_argument('--lat', type=float, help='Latitude of reference point (AUT). Default = Milton tarmac.')
-parser.add_argument('--long', type=float, help='Longitude of reference point (AUT). Default = Milton tarmac.')
-parser.add_argument('--heading', type=int, help='Heading to be maintained throughout flight. Default = 0 degrees.')
-parser.add_argument('--hold', type=int, help='Time to hold at each waypoint in seconds. Default = 0 seconds.')
-parser.add_argument('--passes', type=int, help='Number of passes to generate. Default = 18.')
+parser.add_argument('--radius', '-r', type=float, help='radius of each pass over-the-horizon. Default = 60m')
+parser.add_argument('--lat', '-la', type=float, help='Latitude of reference point (AUT). Default = Milton tarmac.')
+parser.add_argument('--long', '-lo', type=float, help='Longitude of reference point (AUT). Default = Milton tarmac.')
+parser.add_argument('--heading', '-he', type=int, help='Heading to be maintained throughout flight. Default = 0 degrees.')
+parser.add_argument('--hold', '-ho', type=int, help='Time to hold at each waypoint in seconds. Default = 0 seconds.')
+parser.add_argument('--passes', '-p', type=int, help='Number of passes to generate. Default = 18.')
+parser.add_argument('--firmware', '-f', type=str, help='Choose PX4 or Ardupilot.')
 args = parser.parse_args()
 
 if args.radius:
@@ -88,6 +90,24 @@ if args.hold:
 if args.passes:
     passes = args.passes
     print("The flight path will have %s passes." %args.passes)
+
+if args.firmware:
+    firmware = args.firmware
+    print("The flight path will be generated for autopilots using %s firmware. Default = Ardupilot" %args.firmware)
+
+def takeoff():
+    """
+    Create a takeoff waypoint if firmware is chosen to be Ardupilot.
+    """
+    f_sphere.write("1\t1\t0\t22\t0\t0\t0\t")
+    f_sphere.write(str(heading))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(latStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(longStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(missionStart_alt))
+    f_sphere.write("\t1\n")
 
 latStart = math.radians(latStart)
 longStart = math.radians(longStart)
@@ -181,7 +201,7 @@ el_wp = np.tile(elBranch, 18)
 #f_sphere = open("hemisphere_waypoints.waypoints","w+")
 #home = str(Path.home())    # for python3
 home = expanduser("~")
-f_sphere = open(home + "/" + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes.waypoints", "w+")
+f_sphere = open(home + "/" + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes_" + str(firmware) + ".waypoints", "w+")
 f_sphere.write("QGC WPL 110\n")
 ### Define Mission Start point:
 f_sphere.write("0\t1\t0\t16\t0\t0\t0\t")
@@ -193,9 +213,15 @@ f_sphere.write(str(math.degrees(longStart)))
 f_sphere.write("\t")
 f_sphere.write(str(missionStart_alt))
 f_sphere.write("\t1\n")
+
+if firmware == "Ardupilot":
+    takeoff()
 ### Define waypoints for sampling data
 for i in range(len(elBranch)*passes):    ### this range is chosen to ignore waypoints at theta = 0 and 180
-    f_sphere.write(str(i+1))
+    if firmware == "Ardupilot":
+        f_sphere.write(str(i+2))
+    elif firmware == "PX4":
+        f_sphere.write(str(i+1))
     f_sphere.write("\t0\t3\t16\t")
     f_sphere.write(str(wp_hold_time)+"\t0\t0\t")
     f_sphere.write(str(heading))
