@@ -264,10 +264,10 @@ def sync_events():
                     print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
                     logging.info(">>>REBOOTING PAYLOAD<<<")
                     os.system('sudo reboot now')
-        except socket.error:
-            print('Connection to base broken.')
-            logging.debug('Connection to base broken.')
-            pass
+#        except socket.error:
+#            print('Connection to base broken.')
+#            logging.debug('Connection to base broken.')
+#            pass
 
 
 def main():
