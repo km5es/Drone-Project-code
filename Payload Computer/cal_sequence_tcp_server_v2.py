@@ -275,14 +275,10 @@ def main():
     while True:
         t1 = Thread(target = sync_events)
         t2 = Thread(target = stream_file)
-        t3 = Thread(target = create_server)
         t1.start()
         t2.start()
-        t3.start()
         t1.join()
         t2.join()
-        t3.join()
-    base_conn.close()
 
 
 if __name__ == '__main__':
