@@ -107,7 +107,6 @@ else:
     print(colored('No serial connection', 'magenta'))
     logging.warning('Payload serial is DOWN')
 
-
 if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
     msg_len = len(toggle_ON)
 else:
@@ -218,7 +217,7 @@ def sync_events():
             while True:
                 get_handshake = recv_telem(msg_len, ser, repeat_keyword)
                 logging.debug("serial data: " +str(get_handshake))
-    
+
                 if handshake_start in get_handshake:
                     print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
                     logging.info("Received handshake from base. Sending confirmation")
@@ -242,30 +241,32 @@ def sync_events():
                         print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
                         logging.info("No start cal trigger from base")
                         pass
-                    
+
                 elif startup_initiate in get_handshake:
                     print(colored('The base has started up and is talking.', 'grey', 'on_green'))
                     logging.info("The base has started up and is talking")
                     send_telem(startup_confirm, ser, repeat_keyword)
                     reset_buffer()
-    
+
                 elif heartbeat_check in get_handshake:
                     send_telem(heartbeat_conf, ser, repeat_keyword)
                     reset_buffer()
-    
+
                 elif shutdown in get_handshake:
                     reset_buffer()
                     os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
                     print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
                     logging.info("Manual kill command from base recd. Shutting down SDR code")
                     break
-                
+
                 elif reboot_payload in get_handshake:
                     reset_buffer()
                     print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
                     logging.info(">>>REBOOTING PAYLOAD<<<")
                     os.system('sudo reboot now')
         except socket.error:
+            print('Connection to base broken.')
+            logging.debug('Connection to base broken.')
             pass
 
 
@@ -273,13 +274,12 @@ def main():
     """
     Initiate threads.
     """
-    while True:
-        t1 = Thread(target = sync_events)
-        t2 = Thread(target = stream_file)
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join()
+    t1 = Thread(target = sync_events)
+    t2 = Thread(target = stream_file)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
 
 
 if __name__ == '__main__':
