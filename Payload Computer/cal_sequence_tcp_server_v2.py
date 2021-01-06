@@ -30,9 +30,9 @@ sample_packet       = 4096*16                               # Length of one puls
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
 port                = 8810
-base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-base_station_ip     = socket.gethostbyname('0.0.0.0')
-base_station_port   = 12000
+#base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+#base_station_ip     = socket.gethostbyname('0.0.0.0')
+#base_station_port   = 12000
 heartbeat_check     = 'hrt_beat'                            # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                            # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
@@ -97,24 +97,6 @@ logging.info("TCP server waiting for connection with GRC client flowgraph")
 print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(addr))
 
-## connect to base station
-
-def create_server():
-    """
-    Create TCP server for base to connect to.
-    """
-    global base_conn
-    base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
-    base_station.listen(5)                                                 # Now wait for client connection.
-    base_conn, base_addr = base_station.accept()
-    print(colored('Connected to base station via wifi.', 'green'))
-    logging.info("Connected to base station via wifi.")
-    #except:
-    #    print('No wireless connection to base station found. Is there a telemetry link?')
-    #    logging.info("No wireless connection to base station found.")
-    #    pass
-
 if ser.isOpen() == True:
     ser.reset_input_buffer()
     ser.reset_output_buffer()
@@ -134,6 +116,22 @@ else:
 
 
 ### Define objects
+
+def create_server():
+    """
+    Create socket server for base station to connect to.
+    """
+    global base_conn
+    base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    base_station_ip     = socket.gethostname()
+    base_station_port   = 12000
+    base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
+    base_station.listen(5)                                                 # Now wait for client connection.
+    base_conn, base_addr = base_station.accept()
+    print(colored('Connected to base station via wifi.', 'green'))
+    logging.info('Connected to base station via wifi.')
+
 
 def send_telem(keyword, serial_object, repeat_keyword):
     """
@@ -214,56 +212,60 @@ def sync_events():
     In addition, ROS flags will be set to begin and stop metadata generation.
     '''
     while True:
+        create_server()
 #        get_handshake = ser.read(msg_len*repeat_keyword)
-        get_handshake = recv_telem(msg_len, ser, repeat_keyword)
-        logging.debug("serial data: " +str(get_handshake))
+        try:
+            get_handshake = recv_telem(msg_len, ser, repeat_keyword)
+            logging.debug("serial data: " +str(get_handshake))
 
-        if handshake_start in get_handshake:
-            print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
-            logging.info("Received handshake from base. Sending confirmation")
-            send_telem(handshake_conf, ser, repeat_keyword)
-            reset_buffer()
-#            get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake
-            get_trigger_from_base = recv_telem(msg_len, ser_timeout, repeat_keyword)
-            logging.debug("serial data: " +str(get_trigger_from_base))
-            if toggle_ON in get_trigger_from_base:
-                trigger_event.set()
-                rospy.set_param('trigger/metadata', True)
-                while trigger_event.is_set() == True:
-                    if stop_acq_event.is_set():
-                        stop_acq_event.clear()
-                        time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
-                        send_telem(toggle_OFF, ser, repeat_keyword)
-                        reset_buffer()
-                        time.sleep(metadata_acq_time)
-                        rospy.set_param('trigger/metadata', False)
-            else:
-                print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
-                logging.info("No start cal trigger from base")
-                pass
+            if handshake_start in get_handshake:
+                print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
+                logging.info("Received handshake from base. Sending confirmation")
+                send_telem(handshake_conf, ser, repeat_keyword)
+                reset_buffer()
+#                get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake
+                get_trigger_from_base = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                logging.debug("serial data: " +str(get_trigger_from_base))
+                if toggle_ON in get_trigger_from_base:
+                    trigger_event.set()
+                    rospy.set_param('trigger/metadata', True)
+                    while trigger_event.is_set() == True:
+                        if stop_acq_event.is_set():
+                            stop_acq_event.clear()
+                            time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
+                            send_telem(toggle_OFF, ser, repeat_keyword)
+                            reset_buffer()
+                            time.sleep(metadata_acq_time)
+                            rospy.set_param('trigger/metadata', False)
+                else:
+                    print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
+                    logging.info("No start cal trigger from base")
+                    pass
 
-        elif startup_initiate in get_handshake:
-            print(colored('The base has started up and is talking.', 'grey', 'on_green'))
-            logging.info("The base has started up and is talking")
-            send_telem(startup_confirm, ser, repeat_keyword)
-            reset_buffer()
+            elif startup_initiate in get_handshake:
+                print(colored('The base has started up and is talking.', 'grey', 'on_green'))
+                logging.info("The base has started up and is talking")
+                send_telem(startup_confirm, ser, repeat_keyword)
+                reset_buffer()
 
-        elif heartbeat_check in get_handshake:
-            send_telem(heartbeat_conf, ser, repeat_keyword)
-            reset_buffer()
+            elif heartbeat_check in get_handshake:
+                send_telem(heartbeat_conf, ser, repeat_keyword)
+                reset_buffer()
 
-        elif shutdown in get_handshake:
-            reset_buffer()
-            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-            print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-            logging.info("Manual kill command from base recd. Shutting down SDR code")
-            break
+            elif shutdown in get_handshake:
+                reset_buffer()
+                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
+                logging.info("Manual kill command from base recd. Shutting down SDR code")
+                break
 
-        elif reboot_payload in get_handshake:
-            reset_buffer()
-            print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
-            logging.info(">>>REBOOTING PAYLOAD<<<")
-            os.system('sudo reboot now')
+            elif reboot_payload in get_handshake:
+                reset_buffer()
+                print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
+                logging.info(">>>REBOOTING PAYLOAD<<<")
+                os.system('sudo reboot now')
+        except socket.error:
+            pass
 
 
 def main():
