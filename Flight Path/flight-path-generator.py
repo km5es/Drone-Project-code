@@ -23,9 +23,10 @@ TODO: Specify starting (home) position and RTL waypoint.
         FIXME: QGC/PX4 does not understand RTL? Only viable option seems to be Land (21). Look into this later. Change the final WP to be
         Land (21) at starting position.
             FIXME: Final land point should NOT be reference position as that is the AUT!!
-TODO: Add parameter for constraining speed for the entire flight.
 TODO: Create a way to generate specific flight paths, for e.g. sorties 4-6.
 TODO: (optional) write code to plot straight to Google Maps in 3D.
+TODO: Refactor code to work for different flight stacks
+TODO: Export a waypoints.csv file to ./mission/waypoints.csv to compensate for Varundev's shitty work.
 
 
 @author: Krishna Makhija
@@ -95,19 +96,6 @@ if args.firmware:
     firmware = args.firmware
     print("The flight path will be generated for autopilots using %s firmware. Default = Ardupilot" %args.firmware)
 
-def takeoff():
-    """
-    Create a takeoff waypoint if firmware is chosen to be Ardupilot.
-    """
-    f_sphere.write("1\t1\t0\t22\t0\t0\t0\t")
-    f_sphere.write(str(heading))
-    f_sphere.write("\t")
-    f_sphere.write(str(math.degrees(latStart)))
-    f_sphere.write("\t")
-    f_sphere.write(str(math.degrees(longStart)))
-    f_sphere.write("\t")
-    f_sphere.write(str(missionStart_alt))
-    f_sphere.write("\t1\n")
 
 latStart = math.radians(latStart)
 longStart = math.radians(longStart)
@@ -200,50 +188,6 @@ el_wp = np.tile(elBranch, 18)
 
 #f_sphere = open("hemisphere_waypoints.waypoints","w+")
 #home = str(Path.home())    # for python3
-home = expanduser("~")
-f_sphere = open(home + "/" + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes_" + str(firmware) + ".waypoints", "w+")
-f_sphere.write("QGC WPL 110\n")
-### Define Mission Start point:
-f_sphere.write("0\t1\t0\t16\t0\t0\t0\t")
-f_sphere.write(str(heading))
-f_sphere.write("\t")
-f_sphere.write(str(math.degrees(latStart)))
-f_sphere.write("\t")
-f_sphere.write(str(math.degrees(longStart)))
-f_sphere.write("\t")
-f_sphere.write(str(missionStart_alt))
-f_sphere.write("\t1\n")
-
-if firmware == "Ardupilot":
-    takeoff()
-### Define waypoints for sampling data
-for i in range(len(elBranch)*passes):    ### this range is chosen to ignore waypoints at theta = 0 and 180
-    if firmware == "Ardupilot":
-        f_sphere.write(str(i+2))
-    elif firmware == "PX4":
-        f_sphere.write(str(i+1))
-    f_sphere.write("\t0\t3\t16\t")
-    f_sphere.write(str(wp_hold_time)+"\t0\t0\t")
-    f_sphere.write(str(heading))
-    f_sphere.write("\t")
-    f_sphere.write(str(lat_wp[i]))
-    f_sphere.write("\t")
-    f_sphere.write(str(long_wp[i]))
-    f_sphere.write("\t")
-    f_sphere.write(str(el_wp[i]))
-    f_sphere.write("\t1\n")
-### Define Land (21)
-f_sphere.write(str(len(long_wp)+1))
-f_sphere.write("\t0\t3\t21\t0\t0\t0\t")
-f_sphere.write(str(heading))
-f_sphere.write("\t")
-f_sphere.write(str(math.degrees(latStart)))
-f_sphere.write("\t")
-f_sphere.write(str(math.degrees(longStart)))
-f_sphere.write("\t")
-f_sphere.write(str(0))
-f_sphere.write("\t1\n")
-f_sphere.close()
 
 
 #############################################
@@ -280,3 +224,137 @@ gmap3.plot(lat_wp, long_wp, 'cornflowerblue', edge_width = 2.5)
 #gmap3.draw( "C:\\Users\\user\\Desktop\\map13.html" ) 
 gmap3.draw("./map13.html")
 """
+
+home = expanduser("~")
+f_sphere = open(home + "/" + str(int(radius)) + "m_" + str(wp_hold_time) + "s_" + str(passes) + "passes_" + str(firmware) + ".waypoints", "w+")
+f_sphere.write("QGC WPL 110\n")
+
+def home_pos():
+    """
+    Create a home position.
+    """
+    f_sphere.write("0\t1\t0\t16\t0\t0\t0\t")
+    f_sphere.write(str(heading))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(latStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(longStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(missionStart_alt))
+    f_sphere.write("\t1\n")
+
+def takeoff():
+    """
+    Create a takeoff waypoint if firmware is chosen to be Ardupilot.
+    """
+    f_sphere.write("1\t0\t0\t22\t0\t0\t0\t")
+    f_sphere.write(str(heading))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(latStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(longStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(missionStart_alt))
+    f_sphere.write("\t1\n")
+
+def yaw(start_index):
+    """
+    Add a yaw correction for each waypoint. Ardupilot only.
+    """
+    #f_sphere.write(str(start_index + 2))
+    f_sphere.write("\t0\t3\t115\t")
+    f_sphere.write(str(heading))
+    f_sphere.write("\t0\t0\t0\t")
+    f_sphere.write(str(lat_wp[start_index]))
+    f_sphere.write("\t")
+    f_sphere.write(str(long_wp[start_index]))
+    f_sphere.write("\t")
+    f_sphere.write(str(el_wp[start_index]))
+    f_sphere.write("\t1\n")
+
+def wp(start_index):
+    """
+    Print waypoint
+    """
+    #f_sphere.write(str(start_index + 3))
+    f_sphere.write("\t0\t3\t16\t")
+    f_sphere.write(str(wp_hold_time)+"\t0\t0\t0\t")
+    f_sphere.write(str(lat_wp[start_index]))
+    f_sphere.write("\t")
+    f_sphere.write(str(long_wp[start_index]))
+    f_sphere.write("\t")
+    f_sphere.write(str(el_wp[start_index]))
+    f_sphere.write("\t1\n")
+
+def land():
+    """
+    Create a land waypoint.
+    """
+    ### Define Land (21)
+    #f_sphere.write(str(len(long_wp)+1))
+    f_sphere.write(str(len(elBranch)*passes + 1))
+    f_sphere.write("\t0\t3\t21\t0\t0\t0\t")
+    f_sphere.write(str(heading))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(latStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(math.degrees(longStart)))
+    f_sphere.write("\t")
+    f_sphere.write(str(0))
+    f_sphere.write("\t1\n")
+    f_sphere.close()
+
+def ardupilot_plan():
+    """
+    Create a flight plan for an Ardupilot system.
+    """
+    home_pos()
+    takeoff()
+    n = 0
+    for i in range(len(elBranch*passes)):
+        f_sphere.write(str(n + 2))
+        yaw(i)
+        f_sphere.write(str(n + 3))
+        wp(i)
+        n = n + 2
+    land()
+
+def px4_plan():
+    """
+    Create a flight plan for a PX4 system.
+    """
+    home_pos()
+    ### Define waypoints for sampling data
+    for i in range(len(elBranch)*passes):    ### this range is chosen to ignore waypoints at theta = 0 and 180
+        f_sphere.write(str(i+1))
+        f_sphere.write("\t0\t3\t16\t")
+        f_sphere.write(str(wp_hold_time)+"\t0\t0\t")
+        f_sphere.write(str(heading))
+        f_sphere.write("\t")
+        f_sphere.write(str(lat_wp[i]))
+        f_sphere.write("\t")
+        f_sphere.write(str(long_wp[i]))
+        f_sphere.write("\t")
+        f_sphere.write(str(el_wp[i]))
+        f_sphere.write("\t1\n")
+    land()
+
+def waypoints_csv():
+    """
+    Write a csv file to ./mission/waypoints.csv for the broken ROS code to work with.
+    """
+    print("Writing waypoints to ./mission/waypoints.csv")
+
+def main():
+    """
+    Choose between Ardupilot or PX4 flight plans.
+    """
+    if firmware == "Ardupilot":
+        ardupilot_plan()
+    elif firmware == "PX4":
+        px4_plan()
+    waypoints_csv()
+
+
+if __name__ == '__main__':
+    main()
