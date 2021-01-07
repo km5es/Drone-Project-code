@@ -51,7 +51,7 @@ metadata_acq_time   = 10
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + '/Drone-Project-code/logs/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
-network             = 'wifi'
+network             = 'telemetry'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
 
