@@ -309,13 +309,13 @@ def ardupilot_plan():
     Create a flight plan for an Ardupilot system.
     """
     home_pos()
-    takeoff()
+    #takeoff()
     n = 0
     for i in range(len(elBranch*passes)):
         f_sphere.write(str(n + 2))
-        yaw(i)
-        f_sphere.write(str(n + 3))
         wp(i)
+        f_sphere.write(str(n + 3))
+        yaw(i)
         n = n + 2
     land()
 
@@ -344,6 +344,14 @@ def waypoints_csv():
     Write a csv file to ./mission/waypoints.csv for the broken ROS code to work with.
     """
     print("Writing waypoints to ./mission/waypoints.csv")
+    wp_file = open(home + "/catkin_ws/src/Drone-Project-code/mission/waypoints.csv", "w+")
+    for i in range(len(elBranch*passes)):
+        wp_file.write(str(lat_wp[i]))
+        wp_file.write("\t")
+        wp_file.write(str(long_wp[i]))
+        wp_file.write("\t")
+        wp_file.write(str(el_wp[i]))
+        wp_file.write("\n")
 
 def main():
     """
