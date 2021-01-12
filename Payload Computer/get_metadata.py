@@ -14,6 +14,7 @@ from std_msgs.msg import Float32
 from threading import Event, Thread
 from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import PositionTarget
+from sensor_msgs.msg import NavSatFix
 
 path            = expanduser("~") + "/"             # data files save path
 local_pose      = path + 'local_pose_meta.dat'
