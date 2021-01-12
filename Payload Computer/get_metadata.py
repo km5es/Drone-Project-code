@@ -98,8 +98,8 @@ def main():
         time.sleep(0.01)
         if rospy.get_param('trigger/metadata') == True:
             current_time = time.strftime("%H%M%S-%d%m%Y")
-            print(colored('[%s]Saving Waypoint #' + str(wp_num) + ' metadata in ' +
-                          str(local_pose) + ' and ' + str(set_target), 'grey', 'on_white'%(current_time)))
+            print(colored('[' + str(current_time) + ']Saving Waypoint #' + str(wp_num) + ' metadata in ' +
+                          str(local_pose) + ' and ' + str(set_target), 'grey', 'on_white'))
             local_pose_f_a = open(local_pose, "a+")
             set_target_f_a = open(set_target, "a+")
             global_pos_f_a = open(global_pos, "a+")
