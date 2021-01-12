@@ -18,6 +18,7 @@ from mavros_msgs.msg import PositionTarget
 path            = expanduser("~") + "/"             # data files save path
 local_pose      = path + 'local_pose_meta.dat'
 set_target      = path + 'set_target_meta.dat'
+global_pos      = path + 'global_pos_meta.dat'
 refresh_rate    = 25.0
 
 
@@ -49,6 +50,19 @@ def callback_setpoint(data):
         pass
 
 
+def callback_global(data):
+    """
+    Callback object for drone's GPS location.
+    """
+    try:
+        time.sleep(0.01)
+        current_time = time.strftime("%H%M%S-%d%m%Y")
+        global_pos_f_a.write("%s\t%s\t%s\t%s\n" %(current_time, data.latitude, data.longitude, data.altitude))
+        rospy.sleep(1/refresh_rate)
+    except ValueError:
+        pass
+
+
 def callback_SDR(data):
     """
     Callback object for SDR temperature.
@@ -63,6 +77,7 @@ def main():
     """
     global local_pose_f_a
     global set_target_f_a
+    global global_pos_f_a
 
     local_pose_f = open(local_pose, "w+")
     local_pose_f.write(
@@ -72,6 +87,9 @@ def main():
     set_target_f.write(
         "Timestamp\tSet_target (x)\tSet_target (y)\tSet_target (z)\n")
     set_target_f.close()
+    global_pos_f = open(global_pos, "w+")
+    global_pos_f.write("Timestamp\tLatitude\tLongitude\tAltitude\n")
+    global_pos_f.close()
     rospy.init_node('get_metadata', anonymous=True)
     rospy.set_param('trigger/metadata', False)
     wp_num = 0
@@ -79,22 +97,27 @@ def main():
     while not rospy.is_shutdown():
         time.sleep(0.01)
         if rospy.get_param('trigger/metadata') == True:
-            print(colored('Saving Waypoint #' + str(wp_num) + ' metadata in ' +
-                          str(local_pose) + ' and ' + str(set_target), 'grey', 'on_white'))
+            current_time = time.strftime("%H%M%S-%d%m%Y")
+            print(colored('[%s]Saving Waypoint #' + str(wp_num) + ' metadata in ' +
+                          str(local_pose) + ' and ' + str(set_target), 'grey', 'on_white'%(current_time)))
             local_pose_f_a = open(local_pose, "a+")
             set_target_f_a = open(set_target, "a+")
+            global_pos_f_a = open(global_pos, "a+")
             local_pose_f_a.write("Waypoint #%s\n" % (wp_num))
             set_target_f_a.write("Waypoint #%s\n" % (wp_num))
+            global_pos_f_a.write("waypoint #%s\n" % (wp_num))
             wp_num += 1
             while True:
                 rospy.Subscriber('/mavros/local_position/pose',
                                  PoseStamped, callback_local)
                 rospy.Subscriber('/mavros/setpoint_raw/target_local',
                                  PositionTarget, callback_setpoint)
+                rospy.Subscriber('/mavros/global_position/global', NavSatFix, callback_global)
                 if rospy.get_param('trigger/metadata') == False:
                     print('Finished saving metadata for this WP.')
                     local_pose_f_a.close()
                     set_target_f_a.close()
+                    global_pos_f_a.close()
                     break
 
 

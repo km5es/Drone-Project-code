@@ -265,6 +265,11 @@ def sync_events():
                     logging.info(">>>REBOOTING PAYLOAD<<<")
                     os.system('sudo reboot now')
 
+                elif get_handshake is None:
+                    print('Connection to base broken.')
+                    logging.debug('Connection to base broken.')
+                    pass
+
         except socket.error:
             print('Connection to base broken.')
             logging.debug('Connection to base broken.')
