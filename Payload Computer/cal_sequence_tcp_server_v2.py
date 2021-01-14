@@ -51,7 +51,7 @@ metadata_acq_time   = 10
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + '/Drone-Project-code/logs/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
-network             = 'telemetry'
+network             = 'wifi'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
 
@@ -123,7 +123,7 @@ def create_server():
     global base_conn
     base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     base_station_ip     = socket.gethostname()
-    base_station_port   = 8400
+    base_station_port   = 12000
     base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
     base_station.listen(5)                                                 # Now wait for client connection.
