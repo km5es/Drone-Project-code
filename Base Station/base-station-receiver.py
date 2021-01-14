@@ -35,7 +35,7 @@ pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 addr                = "10.42.0.102"                 # default TCP address of payload
 pi_port             = 12000
 xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-xu4_addr            = "10.42.0.249"
+xu4_addr            = "10.42.0.47"
 xu4_port            = 12000
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
@@ -57,7 +57,7 @@ timeout             = 4                             # time after which saving da
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
-network             = 'telemetry'
+network             = 'wifi'                        # options: wifi or telemtry 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
