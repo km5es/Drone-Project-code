@@ -9,7 +9,8 @@ source /opt/ros/melodic/setup.bash
 sleep 8;
 
 ### start MAVROS
-roslaunch mavros apm.launch fcu_url:="/dev/ttyFC:921600" &
+#roslaunch mavros apm.launch fcu_url:="/dev/ttyFC:921600" &
+roslaunch mavros apm.launch fcu_url:="udp://:14550@127.0.0.1:14550"
 
 sleep 8;
 

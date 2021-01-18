@@ -7,7 +7,8 @@
 lsof -t -i tcp:8800 | xargs kill -9
 
 ### intitate MAVLink with drone
-roslaunch mavros apm.launch fcu_url:="/dev/ttyMAVROS:57600" &
+#roslaunch mavros apm.launch fcu_url:="/dev/ttyMAVROS:57600" &
+roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551" &
 
 sleep 4
 
