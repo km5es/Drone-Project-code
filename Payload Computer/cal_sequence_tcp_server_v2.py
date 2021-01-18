@@ -211,7 +211,7 @@ def sync_events():
     In addition, ROS flags will be set to begin and stop metadata generation.
     '''
     while True:
-        create_server()
+#        create_server()
 #        get_handshake = ser.read(msg_len*repeat_keyword)
         try:
             while True:
