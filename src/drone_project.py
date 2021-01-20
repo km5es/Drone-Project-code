@@ -38,7 +38,7 @@ def get_mission():
     file_path = os.path.expanduser('~/catkin_ws/src/Drone-Project-code/mission/waypoints.csv')
 
     with open(file_path) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter = ',')
+        csv_reader = csv.reader(csv_file, delimiter = '\t')
         for waypoint in csv_reader:
             mission.append(waypoint)
 
