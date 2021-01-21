@@ -32,11 +32,11 @@ ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
 pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-addr                = "10.42.0.102"                 # default TCP address of payload
-pi_port             = 12000
+pi_addr             = "10.42.0.102"                 # default TCP address of payload
+pi_port             = 6789
 xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-xu4_addr            = "10.42.0.47"
-xu4_port            = 12000
+xu4_addr            = "10.42.0.249"
+xu4_port            = 6789
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/'             
@@ -52,6 +52,7 @@ toggle_OFF          = 'stop_acq'                    # message from payload to st
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
 startup_SDR         = 'beginSDR'                    # boot up SDR codes.
 reboot_payload      = '_reboot_'                    # reboot payload computer
+pingtest            = 'pingtest'                    # manually test connection to payload
 acq_event           = Event()                       # save radio data
 timeout             = 4                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
@@ -76,7 +77,7 @@ if args.port:
     pi_port = args.port
 
 if args.address:
-    addr = args.address
+    pi_addr = args.address
 
 if network == 'wifi':
     print(colored('Connecting to the drone via ' + str(network) + ' on tcp://' + str(addr) + ':' + str(pi_port), 'green'))
@@ -85,12 +86,14 @@ elif network == 'telemetry':
     print(colored('Connecting to the drone via ' + str(network), 'green'))
 
 
-### Establish connections
+if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
+    msg_len = len(toggle_ON)
+else:
+    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
+    logging.warning("Custom msgs through serial not equal length. Sync might not work.")
 
-pi_ip           = socket.gethostbyname(addr)
-pi_address      = (pi_ip, pi_port)
-xu4_ip          = socket.gethostbyname(xu4_addr)
-xu4_address     = (xu4_ip, xu4_port)
+
+### Establish connections
 
 try:
     ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
@@ -100,6 +103,20 @@ except:
     print("No telemetry found. Check for Wi-Fi link...")
     logging.warning("No serial telemetry found")
     pass
+
+# Connect to GRC flowgraph
+client.connect((address))
+print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
+logging.info("TCP connection to GRC flowgraph open.")
+
+# UDP connection
+payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+'''
+pi_ip           = socket.gethostbyname(pi_addr)
+pi_address      = (pi_ip, pi_port)
+xu4_ip          = socket.gethostbyname(xu4_addr)
+xu4_address     = (xu4_ip, xu4_port)
 
 try:
     pi.connect((pi_address))
@@ -118,17 +135,7 @@ except:
     print('No connection to ODROID XU4 found.')
     logging.warning("No connection to ODROID XU4 found.")
     pass
-
-client.connect((address))
-print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
-logging.info("TCP connection to GRC flowgraph open.")
-
-
-if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
-    msg_len = len(toggle_ON)
-else:
-    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
-    logging.warning("Custom msgs through serial not equal length. Sync might not work.")
+'''
 
 
 ### Define objects
@@ -143,11 +150,11 @@ def send_telem(keyword, serial_object, repeat_keyword):
         serial_object.write(new_keyword)
     if network == 'wifi':
         try:
-            pi.send(new_keyword)
+            payload_conn.sendto(new_keyword, (pi_addr, pi_port))
         except:
             pass
         try:
-            xu4.send(new_keyword)
+            payload_conn.sendto(new_keyword, (xu4_addr, xu4_port))
         except:
             pass
 
@@ -160,11 +167,11 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
         message = serial_object.read(msg_len*repeat_keyword)
     if network == 'wifi':
         try:
-            message = pi.recv(msg_len*repeat_keyword)
+            message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
         except:
             pass
         try:
-            message = xu4.recv(msg_len*repeat_keyword)
+            message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
         except:
             pass
     return message
@@ -319,6 +326,15 @@ def manual_trigger_events():
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 logging.warning('Handshake with payload failed. No data saved')
                 pass
+        
+        elif msg == str(pingtest):
+            get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
+            if pingtest in get_return_ping:
+                print("Ping reply recd from payload.")
+                logging.info("Ping reply recd from payload.")
+            else:
+                print("Payload not responding to ping test.")
+                logging.warning("Payload not responding to ping test.")
 
 
 def heartbeat():

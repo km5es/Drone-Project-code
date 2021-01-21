@@ -43,6 +43,7 @@ toggle_ON           = 'start_tx'                            # message to payload
 toggle_OFF          = 'stop_acq'                            # message from payload to stop saving
 shutdown            = 'shutdown'                            # force shutdown of all SDRs
 reboot_payload      = '_reboot_'                            # reboot payload computer
+pingtest            = 'pingtest'                            # manually test connection
 repeat_keyword      = 4
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
@@ -115,10 +116,10 @@ else:
 
 
 ### Define objects
-
+'''
 def create_server():
     """
-    Create socket server for base station to connect to.
+    Create UDP server for base station to connect to.
     """
     global base_conn
     base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -130,9 +131,22 @@ def create_server():
     base_conn, base_addr = base_station.accept()
     print(colored('Connected to base station via wifi.', 'green'))
     logging.info('Connected to base station via wifi.')
+'''
+
+def create_server():
+    """
+    Create UDP server for base station to connect to.
+    """
+    global base_conn
+    global udp_ip
+    global udp_port
+    udp_ip          = socket.gethostname()
+    udp_port        = 6789
+    base_conn       = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    base_conn.bind((udp_ip, udp_port))
 
 
-def send_telem(keyword, serial_object, repeat_keyword):
+def send_telem(keyword, serial_object, repeat_keyword, addr):
     """
     Send keyword over telemetry radio or wireless connection for a total of repeat_keyword times.
     """
@@ -141,7 +155,8 @@ def send_telem(keyword, serial_object, repeat_keyword):
     if network == 'telemetry':
         serial_object.write(new_keyword)
     if network == 'wifi':
-        base_conn.send(new_keyword)
+#        base_conn.send(new_keyword)
+        base_conn.sendto(new_keyword, addr)
 
 
 def recv_telem(msg_len, serial_object, repeat_keyword):
@@ -153,8 +168,9 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
         return message
     if network == 'wifi':
         try:
-            message = base_conn.recv(msg_len*repeat_keyword)
-            return message
+#            message = base_conn.recv(msg_len*repeat_keyword)
+            message, addr = base_conn.recvfrom(msg_len*repeat_keyword)  # UDP server
+            return message, addr
         except:
             pass
 
@@ -215,16 +231,16 @@ def sync_events():
 #        get_handshake = ser.read(msg_len*repeat_keyword)
         try:
             while True:
-                get_handshake = recv_telem(msg_len, ser, repeat_keyword)
+                get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
                 logging.debug("serial data: " +str(get_handshake))
     
                 if handshake_start in get_handshake:
                     print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
                     logging.info("Received handshake from base. Sending confirmation")
-                    send_telem(handshake_conf, ser, repeat_keyword)
+                    send_telem(handshake_conf, ser, repeat_keyword, addr)
                     reset_buffer()
 #                        get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake
-                    get_trigger_from_base = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                    get_trigger_from_base, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
                     logging.debug("serial data: " +str(get_trigger_from_base))
                     if toggle_ON in get_trigger_from_base:
                         trigger_event.set()
@@ -233,7 +249,7 @@ def sync_events():
                             if stop_acq_event.is_set():
                                 stop_acq_event.clear()
                                 time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
-                                send_telem(toggle_OFF, ser, repeat_keyword)
+                                send_telem(toggle_OFF, ser, repeat_keyword, addr)
                                 reset_buffer()
                                 time.sleep(metadata_acq_time)
                                 rospy.set_param('trigger/metadata', False)
@@ -245,11 +261,11 @@ def sync_events():
                 elif startup_initiate in get_handshake:
                     print(colored('The base has started up and is talking.', 'grey', 'on_green'))
                     logging.info("The base has started up and is talking")
-                    send_telem(startup_confirm, ser, repeat_keyword)
+                    send_telem(startup_confirm, ser, repeat_keyword, addr)
                     reset_buffer()
     
                 elif heartbeat_check in get_handshake:
-                    send_telem(heartbeat_conf, ser, repeat_keyword)
+                    send_telem(heartbeat_conf, ser, repeat_keyword, addr)
                     reset_buffer()
     
                 elif shutdown in get_handshake:
@@ -269,6 +285,12 @@ def sync_events():
                     print('Connection to base broken.')
                     logging.debug('Connection to base broken.')
                     pass
+
+                elif pingtest in get_handshake:
+                    reset_buffer()
+                    send_telem(pingtest, ser, repeat_keyword, addr)
+                    print("Ping test received. Sending return ping.")
+                    logging.info("Ping test received. Sending return ping.")
 
         except socket.error:
             print('Connection to base broken.')
