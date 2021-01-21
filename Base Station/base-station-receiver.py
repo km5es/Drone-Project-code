@@ -170,10 +170,6 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
             message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
         except:
             pass
-        try:
-            message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
-        except:
-            pass
     return message
 
 
