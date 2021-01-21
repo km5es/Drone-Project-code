@@ -92,11 +92,11 @@ os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))                                        # Bind to the port
 s.listen(5)                                                 # Now wait for client connection.
-conn, addr = s.accept()
+conn, address = s.accept()
 print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
 logging.info("TCP server waiting for connection with GRC client flowgraph")
-print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
-logging.info('Connection to GRC flowgraph established on ' + str(addr))
+print(colored('Connection to GRC flowgraph established on ' + str(address), 'green'))
+logging.info('Connection to GRC flowgraph established on ' + str(address))
 
 if ser.isOpen() == True:
     ser.reset_input_buffer()

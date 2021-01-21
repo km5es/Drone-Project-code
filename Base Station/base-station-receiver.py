@@ -80,7 +80,7 @@ if args.address:
     pi_addr = args.address
 
 if network == 'wifi':
-    print(colored('Connecting to the drone via ' + str(network) + ' on tcp://' + str(addr) + ':' + str(pi_port), 'green'))
+    print(colored('Connecting to the drone via ' + str(network) + ' on tcp://' + str(pi_addr) + ':' + str(pi_port), 'green'))
 
 elif network == 'telemetry':
     print(colored('Connecting to the drone via ' + str(network), 'green'))
