@@ -9,7 +9,7 @@ source /opt/ros/melodic/setup.bash
 sleep 8;
 
 ### start MAVROS
-mavlink-routerd -e 10.42.0.1:14550 -e 127.0.0.1:14550 /dev/ttySAC0:921600 &
+mavlink-routerd -e 10.42.0.1:12550 -e 127.0.0.1:14550 /dev/ttySAC0:921600 &
 roslaunch mavros apm.launch fcu_url:="udp://:14550@127.0.0.1:14551" &
 
 sleep 8;
