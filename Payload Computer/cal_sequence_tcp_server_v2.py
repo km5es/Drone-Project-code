@@ -29,7 +29,7 @@ togglePoint         = 96                                    # number of pulses a
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
-port                = 48714
+port                = 8810
 #base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 #base_station_ip     = socket.gethostbyname('0.0.0.0')
 #base_station_port   = 12000
@@ -89,7 +89,7 @@ except:
 
 ## connect to GRC flowgraph
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-#s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))                                        # Bind to the port
 s.listen(5)                                                 # Now wait for client connection.
 conn, address = s.accept()
