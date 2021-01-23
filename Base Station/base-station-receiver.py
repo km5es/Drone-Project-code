@@ -35,7 +35,7 @@ pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 pi_addr             = "10.42.0.102"                 # default TCP address of payload
 pi_port             = 6789
 xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-xu4_addr            = "10.42.0.249"
+xu4_addr            = "10.42.0.47"
 xu4_port            = 6789
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
@@ -326,10 +326,10 @@ def manual_trigger_events():
         elif msg == str(pingtest):
             get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
             if pingtest in get_return_ping:
-                print("Ping reply recd from payload.")
+                print(colored('Ping reply recd from payload.', 'green'))
                 logging.info("Ping reply recd from payload.")
             else:
-                print("Payload not responding to ping test.")
+                print(colored('Payload not responding to ping test.', 'red'))
                 logging.warning("Payload not responding to ping test.")
 
 

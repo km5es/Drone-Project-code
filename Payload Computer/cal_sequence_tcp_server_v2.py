@@ -14,7 +14,7 @@ v2.0 now will transmit zeros while the trigger is not set. This will ensure an i
 cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
 '''
 #TODO: integrate the circular polarized waveform as well.
-#TODO: log data using payload daemon?
+#TODO: create a sartup ping for UDP connection
 
 import socket, serial, os, sys, time, rospy, logging, argparse
 from termcolor import colored
