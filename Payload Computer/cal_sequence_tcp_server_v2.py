@@ -10,11 +10,14 @@ command. Logs are saved in the /logs directory of the repo.
 
 Author: Krishna Makhija
 date: 21st July 2020
+last modified: 23rd Jan 2021
 v2.0 now will transmit zeros while the trigger is not set. This will ensure an integer number of cycles on the LO to complete before the
 cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
 '''
 #TODO: integrate the circular polarized waveform as well.
 #TODO: create a sartup ping for UDP connection
+#FIXME: if no handshake confirmation then code hangs with udp. how to implement a timeout?
+#FIXME: reboot payload is not working and neither is shutdown
 
 import socket, serial, os, sys, time, rospy, logging, argparse
 from termcolor import colored

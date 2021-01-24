@@ -7,7 +7,7 @@ forced shutdown of the payload and base station. Logs are saved in the /logs dir
 
 Author: Krishna Makhija
 date: 6th August 2020
-last modified: 30th Dec 2020
+last modified: 23rd Jan 2021
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
     #FIXME: Heartbeat feature is not working properly. Timing across threads is tricky. Tabling for now.
@@ -35,7 +35,7 @@ pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 pi_addr             = "10.42.0.102"                 # default TCP address of payload
 pi_port             = 6789
 xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-xu4_addr            = "10.42.0.249"
+xu4_addr            = "10.42.0.47"
 xu4_port            = 6789
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
@@ -235,19 +235,20 @@ def ros_events():
         print(ser, ser_timeout)
         reset_buffer()
         logging.info('Base serial is UP')
-        send_telem(startup_initiate, ser, repeat_keyword)
-#        get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
-        get_startup_confirmation = recv_telem(msg_len, ser_timeout, repeat_keyword)
-        logging.debug('serial data: ' +str(get_startup_confirmation))
-        if startup_confirm in get_startup_confirmation:
-            print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
-            logging.info('Comms to payload UP and RUNNING')
-        else:
-            print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
-            logging.warning('Comms to payload DOWN')
     else:
         print(colored('No serial connection', 'magenta'))
         logging.warning('Base serial is DOWN')
+
+    send_telem(startup_initiate, ser, repeat_keyword)
+#        get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
+    get_startup_confirmation = recv_telem(msg_len, ser_timeout, repeat_keyword)
+    logging.debug('serial data: ' +str(get_startup_confirmation))
+    if startup_confirm in get_startup_confirmation:
+        print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
+        logging.info('Comms to payload UP and RUNNING')
+    else:
+        print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
+        logging.warning('Comms to payload DOWN')
 
     while not rospy.is_shutdown():
         sleep(1e-6)
