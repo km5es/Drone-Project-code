@@ -5,6 +5,7 @@ a waypoint is reached.
 
 Author: KM
 Date: 07/01/2021
+modified: 27/01/2021
 """
 
 import rospy, time
@@ -17,12 +18,22 @@ from mavros_msgs.msg import PositionTarget
 from mavros_msgs.msg import WaypointReached
 from sensor_msgs.msg import Imu
 
+
+rospy.set_param('trigger/command', False)
+rospy.set_param('trigger/acknowledgement', False)
+n = 0
+
 def trigger_node(data):
+    global n
+    n = n + 1
     if data:
-        print(data.wp_seq)
+        print("Waypoint sequence #" +str(data.wp_seq) +" reached. Triggering GNUradio code.")
+        rospy.set_param('trigger/command', True)
+
 
 def imu_data(data):
     print(data)
+
 
 def main():
     try:

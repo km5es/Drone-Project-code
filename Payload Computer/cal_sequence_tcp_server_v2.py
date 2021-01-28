@@ -146,6 +146,7 @@ def create_server():
     udp_ip          = socket.gethostname()
     udp_port        = 6789
     base_conn       = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#    base_conn.settimeout(4)
     base_conn.bind((udp_ip, udp_port))
 
 
@@ -174,8 +175,10 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
 #            message = base_conn.recv(msg_len*repeat_keyword)
             message, addr = base_conn.recvfrom(msg_len*repeat_keyword)  # UDP server
             return message, addr
-        except:
-            pass
+#        except socket.timeout:
+#            print(colored('Socket recv timed out in 4 seconds. Is the base in range?', 'grey', 'on_red', attrs=['blink']))
+#            logging.debug('Socket recv timed out in 4 seconds. Is the base in range?')
+#            pass
 
 
 def reset_buffer():
@@ -236,7 +239,6 @@ def sync_events():
             while True:
                 get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
                 logging.debug("serial data: " +str(get_handshake))
-    
                 if handshake_start in get_handshake:
                     print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
                     logging.info("Received handshake from base. Sending confirmation")
