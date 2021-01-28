@@ -111,6 +111,7 @@ logging.info("TCP connection to GRC flowgraph open.")
 
 # UDP connection
 payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+payload_conn.settimeout(4)
 
 '''
 pi_ip           = socket.gethostbyname(pi_addr)
@@ -168,9 +169,11 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     if network == 'wifi':
         try:
             message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
-        except:
+            return message
+        except (socket.timeout, TypeError):
+            print(colored('Socket recv timed out in 4 seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
+            logging.debug('Socket recv timed out in 4 seconds. Is the payload operatinal?')
             pass
-    return message
 
 
 def reset_buffer():
@@ -241,12 +244,16 @@ def ros_events():
 
     send_telem(startup_initiate, ser, repeat_keyword)
 #        get_startup_confirmation = ser_timeout.read(msg_len*repeat_keyword)
-    get_startup_confirmation = recv_telem(msg_len, ser_timeout, repeat_keyword)
-    logging.debug('serial data: ' +str(get_startup_confirmation))
-    if startup_confirm in get_startup_confirmation:
-        print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
-        logging.info('Comms to payload UP and RUNNING')
-    else:
+    try:
+        get_startup_confirmation = recv_telem(msg_len, ser_timeout, repeat_keyword)
+        logging.debug('serial data: ' +str(get_startup_confirmation))
+        if startup_confirm in get_startup_confirmation:
+            print(colored('Communication to the payload is UP. Waiting for trigger from drone.', 'green'))
+            logging.info('Comms to payload UP and RUNNING')
+        else:
+            print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
+            logging.warning('Comms to payload DOWN')
+    except TypeError:
         print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
         logging.warning('Comms to payload DOWN')
 
@@ -259,27 +266,32 @@ def ros_events():
             logging.info('Drone reached WP -- starting handshake')
             send_telem(handshake_start, ser, repeat_keyword)
 #            get_handshake_conf = ser_timeout.read(msg_len*repeat_keyword)
-            get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
-            logging.debug('serial data: ' +str(get_handshake_conf))
-            if handshake_conf in get_handshake_conf:
-                reset_buffer()
-                print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                send_telem(toggle_ON, ser, repeat_keyword)
-                acq_event.set()
-#                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
-                get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
-                print(get_stop_acq_trigger)
-                logging.debug('serial data: ' +str(get_stop_acq_trigger))
-                if toggle_OFF in get_stop_acq_trigger:
-                    logging.info('Data acquisition toggled OFF')
-                    acq_event.clear()
+            try:
+                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                logging.debug('serial data: ' +str(get_handshake_conf))
+                if handshake_conf in get_handshake_conf:
+                    reset_buffer()
+                    print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
+                    send_telem(toggle_ON, ser, repeat_keyword)
+                    acq_event.set()
+#                    get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
+                    get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
+                    print(get_stop_acq_trigger)
+                    logging.debug('serial data: ' +str(get_stop_acq_trigger))
+                    if toggle_OFF in get_stop_acq_trigger:
+                        logging.info('Data acquisition toggled OFF')
+                        acq_event.clear()
+                        rospy.set_param('trigger/acknowledgement', True)
+                        reset_buffer()
+                else:
+                    print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
+                    logging.warning('Handshake with payload failed. No data saved')
                     rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
-            else:
+                    pass
+            except TypeError:
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 logging.warning('Handshake with payload failed. No data saved')
-                rospy.set_param('trigger/acknowledgement', True)
-                reset_buffer()
                 pass
 
 
@@ -301,35 +313,44 @@ def manual_trigger_events():
 
         elif msg == str(handshake_start):
 #            get_handshake_conf = ser_timeout.read(msg_len)
-            get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
-            print(get_handshake_conf)
-            logging.info("Manual payload trigger")
-            logging.debug("serial data: " +str(get_handshake_conf))
-            if handshake_conf in get_handshake_conf:
-                reset_buffer()
-                print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                logging.info('Handshake confirmation recd -- acquiring data')
-                send_telem(toggle_ON, ser, repeat_keyword)
-                acq_event.set()
-#                get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
-                get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
-                print(get_stop_acq_trigger)
-                logging.debug('serial data: ' +str(get_stop_acq_trigger))
-                if toggle_OFF in get_stop_acq_trigger:
-                    logging.info('Data acquisition toggled OFF')
-                    acq_event.clear()
+            try:
+                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                print(get_handshake_conf)
+                logging.info("Manual payload trigger")
+                logging.debug("serial data: " +str(get_handshake_conf))
+                if handshake_conf in get_handshake_conf:
                     reset_buffer()
-            else:
+                    print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
+                    logging.info('Handshake confirmation recd -- acquiring data')
+                    send_telem(toggle_ON, ser, repeat_keyword)
+                    acq_event.set()
+#                    get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
+                    get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
+                    print(get_stop_acq_trigger)
+                    logging.debug('serial data: ' +str(get_stop_acq_trigger))
+                    if toggle_OFF in get_stop_acq_trigger:
+                        logging.info('Data acquisition toggled OFF')
+                        acq_event.clear()
+                        reset_buffer()
+                else:
+                    print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
+                    logging.warning('Handshake with payload failed. No data saved')
+                    pass
+            except TypeError:
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 logging.warning('Handshake with payload failed. No data saved')
                 pass
         
         elif msg == str(pingtest):
-            get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
-            if pingtest in get_return_ping:
-                print(colored('Ping reply recd from payload.', 'green'))
-                logging.info("Ping reply recd from payload.")
-            else:
+            try:
+                get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                if pingtest in get_return_ping:
+                    print(colored('Ping reply recd from payload.', 'green'))
+                    logging.info("Ping reply recd from payload.")
+                else:
+                    print(colored('Payload not responding to ping test.', 'red'))
+                    logging.warning("Payload not responding to ping test.")
+            except TypeError:
                 print(colored('Payload not responding to ping test.', 'red'))
                 logging.warning("Payload not responding to ping test.")
 
