@@ -297,10 +297,10 @@ def heartbeat_udp():
     if network == 'wifi':
         while True:
             time.sleep(0.01)
-            data, addr = base_conn2.recvfrom(8)
+            data, addr = base_conn2.recvfrom(msg_len)
             if heartbeat_check in data:
                 print('Heartbeat received. Sending confirmation')
-                basedata, addr = base_conn2.sendto(heartbeat_conf, addr)
+                base_conn2.sendto(heartbeat_conf, addr)
                 data = ""
 
 

@@ -80,7 +80,7 @@ if args.address:
     pi_addr = args.address
 
 if network == 'wifi':
-    print(colored('Connecting to the drone via ' + str(network) + ' on tcp://' + str(pi_addr) + ':' + str(pi_port), 'green'))
+    print(colored('Connecting to the drone via UDP', 'green'))
 
 elif network == 'telemetry':
     print(colored('Connecting to the drone via ' + str(network), 'green'))
@@ -360,22 +360,22 @@ def heartbeat_udp():
     if network == 'wifi':
         while True:
             sleep(1)
-            try:
-                sendtime = time.time()
-                payload_conn2.sendto(heartbeat_check, (pi_addr, hrt_beat_port))
-                payload_conn2.sendto(heartbeat_check, (xu4_addr, hrt_beat_port))
-                message, addr = payload_conn.recvfrom(msg_len)
-                recvtime = time.time()
-                RTT = (recvtime - sendtime)*1000.0		# in ms
-                RTT = round(RTT, 2)
-                if heartbeat_conf in message:
-                    print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
-                    if RTT > 2000:
-                        print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
-                else:
-                    print(colored('No heartbeat received from payload', 'grey', 'on_red'))
-            except:
-                pass
+            #try:
+            sendtime = time.time()
+            payload_conn2.sendto(heartbeat_check, (pi_addr, hrt_beat_port))
+            payload_conn2.sendto(heartbeat_check, (xu4_addr, hrt_beat_port))
+            message, addr = payload_conn2.recvfrom(msg_len)
+            recvtime = time.time()
+            RTT = (recvtime - sendtime)*1000.0		# in ms
+            RTT = round(RTT, 2)
+            if heartbeat_conf in message:
+                print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
+                if RTT > 2000:
+                    print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
+            else:
+                print(colored('No heartbeat received from payload', 'grey', 'on_red'))
+            #except:
+            #    pass
 
 
 def main():
