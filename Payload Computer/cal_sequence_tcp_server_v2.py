@@ -159,10 +159,10 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
 #            message = base_conn.recv(msg_len*repeat_keyword)
             message, addr = base_conn.recvfrom(msg_len*repeat_keyword)  # UDP server
             return message, addr
-#        except socket.timeout:
+        except:
 #            print(colored('Socket recv timed out in 4 seconds. Is the base in range?', 'grey', 'on_red', attrs=['blink']))
 #            logging.debug('Socket recv timed out in 4 seconds. Is the base in range?')
-#            pass
+            pass
 
 
 def reset_buffer():
