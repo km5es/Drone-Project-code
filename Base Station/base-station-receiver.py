@@ -31,12 +31,12 @@ client              = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
-pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+#pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 pi_addr             = "10.42.0.102"                 # default TCP address of payload
-pi_port             = 6789
-xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+seq_port            = 6789
+#xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 xu4_addr            = "10.42.0.47"
-xu4_port            = 6789
+hrt_beat_port       = 5678
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/'             
@@ -109,35 +109,13 @@ client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 logging.info("TCP connection to GRC flowgraph open.")
 
-# UDP connection
+## UDP connection
+# conn 1 for sync
 payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 payload_conn.settimeout(4)
-
-'''
-pi_ip           = socket.gethostbyname(pi_addr)
-pi_address      = (pi_ip, pi_port)
-xu4_ip          = socket.gethostbyname(xu4_addr)
-xu4_address     = (xu4_ip, xu4_port)
-
-try:
-    pi.connect((pi_address))
-    print(colored('Connection established to payload computer.', 'green'))
-    logging.info("Connection established to payload computer on tcp://" + str(addr) + ':' + str(pi_port))
-except:
-    print('No TCP connection to payload computer found.')
-    logging.warning('No TCP connection to payload computer found.')
-    pass
-
-try:
-    xu4.connect((xu4_address))
-    print(colored('Connection established to ODROID XU4.', 'green'))
-    logging.info("Connection established to ODROID XU4 on tcp://" + str(addr) + ':' + str(pi_port))
-except:
-    print('No connection to ODROID XU4 found.')
-    logging.warning("No connection to ODROID XU4 found.")
-    pass
-'''
-
+# conn 2 for sync
+payload_conn2   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+payload_conn2.settimeout(4)
 
 ### Define objects
 
@@ -151,11 +129,11 @@ def send_telem(keyword, serial_object, repeat_keyword):
         serial_object.write(new_keyword)
     if network == 'wifi':
         try:
-            payload_conn.sendto(new_keyword, (pi_addr, pi_port))
+            payload_conn.sendto(new_keyword, (pi_addr, seq_port))
         except:
             pass
         try:
-            payload_conn.sendto(new_keyword, (xu4_addr, xu4_port))
+            payload_conn.sendto(new_keyword, (xu4_addr, seq_port))
         except:
             pass
 
@@ -355,23 +333,49 @@ def manual_trigger_events():
                 logging.warning("Payload not responding to ping test.")
 
 
-def heartbeat():
+def heartbeat_telem():
     """
     Send telem heartbeat to ensure payload comms are okay.
     """
-    while True:
-        if not acq_event.is_set() and not rospy.get_param('trigger/command'):
-            send_telem(heartbeat_check, ser, repeat_keyword)
-#            get_heartbeat = ser_timeout.read(msg_len)
-            get_heartbeat = recv_telem(msg_len, ser_timeout, repeat_keyword)
-            if heartbeat_conf in get_heartbeat:
-                pass
-            else:
-                print(colored('Heartbeat not received from payload. Calibration MAY not work.', 'red'))
-                logging.warning('Heartbeat NOT received. Calibration MAY not work. serial data: ' +str(get_heartbeat))
-                pass
-            reset_buffer()
+    if network == 'telemetry':
+        while True:
+            if not acq_event.is_set() and not rospy.get_param('trigger/command'):
+                send_telem(heartbeat_check, ser, repeat_keyword)
+#                get_heartbeat = ser_timeout.read(msg_len)
+                get_heartbeat = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                if heartbeat_conf in get_heartbeat:
+                    pass
+                else:
+                    print(colored('Heartbeat not received from payload. Calibration MAY not work.', 'red'))
+                    logging.warning('Heartbeat NOT received. Calibration MAY not work. serial data: ' +str(get_heartbeat))
+                    pass
+                reset_buffer()
+                sleep(1)
+
+
+def heartbeat_udp():
+    """
+    Send heartbeat over UDP to ensure payload comms are okay. 
+    """
+    if network == 'wifi':
+        while True:
             sleep(1)
+            try:
+                sendtime = time.time()
+                payload_conn2.sendto(heartbeat_check, (pi_addr, hrt_beat_port))
+                payload_conn2.sendto(heartbeat_check, (xu4_addr, hrt_beat_port))
+                message, addr = payload_conn.recvfrom(msg_len)
+                recvtime = time.time()
+                RTT = (recvtime - sendtime)*1000.0		# in ms
+                RTT = round(RTT, 2)
+                if heartbeat_conf in message:
+                    print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
+                    if RTT > 2000:
+                        print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
+                else:
+                    print(colored('No heartbeat received from payload', 'grey', 'on_red'))
+            except:
+                pass
 
 
 def main():
@@ -382,15 +386,15 @@ def main():
         t1 = Thread(target = recv_data)
         t2 = Thread(target = ros_events)
         t3 = Thread(target = manual_trigger_events)
-#        t4 = Thread(target = heartbeat)
+        t4 = Thread(target = heartbeat_udp)
         t1.start()
         t2.start()
         t3.start()
-#        t4.start()
+        t4.start()
         t1.join()
         t2.join()
         t3.join()
-#        t4.join()
+        t4.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')

@@ -119,22 +119,6 @@ else:
 
 
 ### Define objects
-'''
-def create_server():
-    """
-    Create UDP server for base station to connect to.
-    """
-    global base_conn
-    base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    base_station_ip     = socket.gethostname()
-    base_station_port   = 12000
-    base_station.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    base_station.bind((base_station_ip, base_station_port))                                        # Bind to the port
-    base_station.listen(5)                                                 # Now wait for client connection.
-    base_conn, base_addr = base_station.accept()
-    print(colored('Connected to base station via wifi.', 'green'))
-    logging.info('Connected to base station via wifi.')
-'''
 
 def create_server():
     """
@@ -303,16 +287,36 @@ def sync_events():
             pass
 
 
+def heartbeat_udp():
+    """
+    Send heartbeat over UDP to ensure base connection is okay.
+    """
+    hrt_bt_port     = 5678
+    base_conn2      = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    base_conn2.bind((udp_ip, hrt_bt_port))
+    if network == 'wifi':
+        while True:
+            time.sleep(0.01)
+            data, addr = base_conn2.recvfrom(8)
+            if heartbeat_check in data:
+                print('Heartbeat received. Sending confirmation')
+                basedata, addr = base_conn2.sendto(heartbeat_conf, addr)
+                data = ""
+
+
 def main():
     """
     Initiate threads.
     """
     t1 = Thread(target = sync_events)
     t2 = Thread(target = stream_file)
+    t3 = Thread(target = heartbeat_udp)
     t1.start()
     t2.start()
+    t3.start()
     t1.join()
     t2.join()
+    t3.join()
 
 
 if __name__ == '__main__':
