@@ -7,12 +7,13 @@ forced shutdown of the payload and base station. Logs are saved in the /logs dir
 
 Author: Krishna Makhija
 date: 6th August 2020
-last modified: 23rd Jan 2021
+last modified: 28th Jan 2021
 """
 #TODO: should there be a heartbeat thread/process as well to ensure that serial comms are working?
     #FIXME: Heartbeat feature is not working properly. Timing across threads is tricky. Tabling for now.
     #FIXME: One way to work around this would be to have long sleep durations and low timeouts. But that is 
     #FIXME: still risky because sometimes I get half a message which "folds" over. Hmm...
+    #FIXME: got heartbeat over UDP not over telemetry for now.
 #TODO: make it so the entire pipeline works over wi-fi AND telemetry. Is that possible?
     #FIXME: for now, I've added an argument which lets you choose betn wifi and telemetry.
 
@@ -360,22 +361,24 @@ def heartbeat_udp():
     if network == 'wifi':
         while True:
             sleep(1)
-            #try:
-            sendtime = time.time()
-            payload_conn2.sendto(heartbeat_check, (pi_addr, hrt_beat_port))
-            payload_conn2.sendto(heartbeat_check, (xu4_addr, hrt_beat_port))
-            message, addr = payload_conn2.recvfrom(msg_len)
-            recvtime = time.time()
-            RTT = (recvtime - sendtime)*1000.0		# in ms
-            RTT = round(RTT, 2)
-            if heartbeat_conf in message:
-                print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
-                if RTT > 2000:
-                    print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
-            else:
-                print(colored('No heartbeat received from payload', 'grey', 'on_red'))
-            #except:
-            #    pass
+            try:
+                sendtime = time.time()
+                payload_conn2.sendto(heartbeat_check, (pi_addr, hrt_beat_port))
+                payload_conn2.sendto(heartbeat_check, (xu4_addr, hrt_beat_port))
+                message, addr = payload_conn2.recvfrom(msg_len)
+                recvtime = time.time()
+                RTT = (recvtime - sendtime)*1000.0		# in ms
+                RTT = round(RTT, 2)
+                if heartbeat_conf in message:
+                    #print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
+                    if RTT > 2000:
+                        print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
+                        logging.warning('RTT to payload is high: {} ms'.format(RTT))
+                else:
+                    print(colored('No heartbeat received from payload', 'grey', 'on_red'))
+                    logging.debug('No heartbeat received from payload')
+            except:
+                pass
 
 
 def main():

@@ -10,14 +10,13 @@ command. Logs are saved in the /logs directory of the repo.
 
 Author: Krishna Makhija
 date: 21st July 2020
-last modified: 23rd Jan 2021
+last modified: 28th Jan 2021
 v2.0 now will transmit zeros while the trigger is not set. This will ensure an integer number of cycles on the LO to complete before the
 cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
 '''
 #TODO: integrate the circular polarized waveform as well.
-#TODO: create a sartup ping for UDP connection
-#FIXME: if no handshake confirmation then code hangs with udp. how to implement a timeout?
-#FIXME: reboot payload is not working and neither is shutdown
+#TODO: integrate GPIO w RF switch
+#FIXME: reboot payload is not working
 
 import socket, serial, os, sys, time, rospy, logging, argparse
 from termcolor import colored
@@ -260,6 +259,7 @@ def sync_events():
                 elif shutdown in get_handshake:
                     reset_buffer()
                     os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                    os.system('lsof -t -i tcp:8810 | xargs kill -9')
                     print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
                     logging.info("Manual kill command from base recd. Shutting down SDR code")
                     break
@@ -299,7 +299,7 @@ def heartbeat_udp():
             time.sleep(0.01)
             data, addr = base_conn2.recvfrom(msg_len)
             if heartbeat_check in data:
-                print('Heartbeat received. Sending confirmation')
+                #print('Heartbeat received. Sending confirmation')
                 base_conn2.sendto(heartbeat_conf, addr)
                 data = ""
 
