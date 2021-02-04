@@ -231,10 +231,10 @@ def ros_events():
             logging.info('Comms to payload UP and RUNNING')
         else:
             print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
-            logging.warning('Comms to payload DOWN')
+            logging.warning('Startup comms to payload DOWN')
     except TypeError:
         print(colored('The payload is not responding. Please make sure it has been initiated.', 'red'))
-        logging.warning('Comms to payload DOWN')
+        logging.warning('Startup comms to payload DOWN')
 
     while not rospy.is_shutdown():
         sleep(1e-6)
@@ -374,10 +374,9 @@ def heartbeat_udp():
                     if RTT > 2000:
                         print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
                         logging.warning('RTT to payload is high: {} ms'.format(RTT))
-                else:
-                    print(colored('No heartbeat received from payload', 'grey', 'on_red'))
-                    logging.debug('No heartbeat received from payload')
-            except:
+            except socket.timeout:
+                print(colored('No heartbeat received from payload', 'grey', 'on_red'))
+                logging.debug('No heartbeat received from payload')
                 pass
 
 
