@@ -48,15 +48,6 @@ def haversine_3d(lat1, long1, alt1, lat2, long2, alt2):
     return d_3d
 
 
-def trigger_node(data):
-    global n
-    n = 0
-    n = n + 1
-    if data:
-        print("Waypoint sequence #" +str(data.wp_seq) +" reached. Triggering GNUradio code.")
-        rospy.set_param('trigger/command', True)
-
-
 def get_waypoints(data):
     """
     Look up waypoints in FC and "target" them.
@@ -91,36 +82,42 @@ def get_haversine(data):
     Calculate haversine distance to target using real-time GPS data
     """
     global h
-    for n in range(len(wp_x_lat)):
-        rospy.sleep(1e-6)
-        h = haversine(data.latitude, data.longitude, wp_x_lat[n], wp_y_long[n])
-        event.set()
+    h = []
+    if event.is_set() == False:
+        for n in range(len(wp_x_lat)):
+            rospy.sleep(1e-6)
+            h1 = haversine(data.latitude, data.longitude, wp_x_lat[n], wp_y_long[n])
+            h.append(h1)
+    event.set()
 
 
 def get_distance(data):
     """
     Calculate 3D distance to target
     """
-    for n in range(len(wp_x_lat)):
-        if event.is_set():
+    global distance
+    distance = []
+    if event.is_set():
+        for n in range(len(wp_x_lat)):
             rospy.sleep(1e-6)
             alt_diff = wp_z_alt[n] - data.pose.position.z
-            distance = (h**2 + alt_diff**2)**0.5
-            print(distance)
-            if distance <= 1:
-                print(">>>>>>>>>>>>>>>>>WP reached<<<<<<<<<<<<<<<<<<<<<")
-            event.clear()
+            distance.append((h[n]**2 + alt_diff**2)**0.5)
+#            print(distance)
+    for i in distance:
+        if i <= 1:
+            print(">>>>WP reached<<<")
+    event.clear()
 
 
 def main():
     try:
         rospy.init_node('ground_station', anonymous = True)
-#        rospy.Subscriber('/mavros/mission/reached', WaypointReached, trigger_node)
+    #        rospy.Subscriber('/mavros/mission/reached', WaypointReached, trigger_node)
         rospy.Subscriber('/mavros/mission/waypoints', WaypointList, get_waypoints)
         rospy.Subscriber('/mavros/global_position/global', NavSatFix, get_haversine)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, get_distance)
         rospy.spin()
-    except rospy.ROSInterruptException:
+    except (rospy.ROSInterruptException):
         pass
 
 
