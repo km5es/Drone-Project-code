@@ -18,7 +18,7 @@ from threading import Event
 
 
 rospy.set_param('trigger/command', False)
-rospy.set_param('trigger/acknowledgement', False)
+rospy.set_param('trigger/acknowledgement', True)
 event = Event()
 
 def haversine(lat1, long1, lat2, long2):
@@ -98,14 +98,18 @@ def get_distance(data):
     global distance
     distance = []
     if event.is_set():
-        for n in range(len(wp_x_lat)):
-            rospy.sleep(1e-6)
-            alt_diff = wp_z_alt[n] - data.pose.position.z
-            distance.append((h[n]**2 + alt_diff**2)**0.5)
-#            print(distance)
-    for i in distance:
-        if i <= 1:
-            print(">>>>WP reached<<<")
+        try:
+            for n in range(len(wp_x_lat)):
+                rospy.sleep(1e-6)
+                alt_diff = wp_z_alt[n] - data.pose.position.z
+                distance.append((h[n]**2 + alt_diff**2)**0.5)
+                print(distance)
+        except IndexError:
+            pass
+        for i in distance:
+            if i <= 1 and rospy.get_param('trigger/acknowledgement') == True:
+                print(">>>>WP reached<<<")
+                rospy.set_param('trigger/command', True)
     event.clear()
 
 

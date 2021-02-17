@@ -271,6 +271,7 @@ def ros_events():
             except TypeError:
                 print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                 logging.warning('Handshake with payload failed. No data saved')
+                rospy.set_param('trigger/acknowledgement', True)
                 pass
 
 
