@@ -23,6 +23,7 @@ from termcolor import colored
 from datetime import datetime
 from threading import Thread, Event
 from os.path import expanduser
+import RPi.GPIO as GPIO
 
 
 ### Define global variables
@@ -57,6 +58,12 @@ log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_event
 network             = 'wifi'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
+
+GPIO.setwarnings(False) 
+GPIO.setmode(GPIO.BOARD)
+GPIO_pin = 8
+GPIO.setup(GPIO_pin, GPIO.OUT, initial=GPIO.LOW) # Set pin 8 to be an output pin and set initial value to low (off)
+
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -193,6 +200,7 @@ def stream_file():
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             logging.info("Trigger from base recd. CAL ON")
             pulses = 0
+            GPIO.output(GPIO_pin, GPIO.HIGH)
             for pulses in range(togglePoint):
                 conn.send(cal_signal)
                 pulses += 1
@@ -206,6 +214,7 @@ def stream_file():
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             trigger_event.clear()
+            GPIO.output(GPIO_pin, GPIO.LOW)
 
 
 def sync_events():
