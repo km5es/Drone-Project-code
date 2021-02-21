@@ -221,12 +221,11 @@ def stream_file():
             stop_acq_event.set()
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
-            trigger_event.clear()
             GPIO.output(16, GPIO.LOW)
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
             GPIO.output(12, GPIO.HIGH)
-
+            trigger_event.clear()
 
 def sync_events():
     '''
