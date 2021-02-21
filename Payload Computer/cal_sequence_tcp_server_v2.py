@@ -60,9 +60,12 @@ ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
 
 GPIO.setwarnings(False) 
-GPIO.setmode(GPIO.BOARD)
-GPIO_pin = 8
-GPIO.setup(GPIO_pin, GPIO.OUT, initial=GPIO.LOW) # Set pin 8 to be an output pin and set initial value to low (off)
+GPIO.setmode(GPIO.BCM)
+GPIO_pin = 12   # 12 is circular, 16 is pol switch, 20 is Pol1 and 21 is Pol2
+GPIO.setup (12, GPIO.OUT, initial=GPIO.HIGH) # Set initial value
+GPIO.setup (16, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
@@ -200,13 +203,18 @@ def stream_file():
             print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             logging.info("Trigger from base recd. CAL ON")
             pulses = 0
-            GPIO.output(GPIO_pin, GPIO.HIGH)
             for pulses in range(togglePoint):
                 conn.send(cal_signal)
                 pulses += 1
-                if pulses == togglePoint/2:
+                if pulses == togglePoint/3:
+                    GPIO.output(12, GPIO.LOW)
+                    GPIO.output(16, GPIO.HIGH)
+                    GPIO.output(20, GPIO.HIGH)
                     print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
+                if pulses == 2*togglePoint/3:
+                    GPIO.output(20, GPIO.LOW)
+                    GPIO.output(21, GPIO.HIGH)
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
@@ -214,7 +222,10 @@ def stream_file():
             print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             trigger_event.clear()
-            GPIO.output(GPIO_pin, GPIO.LOW)
+            GPIO.output(16, GPIO.LOW)
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(21, GPIO.LOW)
+            GPIO.output(12, GPIO.HIGH)
 
 
 def sync_events():
