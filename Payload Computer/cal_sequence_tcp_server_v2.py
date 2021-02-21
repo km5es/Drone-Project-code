@@ -28,7 +28,7 @@ import RPi.GPIO as GPIO
 
 ### Define global variables
 
-togglePoint         = 96                                    # number of pulses after which GPIO is toggled
+togglePoint         = 96*5                                  # number of pulses after which GPIO is toggled
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
@@ -188,7 +188,7 @@ def stream_file():
     '''
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read()
-    filename = 'qpsk_waveform'
+    filename = 'sine_waveform'
     f = open(filename,'rb')
     cal_signal = f.read()
     while trigger_event.is_set() == False:

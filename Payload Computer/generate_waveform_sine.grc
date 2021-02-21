@@ -1051,7 +1051,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/kmakhija/Drone-Project/Payload Computer/sine_waveform</value>
+      <value>/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/sine_waveform</value>
     </param>
     <param>
       <key>_coordinate</key>

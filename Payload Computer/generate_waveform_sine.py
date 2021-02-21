@@ -5,7 +5,7 @@
 # Title: Generate Waveform Sine
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Fri Jul 31 21:06:22 2020
+# Generated: Sat Feb 20 19:44:00 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -113,7 +113,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         (self.blocks_multiply_xx_0).set_max_output_buffer(4096)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.5, ))
         self.blocks_head_0_0_0 = blocks.head(gr.sizeof_gr_complex*1, head)
-        self.blocks_file_sink_1 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/Drone-Project/Payload Computer/sine_waveform', False)
+        self.blocks_file_sink_1 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/sine_waveform', False)
         self.blocks_file_sink_1.set_unbuffered(False)
         self.analog_sig_source_x_0 = analog.sig_source_c(wave_samp_rate, analog.GR_COS_WAVE, wave_freq, 1, 0)
 
