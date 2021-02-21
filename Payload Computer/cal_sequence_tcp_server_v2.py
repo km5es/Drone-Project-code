@@ -28,7 +28,7 @@ import RPi.GPIO as GPIO
 
 ### Define global variables
 
-togglePoint         = 96*10                                 # number of pulses after which GPIO is toggled
+togglePoint         = 96*5                                 # number of pulses after which GPIO is toggled
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name

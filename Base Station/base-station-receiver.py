@@ -55,7 +55,7 @@ startup_SDR         = 'beginSDR'                    # boot up SDR codes.
 reboot_payload      = '_reboot_'                    # reboot payload computer
 pingtest            = 'pingtest'                    # manually test connection to payload
 acq_event           = Event()                       # save radio data
-timeout             = 4                             # time after which saving data will stop if no trigger
+timeout             = 12                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
@@ -113,10 +113,10 @@ logging.info("TCP connection to GRC flowgraph open.")
 ## UDP connection
 # conn 1 for sync
 payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-payload_conn.settimeout(4)
+payload_conn.settimeout(timeout)
 # conn 2 for sync
 payload_conn2   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-payload_conn2.settimeout(4)
+payload_conn2.settimeout(timeout)
 
 ### Define objects
 
@@ -150,8 +150,8 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
             message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
             return message
         except (socket.timeout, TypeError):
-            print(colored('Socket recv timed out in 4 seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
-            logging.debug('Socket recv timed out in 4 seconds. Is the payload operatinal?')
+            print(colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
+            logging.debug('Socket recv timed out in ' +str(timeout) + '  seconds. Is the payload operatinal?')
             pass
 
 
