@@ -106,7 +106,7 @@ def get_distance(data):
                 rospy.sleep(1e-6)
                 alt_diff = wp_z_alt[n] - data.pose.position.z
                 distance.append((h[n]**2 + alt_diff**2)**0.5)
-        except IndexError:
+        except (IndexError, NameError):
             pass
         for i in distance:
             print('The closest WP is: ' +str(min(distance)) + 'm away')
