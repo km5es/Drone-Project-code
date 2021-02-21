@@ -3,16 +3,17 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Sun Sep 20 04:39:36 2020
+# Generated: Sat Feb 20 18:41:33 2021
 ##################################################
 
-from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
+from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
+import time
 
 
 class tcp_toggle(gr.top_block):
@@ -30,8 +31,20 @@ class tcp_toggle(gr.top_block):
         ##################################################
         # Blocks
         ##################################################
-        self.blocks_throttle_1 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_null_source_0 = blocks.null_source(gr.sizeof_gr_complex*1)
+        self.uhd_usrp_source_0 = uhd.usrp_source(
+        	",".join(("num_recv_frames=512, recv_frame_size=8200", "")),
+        	uhd.stream_args(
+        		cpu_format="fc32",
+        		otw_format='sc16',
+        		channels=range(1),
+        	),
+        )
+        self.uhd_usrp_source_0.set_clock_source('external', 0)
+        self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_center_freq(freq, 0)
+        self.uhd_usrp_source_0.set_gain(20, 0)
+        (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
         self.blks2_tcp_sink_0 = grc_blks2.tcp_sink(
         	itemsize=gr.sizeof_gr_complex*1,
         	addr='127.0.0.1',
@@ -44,15 +57,14 @@ class tcp_toggle(gr.top_block):
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_null_source_0, 0), (self.blocks_throttle_1, 0))
-        self.connect((self.blocks_throttle_1, 0), (self.blks2_tcp_sink_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blks2_tcp_sink_0, 0))
 
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.blocks_throttle_1.set_sample_rate(self.samp_rate)
+        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
 
     def get_min_buffer(self):
         return self.min_buffer
@@ -65,6 +77,8 @@ class tcp_toggle(gr.top_block):
 
     def set_freq(self, freq):
         self.freq = freq
+        self.uhd_usrp_source_0.set_center_freq(self.freq, 0)
+        self.uhd_usrp_source_0.set_center_freq(self.freq, 1)
 
 
 def main(top_block_cls=tcp_toggle, options=None):

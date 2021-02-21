@@ -18,8 +18,11 @@ from threading import Event
 
 
 rospy.set_param('trigger/command', False)
-rospy.set_param('trigger/acknowledgement', True)
+rospy.set_param('trigger/acknowledgement', False)
 event = Event()
+
+error_tolerance = 1.0       ## distance in m from where to begin sequence
+sleep_time      = 15
 
 def haversine(lat1, long1, lat2, long2):
     """
@@ -103,13 +106,14 @@ def get_distance(data):
                 rospy.sleep(1e-6)
                 alt_diff = wp_z_alt[n] - data.pose.position.z
                 distance.append((h[n]**2 + alt_diff**2)**0.5)
-                print(distance)
         except IndexError:
             pass
         for i in distance:
-            if i <= 1 and rospy.get_param('trigger/acknowledgement') == True:
-                print(">>>>WP reached<<<")
+            print('The closest WP is: ' +str(min(distance)) + 'm away')
+            if i <= error_tolerance:
+                print(">>>>WP reached<<< ||| Pausing script for " +str(sleep_time) + " seconds")
                 rospy.set_param('trigger/command', True)
+                time.sleep(sleep_time)
     event.clear()
 
 
