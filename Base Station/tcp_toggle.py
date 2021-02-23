@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Sat Feb 20 19:21:01 2021
+# Generated: Sun Feb 21 18:04:37 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -73,14 +73,16 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
         	uhd.stream_args(
         		cpu_format="fc32",
         		otw_format='sc16',
-        		channels=range(1),
+        		channels=range(2),
         	),
         )
         self.uhd_usrp_source_0.set_clock_source('external', 0)
-        self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
+        self.uhd_usrp_source_0.set_subdev_spec('A:A A:B', 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_center_freq(freq, 0)
         self.uhd_usrp_source_0.set_gain(20, 0)
+        self.uhd_usrp_source_0.set_center_freq(freq, 1)
+        self.uhd_usrp_source_0.set_gain(20, 1)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
         	1024, #size
@@ -88,7 +90,7 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
         	freq, #fc
         	samp_rate, #bw
         	"", #name
-        	1 #number of inputs
+        	2 #number of inputs
         )
         self.qtgui_freq_sink_x_0.set_update_time(0.10)
         self.qtgui_freq_sink_x_0.set_y_axis(-140, 10)
@@ -114,7 +116,7 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
                   "magenta", "yellow", "dark red", "dark green", "dark blue"]
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
                   1.0, 1.0, 1.0, 1.0, 1.0]
-        for i in xrange(1):
+        for i in xrange(2):
             if len(labels[i]) == 0:
                 self.qtgui_freq_sink_x_0.set_line_label(i, "Data {0}".format(i))
             else:
@@ -139,6 +141,7 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.uhd_usrp_source_0, 0), (self.blks2_tcp_sink_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.uhd_usrp_source_0, 1), (self.qtgui_freq_sink_x_0, 1))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "tcp_toggle")
