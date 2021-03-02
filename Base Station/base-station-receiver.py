@@ -282,6 +282,7 @@ def manual_trigger_events():
     while True:
         sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
+        sendtime = time.time()
         send_telem(msg, ser, repeat_keyword)
 
         if msg == str(shutdown):
@@ -325,7 +326,10 @@ def manual_trigger_events():
             try:
                 get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 if pingtest in get_return_ping:
-                    print(colored('Ping reply recd from payload.', 'green'))
+                    recvtime = time.time()
+                    RTT = (recvtime - sendtime)*1000.0		# in ms
+                    RTT = round(RTT, 2)
+                    print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
                     logging.info("Ping reply recd from payload.")
                 else:
                     print(colored('Payload not responding to ping test.', 'red'))

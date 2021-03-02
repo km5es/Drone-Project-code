@@ -14,6 +14,8 @@ roslaunch mavros apm.launch fcu_url:="udp://:14550@127.0.0.1:14551" &
 
 sleep 8;
 
+rosrun mavros mavsys rate --all 10 &
+
 ### start get_metadata.py
 python ~/Drone-Project-code/Payload\ Computer/get_metadata.py &
 

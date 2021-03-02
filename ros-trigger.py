@@ -23,6 +23,7 @@ event = Event()
 
 error_tolerance = 1.0       ## distance in m from where to begin sequence
 sleep_time      = 15
+GPS_refresh     = 10.0      # 10 Hz default?
 
 def haversine(lat1, long1, lat2, long2):
     """
@@ -86,12 +87,16 @@ def get_haversine(data):
     """
     global h
     h = []
-    if event.is_set() == False:
-        for n in range(len(wp_x_lat)):
-            rospy.sleep(1e-6)
-            h1 = haversine(data.latitude, data.longitude, wp_x_lat[n], wp_y_long[n])
-            h.append(h1)
-    event.set()
+    #while True:
+    time.sleep(0.01)
+    if data.status.status == 0:
+        if event.is_set() == False:
+            for n in range(len(wp_x_lat)):
+                h1 = haversine(data.latitude, data.longitude, wp_x_lat[n], wp_y_long[n])
+                h.append(h1)
+        event.set()
+    elif data.status.status == -1:
+        print('GPS fix not available.')
 
 
 def get_distance(data):
@@ -106,10 +111,15 @@ def get_distance(data):
                 rospy.sleep(1e-6)
                 alt_diff = wp_z_alt[n] - data.pose.position.z
                 distance.append((h[n]**2 + alt_diff**2)**0.5)
-        except (IndexError, NameError):
+        #except (IndexError, NameError):
+        except IndexError:
+            pass
+        except NameError:
+            print("Waypoints not received from FCU.")
             pass
         for i in distance:
             print('The closest WP is: ' +str(min(distance)) + 'm away')
+            time.sleep(1/GPS_refresh)
             if i <= error_tolerance:
                 print(">>>>WP reached<<< ||| Pausing script for " +str(sleep_time) + " seconds")
                 rospy.set_param('trigger/command', True)

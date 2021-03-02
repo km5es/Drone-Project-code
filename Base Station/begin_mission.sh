@@ -8,13 +8,16 @@ lsof -t -i tcp:8800 | xargs kill -9
 
 ### intitate MAVLink with drone
 #roslaunch mavros apm.launch fcu_url:="/dev/ttyMAVROS:57600" &
-mavlink-routerd -e 127.0.0.1:14550 -e 127.0.0.1:15550 10.42.0.1:12550 &
-roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551" &
+#mavlink-routerd -e 127.0.0.1:14550 -e 127.0.0.1:15550 10.42.0.1:12550 &
+#roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551" &
+
+mavlink-routerd -e 127.0.0.1:1250 -e 127.0.0.1:1550 10.42.0.1:12550 &
+roslaunch mavros apm.launch fcu_url:="udp://:1550@127.0.0.1:1551" &
 
 sleep 4
 
 ### begin ROS script
-gnome-terminal -e "bash -c 'rosrun beam_mapping drone_project.py;'"
+gnome-terminal -e "bash -c 'rosrun beam_mapping ros-trigger.py;'"
 
 
 ### run GRC TCP server
