@@ -26,7 +26,6 @@ elif [ $1 = "telemetry" ]; then
     sleep 6
     rosrun mavros mavsys rate --all 10
 
-
 else
     echo "Please specify if connection is telemetry or wifi."
     exit
