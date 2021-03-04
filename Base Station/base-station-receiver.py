@@ -25,6 +25,7 @@ from termcolor import colored
 from os.path import expanduser
 from serial.serialutil import SerialException
 from threading import Thread, Event
+from random import randint
 
 ##### Define global variables
 
