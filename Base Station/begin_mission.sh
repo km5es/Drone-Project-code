@@ -17,7 +17,8 @@ fi
 
 if [ $1 = "wifi" ]; then
 	echo "Connecting to drone via $1"
-    roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551" &
+#    roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551" &
+    roslaunch mavros apm.launch fcu_url:=udp://:15550@127.0.0.1:15551 gcs_url:=udp://@127.0.0.1:17550 &
     sleep 6
 
 elif [ $1 = "telemetry" ]; then
