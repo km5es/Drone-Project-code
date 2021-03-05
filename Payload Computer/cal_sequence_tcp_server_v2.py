@@ -152,7 +152,7 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     """
     if network == 'telemetry':
         message = serial_object.read(msg_len*repeat_keyword)
-        return message
+        return message, "127.0.0.1"
     if network == 'wifi':
         try:
 #            message = base_conn.recv(msg_len*repeat_keyword)
