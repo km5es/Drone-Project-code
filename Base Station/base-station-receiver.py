@@ -364,18 +364,21 @@ def heartbeat_udp():
     """
     Send heartbeat over UDP to ensure payload comms are okay. 
     """
+    n = 4
     if network == 'wifi':
         while True:
             sleep(1)
             try:
+                ping = 'ping' + ''.join(["{}".format(randint(0, 3)) for num in range(0, n)])
                 sendtime = time.time()
-                payload_conn2.sendto(heartbeat_check, (pi_addr, hrt_beat_port))
-                payload_conn2.sendto(heartbeat_check, (xu4_addr, hrt_beat_port))
+                payload_conn2.sendto(ping, (pi_addr, hrt_beat_port))
+                payload_conn2.sendto(ping, (xu4_addr, hrt_beat_port))
                 message, addr = payload_conn2.recvfrom(msg_len)
                 recvtime = time.time()
                 RTT = (recvtime - sendtime)*1000.0		# in ms
                 RTT = round(RTT, 2)
-                if heartbeat_conf in message:
+                print(message)
+                if ping in message:
                     #print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
                     if RTT > 2000:
                         print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))

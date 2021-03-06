@@ -298,9 +298,9 @@ def heartbeat_udp():
         while True:
             time.sleep(0.01)
             data, addr = base_conn2.recvfrom(msg_len)
-            if heartbeat_check in data:
+            if 'ping' in data:
                 #print('Heartbeat received. Sending confirmation')
-                base_conn2.sendto(heartbeat_conf, addr)
+                base_conn2.sendto(data, addr)
                 data = ""
 
 
