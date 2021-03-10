@@ -60,7 +60,7 @@ timeout             = 6                             # time after which saving da
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
-network             = 'wifi'                        # options: wifi or telemtry 
+network             = 'telemetry'                        # options: wifi or telemtry 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
