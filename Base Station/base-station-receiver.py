@@ -238,8 +238,8 @@ def ros_events():
         logging.warning('Startup comms to payload DOWN')
 
     while not rospy.is_shutdown():
-        sleep(1e-6)
-        if rospy.get_param('trigger/command'):
+        sleep(0.01)
+        if rospy.get_param('trigger/command') == True:
             rospy.set_param('trigger/command', False)
             rospy.set_param('trigger/acknowledgement', False)
             print(colored('Drone has reached waypoint. Initiating handshake with payload.', 'cyan'))
@@ -377,7 +377,7 @@ def heartbeat_udp():
                 recvtime = time.time()
                 RTT = (recvtime - sendtime)*1000.0		# in ms
                 RTT = round(RTT, 2)
-                print(message)
+                #print(message)
                 if ping in message:
                     #print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
                     if RTT > 2000:
