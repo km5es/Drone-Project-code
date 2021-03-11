@@ -60,7 +60,7 @@ timeout             = 6                             # time after which saving da
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
-network             = 'wifi'                        # options: wifi or telemtry 
+network             = 'telemetry'                        # options: wifi or telemtry 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -146,6 +146,7 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     """
     if network == 'telemetry':
         message = serial_object.read(msg_len*repeat_keyword)
+        return message
     if network == 'wifi':
         try:
             message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
