@@ -281,11 +281,9 @@ def sync_events():
                     print("Ping test received. Sending return ping.")
                     logging.info("Ping test received. Sending return ping.")
 
-#        except socket.error:
-#            print('Connection to base broken.')
-#            logging.debug('Connection to base broken.')
-#            pass
-        except TypeError:
+        except socket.error:
+            print('Connection to base broken.')
+            logging.debug('Connection to base broken.')
             pass
 
 
