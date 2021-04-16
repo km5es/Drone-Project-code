@@ -285,6 +285,8 @@ def sync_events():
 #            print('Connection to base broken.')
 #            logging.debug('Connection to base broken.')
 #            pass
+        except TypeError:
+            pass
 
 
 def heartbeat_udp():
