@@ -14,9 +14,6 @@ last modified: 28th Jan 2021
 v2.0 now will transmit zeros while the trigger is not set. This will ensure an integer number of cycles on the LO to complete before the
 cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
 '''
-#TODO: integrate the circular polarized waveform as well.
-#TODO: integrate GPIO w RF switch
-#FIXME: reboot payload is not working
 
 import socket, serial, os, sys, time, rospy, logging, argparse
 from termcolor import colored
@@ -50,13 +47,14 @@ repeat_keyword      = 4
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
-metadata_acq_time   = 10
+metadata_acq_time   = 5
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + '/Drone-Project-code/logs/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
 network             = 'telemetry'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
+wp_timeout          = 12
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -304,13 +302,95 @@ def heartbeat_udp():
                 data = ""
 
 
+def begin_sequence():
+    """
+    This object will initiate the calibration sequence when a WP is reached.
+    The WP is detected by wp_trigger.py
+    When a WP is reached, the base station receiver will start recording data. 
+    At the same time, metadata will be saved using get_metadata.py and trigger/metadata
+    When the sequence is completed another ROS flag trigger/waypoint
+    NOTE: I am just using telemetry for now.
+    """
+    create_server()
+    addr = "127.0.0.1"
+    while not rospy.is_shutdown():
+        time.sleep(0.1)
+        if rospy.get_param('trigger/metadata') == True:
+            print(colored("Drone has reached WP. Metadata is being saved, and sending handshake to base.", 'cyan'))
+            logging.info("Drone has reached WP. Metadata is being saved, and sending handshake to base.")
+            send_telem(handshake_start, ser, repeat_keyword, addr)
+            get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+            logging.debug("Serial data: %s" %get_handshake_conf)
+            if handshake_conf in get_handshake_conf:
+                print(colored("Handshake confirmation received from base. Beginning calibration sequence"), 'green')
+                logging.info("Handshake confirmation received from base. Beginning calibration sequence")
+                start_time = time.time()
+                trigger_event.set()
+                while trigger_event.is_set() == True:
+                    if stop_acq_event.is_set():
+                        stop_acq_event.clear()
+                        time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
+                        send_telem(toggle_OFF, ser, repeat_keyword, addr)
+                        reset_buffer()
+                        time.sleep(metadata_acq_time)
+                        rospy.set_param('trigger/metadata', False)
+                        rospy.set_param('trigger/waypoint', True)
+                    elif time.time() >= start_time + wp_timeout:
+                        print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
+                        logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
+                        rospy.set_param('trigger/metadata', False)
+                        rospy.set_param('trigger/waypoint', True)
+
+            else:
+                print("No handshake confirmation from base. Retrying once again")
+                logging.warning("No handshake confirmation from base. Retrying once again")
+                #TODO: add a retry feature somehow.
+
+
+def serial_comms():
+    """
+    This object is to maintain serial communications with the drone. It allows one to 
+    switch the code on and off and maybe even reboot the payload computer.
+    It also has a pingtest feature which ensures things are running.
+    """
+    while True:
+        time.sleep(0.1)
+        get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
+        logging.debug("serial data: " +str(get_handshake))
+        if startup_initiate in get_handshake:
+            print(colored('The base has started up and is talking.', 'grey', 'on_green'))
+            logging.info("The base has started up and is talking")
+            send_telem(startup_confirm, ser, repeat_keyword, addr)
+            reset_buffer()
+
+        elif shutdown in get_handshake:
+            reset_buffer()
+            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+            os.system('lsof -t -i tcp:8810 | xargs kill -9')
+            print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
+            logging.info("Manual kill command from base recd. Shutting down SDR code")
+            break
+        
+        elif reboot_payload in get_handshake:
+            reset_buffer()
+            print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
+            logging.info(">>>REBOOTING PAYLOAD<<<")
+            os.system('sudo reboot now')
+
+        elif pingtest in get_handshake:
+            reset_buffer()
+            send_telem(pingtest, ser, repeat_keyword, addr)
+            print("Ping test received. Sending return ping.")
+            logging.info("Ping test received. Sending return ping.")
+
+
 def main():
     """
     Initiate threads.
     """
-    t1 = Thread(target = sync_events)
+    t1 = Thread(target = begin_sequence)
     t2 = Thread(target = stream_file)
-    t3 = Thread(target = heartbeat_udp)
+    t3 = Thread(target = serial_comms)
     t1.start()
     t2.start()
     t3.start()

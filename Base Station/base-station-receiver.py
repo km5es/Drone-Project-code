@@ -390,13 +390,34 @@ def heartbeat_udp():
                 pass
 
 
+def get_trigger_from_drone():
+    """
+    This will start saving data when the drone has informed the base that it has reached 
+    a WP. Moving forward, it will also save trigger the saving of SDR metadata.
+    """
+    get_handshake = recv_telem(msg_len, ser, repeat_keyword)
+    if handshake_start in get_handshake:
+        print(colored("Drone has reached WP, sending confirmation and beginning acquisition now."), "green")
+        logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
+        logging.debug("serial data: %s" %get_handshake)
+        send_telem(handshake_conf, ser, repeat_keyword)
+        acq_event.set()
+        get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
+        print(get_stop_acq_trigger)
+        logging.debug('serial data: ' +str(get_stop_acq_trigger))
+        if toggle_OFF in get_stop_acq_trigger:
+            logging.info('Data acquisition toggled OFF')
+            acq_event.clear()
+            reset_buffer()
+
+
 def main():
     """
     Initiate threads.
     """
     try:
         t1 = Thread(target = recv_data)
-        t2 = Thread(target = ros_events)
+        t2 = Thread(target = get_trigger_from_drone)
         t3 = Thread(target = manual_trigger_events)
         t4 = Thread(target = heartbeat_udp)
         t1.start()
