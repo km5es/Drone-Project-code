@@ -321,6 +321,7 @@ def begin_sequence():
             send_telem(handshake_start, ser, repeat_keyword, addr)
             get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
             logging.debug("Serial data: %s" %get_handshake_conf)
+            reset_buffer()
             if handshake_conf in get_handshake_conf:
                 print(colored("Handshake confirmation received from base. Beginning calibration sequence"), 'green')
                 logging.info("Handshake confirmation received from base. Beginning calibration sequence")
@@ -355,33 +356,34 @@ def serial_comms():
     """
     while True:
         time.sleep(0.1)
-        get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
-        logging.debug("serial data: " +str(get_handshake))
-        if startup_initiate in get_handshake:
-            print(colored('The base has started up and is talking.', 'grey', 'on_green'))
-            logging.info("The base has started up and is talking")
-            send_telem(startup_confirm, ser, repeat_keyword, addr)
-            reset_buffer()
+        if rospy.get_param('trigger/metadata') == False:
+            get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
+            logging.debug("serial data: " +str(get_handshake))
+            if startup_initiate in get_handshake:
+                print(colored('The base has started up and is talking.', 'grey', 'on_green'))
+                logging.info("The base has started up and is talking")
+                send_telem(startup_confirm, ser, repeat_keyword, addr)
+                reset_buffer()
 
-        elif shutdown in get_handshake:
-            reset_buffer()
-            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-            os.system('lsof -t -i tcp:8810 | xargs kill -9')
-            print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-            logging.info("Manual kill command from base recd. Shutting down SDR code")
-            break
-        
-        elif reboot_payload in get_handshake:
-            reset_buffer()
-            print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
-            logging.info(">>>REBOOTING PAYLOAD<<<")
-            os.system('sudo reboot now')
+            elif shutdown in get_handshake:
+                reset_buffer()
+                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                os.system('lsof -t -i tcp:8810 | xargs kill -9')
+                print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
+                logging.info("Manual kill command from base recd. Shutting down SDR code")
+                break
+            
+            elif reboot_payload in get_handshake:
+                reset_buffer()
+                print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
+                logging.info(">>>REBOOTING PAYLOAD<<<")
+                os.system('sudo reboot now')
 
-        elif pingtest in get_handshake:
-            reset_buffer()
-            send_telem(pingtest, ser, repeat_keyword, addr)
-            print("Ping test received. Sending return ping.")
-            logging.info("Ping test received. Sending return ping.")
+            elif pingtest in get_handshake:
+                reset_buffer()
+                send_telem(pingtest, ser, repeat_keyword, addr)
+                print("Ping test received. Sending return ping.")
+                logging.info("Ping test received. Sending return ping.")
 
 
 def main():

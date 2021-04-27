@@ -281,6 +281,8 @@ def manual_trigger_events():
     '''
     Manually trigger payload and initiate saving data on base station.
     '''
+    #TODO: make it so that a manual initiation of the sequence can be implemented
+    #TODO: how can I have two-way serial comms with the drone beginning the sequence?
     while True:
         sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
@@ -395,20 +397,23 @@ def get_trigger_from_drone():
     This will start saving data when the drone has informed the base that it has reached 
     a WP. Moving forward, it will also save trigger the saving of SDR metadata.
     """
-    get_handshake = recv_telem(msg_len, ser, repeat_keyword)
-    if handshake_start in get_handshake:
-        print(colored("Drone has reached WP, sending confirmation and beginning acquisition now."), "green")
-        logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
-        logging.debug("serial data: %s" %get_handshake)
-        send_telem(handshake_conf, ser, repeat_keyword)
-        acq_event.set()
-        get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
-        print(get_stop_acq_trigger)
-        logging.debug('serial data: ' +str(get_stop_acq_trigger))
-        if toggle_OFF in get_stop_acq_trigger:
-            logging.info('Data acquisition toggled OFF')
-            acq_event.clear()
-            reset_buffer()
+    #TODO: if send_telem has msg then stop recv_telem() briefly. implement while loop.
+    while True:
+#        if send_telem.event().clear():
+            get_handshake = recv_telem(msg_len, ser, repeat_keyword)
+            if handshake_start in get_handshake:
+                print(colored("Drone has reached WP, sending confirmation and beginning acquisition now."), "green")
+                logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
+                logging.debug("serial data: %s" %get_handshake)
+                send_telem(handshake_conf, ser, repeat_keyword)
+                acq_event.set()
+                get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
+                print(get_stop_acq_trigger)
+                logging.debug('serial data: ' +str(get_stop_acq_trigger))
+                if toggle_OFF in get_stop_acq_trigger:
+                    logging.info('Data acquisition toggled OFF')
+                    acq_event.clear()
+                    reset_buffer()
 
 
 def main():
