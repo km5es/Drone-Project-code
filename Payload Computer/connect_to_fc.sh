@@ -25,7 +25,7 @@ fi
 
 #roslaunch mavros apm.launch fcu_url:="udp://:14550@127.0.0.1:14551" &
 ### uncomment for SITL simulations
-roslaunch mavros apm.launch fcu_url:="udp://:14550@10.42.0.1:14551" &
+roslaunch mavros apm.launch fcu_url:="udp://:16550@10.42.0.1:16551" &
 
 sleep 8;
 
