@@ -81,12 +81,34 @@ if args.port:
 if args.address:
     pi_addr = args.address
 
+## Establish connections
 if network == 'wifi':
     print(colored('Connecting to the drone via UDP', 'green'))
+    ## UDP connection
+    # conn 1 for sync
+    payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    payload_conn.settimeout(timeout)
+    # conn 2 for sync
+    payload_conn2   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    payload_conn2.settimeout(timeout)
 
 elif network == 'telemetry':
     print(colored('Connecting to the drone via ' + str(network), 'green'))
-
+    try:
+        ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
+        ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
+        print(colored("Serial radio link established to T960 payload.", "green"))
+        logging.info("Serial radio link established to T960 payload.")
+    except:
+        try:
+            ser         = serial.Serial('/dev/ttyF450', 57600)
+            ser_timeout = serial.Serial('/dev/ttyF450', 57600, timeout=2)
+            print(colored("Serial radio link established to F450 payload.", "green"))
+            logging.info("Serial radio link established to F450 payload.")
+        except:
+            print(colored("No telemetry found. Check for Wi-Fi link...", "red"))
+            logging.warning("No serial telemetry found")
+            pass
 
 if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
     msg_len = len(toggle_ON)
@@ -95,29 +117,11 @@ else:
     logging.warning("Custom msgs through serial not equal length. Sync might not work.")
 
 
-### Establish connections
-
-try:
-    ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
-    ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
-    logging.info("Serial radio link established.")
-except:
-    print("No telemetry found. Check for Wi-Fi link...")
-    logging.warning("No serial telemetry found")
-    pass
-
 # Connect to GRC flowgraph
 client.connect((address))
 print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
 logging.info("TCP connection to GRC flowgraph open.")
 
-## UDP connection
-# conn 1 for sync
-payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-payload_conn.settimeout(timeout)
-# conn 2 for sync
-payload_conn2   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-payload_conn2.settimeout(timeout)
 
 ### Define objects
 

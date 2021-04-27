@@ -9,6 +9,8 @@ This node will also save metadata.
 author: Krishna Makhija
 rev: 25th April 2021
 """
+#FIXME: isntead of updating wp_seq, maybe there is a way to check explicitly if cond yaw is met?
+#FIXME: use that instead to set wp event?
 
 import rospy, time
 import numpy as np
@@ -27,9 +29,9 @@ from nav_msgs.msg import Odometry
 
 n               = 1
 event           = Event()
-vel_threshold   = 0.15      # threshold below which drone is considered "stationary"
+vel_threshold   = 0.15      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
-
+rospy.set_param('trigger/sequence', False)
 
 def get_velocity(data):
     """
@@ -45,7 +47,7 @@ def get_velocity(data):
     if event.is_set() and v < vel_threshold:
         print("Triggering  payload flag")
         #rospy.set_param('trigger/waypoint', True)
-        rospy.set_param('trigger/metadata', True)
+        rospy.set_param('trigger/sequence', True)
         event.clear()
 
 
