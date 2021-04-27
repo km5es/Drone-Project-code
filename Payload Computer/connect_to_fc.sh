@@ -23,12 +23,16 @@ else
     exit
 fi
 
-roslaunch mavros apm.launch fcu_url:="udp://:14550@127.0.0.1:14551" &
+#roslaunch mavros apm.launch fcu_url:="udp://:14550@127.0.0.1:14551" &
+### uncomment for SITL simulations
+roslaunch mavros apm.launch fcu_url:="udp://:14550@10.42.0.1:14551" &
 
 sleep 8;
 
 rosrun mavros mavsys rate --all 10 &
 
+python ~/Drone-Project-code/Payload\ Computer/write_WPs.py &
+~/Drone-Project-code/Payload\ Computer/wp_trigger.py &
 ### start get_metadata.py
 python ~/Drone-Project-code/Payload\ Computer/get_metadata.py &
 

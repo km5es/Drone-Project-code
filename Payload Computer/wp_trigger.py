@@ -61,8 +61,8 @@ def wp_reached(data):
     if n == 1:
         sequence = data.header.seq
         n = 2
-        print("The current seq value is set at %s" %sequence)
-    print("The current drone seq is %s" %data.header.seq)
+        print("The sequence value is set at %s" %sequence)
+    print("The current drone sequence on the FCU is %s" %data.header.seq)
     if data.header.seq == sequence + 2:
         print("WP reached: %s" %wp_num)
         wp_num = wp_num + 1
