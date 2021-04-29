@@ -31,8 +31,4 @@ sleep 8;
 
 rosrun mavros mavsys rate --all 10 &
 
-python ~/Drone-Project-code/Payload\ Computer/write_WPs.py &
-~/Drone-Project-code/Payload\ Computer/wp_trigger.py &
-### start get_metadata.py
-python ~/Drone-Project-code/Payload\ Computer/get_metadata.py &
 
