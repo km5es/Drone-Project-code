@@ -324,7 +324,7 @@ def begin_sequence():
                 logging.debug("Serial data: %s" %get_handshake_conf)
                 reset_buffer()
                 if handshake_conf in get_handshake_conf:
-                    print(colored("Handshake confirmation received from base. Beginning calibration sequence"), 'green')
+                    print(colored("Handshake confirmation received from base. Beginning calibration sequence", 'green'))
                     logging.info("Handshake confirmation received from base. Beginning calibration sequence")
                     rospy.set_param('trigger/sequence', False)
                     rospy.set_param('trigger/metadata', True)
@@ -350,10 +350,11 @@ def begin_sequence():
                     print("No handshake confirmation from base. Retry attempt #: %s" %retry)
                     logging.warning("No handshake confirmation from base. Retry attempt #: %s" %retry)
                     #TODO: add a retry feature somehow.
-            print(colored("Handshake with base station failed after 3 attempts. Moving to next WP now.", "red"))
-            logging.debug("Handshake with base station failed after 3 attempts. Moving to next WP now.")
-            rospy.set_param('trigger/sequence', False)
-            rospy.set_param('trigger/waypoint', True)
+            if rospy.get_param('trigger/sequence') == True:
+                print(colored("Handshake with base station failed after 3 attempts. Moving to next WP now.", "red"))
+                logging.debug("Handshake with base station failed after 3 attempts. Moving to next WP now.")
+                rospy.set_param('trigger/sequence', False)
+                rospy.set_param('trigger/waypoint', True)
 
 
 def serial_comms():
