@@ -26,7 +26,7 @@ from mavros_msgs.srv import *
 #filename = "120m_10s_1passes_Ardupilot_4-wps.waypoints"
 #filename    = "60m_10s_1passes_Ardupilot.waypoints"
 filename    = "mission.waypoints"
-path        = expanduser("~") + "/" + "/Drone-Project-code/mission/"
+path        = expanduser("~")  + "/Drone-Project-code/mission/"
 filename    = path + filename
 rospy.set_param('trigger/waypoint', False)
 timeout     = 12            # timeout before updating new WP

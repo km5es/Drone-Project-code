@@ -31,7 +31,7 @@ event           = Event()
 vel_threshold   = 0.15      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
 rospy.set_param('trigger/waypoint', False)
-seq_timeout     = 20
+seq_timeout     = 30
 timeout_event   = Event()
 start           = time.time()
 
@@ -50,7 +50,7 @@ def get_velocity(data):
 
     try:
         if event.is_set() and v < vel_threshold:
-            print("Triggering  payload flag")
+            print("Drone is (almost) not moving. Triggering  payload flag")
             rospy.set_param('trigger/waypoint', True)
             #rospy.set_param('trigger/sequence', True)
             event.clear()
@@ -78,9 +78,10 @@ def wp_reached(data):
         print("The sequence value is set at %s" %sequence)
     print("The current drone sequence on the FCU is %s" %data.header.seq)
     if data.header.seq == sequence + 1:
+        print("Begin countdown to updating WP table: %s seconds." %seq_timeout)
         timeout_event.set()
     if data.header.seq == sequence + 2:        
-        print("WP reached: %s" %wp_num)
+        print("WP reached: %s. Waiting for drone to be stationary." %wp_num)
         wp_num = wp_num + 1
         event.set()
         timeout_event.clear()
