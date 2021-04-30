@@ -31,6 +31,7 @@ event           = Event()
 vel_threshold   = 0.15      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
 rospy.set_param('trigger/waypoint', False)
+#rospy.set_param('trigger/sequence', False)
 seq_timeout     = 30
 timeout_event   = Event()
 start           = time.time()
