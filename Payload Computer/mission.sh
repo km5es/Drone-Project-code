@@ -7,7 +7,7 @@ source ~/.bashrc
 source /opt/ros/melodic/setup.bash
 
 ### wait for MAVROS and FCU to boot up
-sleep 16
+sleep 30
 
 ### ROS node for updating WP table
 python ~/Drone-Project-code/Payload\ Computer/write_WPs.py &
