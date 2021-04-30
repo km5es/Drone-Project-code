@@ -56,12 +56,11 @@ def get_velocity(data):
             event.clear()
         elif timeout_event.is_set():
             start = time.time()
-            print(start)
             timeout_event.clear()
-        if time.time() >= start + seq_timeout:
-            #FIXME: currently, this runs on a loop after final waypoint. fix?
-            print("Seq timeout. Updating WP table")
-            rospy.set_param('trigger/waypoint', True)
+            if time.time() >= start + seq_timeout:
+                #FIXME: currently, this runs on a loop after final waypoint. fix?
+                print("Seq timeout. Updating WP table")
+                rospy.set_param('trigger/waypoint', True)
     except UnboundLocalError, NameError:
         pass
 
