@@ -140,6 +140,7 @@ def main():
                 wl.append(wp)
                 push_wp()
                 change_mode()
+                pass
 
 
 if __name__ == '__main__':

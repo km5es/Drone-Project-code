@@ -2,15 +2,14 @@
 
 """
 This code will trigger when a WP is reached and when the linear velocity is below vel_threshold.
-It will trigger a flag which in turn will begin the cal sequence at each WP. When sequence is 
-completed, another flag will trigger on write_WPs.py which will update the WP table. 
-This node will also save metadata.
+It will trigger a flag which in turn will begin the cal sequence at each WP which in turn will 
+begin saving metadata. When sequence is completed, another flag will trigger on write_WPs.py 
+which will update the WP table. 
+If the sequence does not complete within a specified time, the WP table will be updated anyway.
 
 author: Krishna Makhija
 rev: 25th April 2021
 """
-#FIXME: isntead of updating wp_seq, maybe there is a way to check explicitly if cond yaw is met?
-#FIXME: use that instead to set wp event?
 
 import rospy, time
 import numpy as np
@@ -31,24 +30,40 @@ n               = 1
 event           = Event()
 vel_threshold   = 0.15      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
-rospy.set_param('trigger/sequence', False)
+rospy.set_param('trigger/waypoint', False)
+seq_timeout     = 20
+timeout_event   = Event()
+start           = time.time()
+
 
 def get_velocity(data):
     """
     Get the current magnitude of linear velocity of the drone.
     """
     global v
+    global start
+
     x_vel = data.twist.twist.linear.x
     y_vel = data.twist.twist.linear.y
     z_vel = data.twist.twist.linear.z
     v = (x_vel**2 + y_vel**2 + z_vel**2)**0.5
-    #print(x_vel, y_vel, z_vel)
-    #print("The current velocity is %s m/s" %v)
-    if event.is_set() and v < vel_threshold:
-        print("Triggering  payload flag")
-        #rospy.set_param('trigger/waypoint', True)
-        rospy.set_param('trigger/sequence', True)
-        event.clear()
+
+    try:
+        if event.is_set() and v < vel_threshold:
+            print("Triggering  payload flag")
+            rospy.set_param('trigger/waypoint', True)
+            #rospy.set_param('trigger/sequence', True)
+            event.clear()
+        elif timeout_event.is_set():
+            start = time.time()
+            print(start)
+            timeout_event.clear()
+        if time.time() >= start + seq_timeout:
+            #FIXME: currently, this runs on a loop after final waypoint. fix?
+            print("Seq timeout. Updating WP table")
+            rospy.set_param('trigger/waypoint', True)
+    except UnboundLocalError, NameError:
+        pass
 
 
 def wp_reached(data):
@@ -63,10 +78,13 @@ def wp_reached(data):
         n = 2
         print("The sequence value is set at %s" %sequence)
     print("The current drone sequence on the FCU is %s" %data.header.seq)
-    if data.header.seq == sequence + 2:
+    if data.header.seq == sequence + 1:
+        timeout_event.set()
+    if data.header.seq == sequence + 2:        
         print("WP reached: %s" %wp_num)
         wp_num = wp_num + 1
         event.set()
+        timeout_event.clear()
         sequence = data.header.seq
 
 
