@@ -55,6 +55,8 @@ shutdown            = 'shutdown'                    # force shutdown of all SDRs
 startup_SDR         = 'beginSDR'                    # boot up SDR codes.
 reboot_payload      = '_reboot_'                    # reboot payload computer
 pingtest            = 'pingtest'                    # manually test connection to payload
+update_wp           = 'updateWP'                    # manual update to WP table
+restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
 acq_event           = Event()                       # save radio data
 timeout             = 6                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
@@ -288,7 +290,7 @@ def manual_trigger_events():
     #TODO: make it so that a manual initiation of the sequence can be implemented
     #TODO: how can I have two-way serial comms with the drone beginning the sequence?
     while True:
-        sleep(1e-6)                                     
+        #sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
         sendtime = time.time()
         send_telem(msg, ser, repeat_keyword)
@@ -325,9 +327,7 @@ def manual_trigger_events():
                     print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
                     logging.warning('Handshake with payload failed. No data saved')
                     pass
-            except TypeError:
-                print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
-                logging.warning('Handshake with payload failed. No data saved')
+            except:
                 pass
         
         elif msg == str(pingtest):
@@ -342,9 +342,8 @@ def manual_trigger_events():
                 else:
                     print(colored('Payload not responding to ping test.', 'red'))
                     logging.warning("Payload not responding to ping test.")
-            except TypeError:
-                print(colored('Payload not responding to ping test.', 'red'))
-                logging.warning("Payload not responding to ping test.")
+            except:
+                pass
 
 
 def heartbeat_telem():
@@ -404,6 +403,7 @@ def get_trigger_from_drone():
     #TODO: if send_telem has msg then stop recv_telem() briefly. implement while loop.
     while True:
 #        if send_telem.event().clear():
+        try:
             get_handshake = recv_telem(msg_len, ser, repeat_keyword)
             if handshake_start in get_handshake:
                 print(colored("Drone has reached WP, sending confirmation and beginning acquisition now."), "green")
@@ -418,6 +418,14 @@ def get_trigger_from_drone():
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
                     reset_buffer()
+            
+            elif startup_initiate in get_handshake:
+                print(colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
+                logging.info("The payload is UP and RUNNING.")
+                reset_buffer()
+        
+        except:
+            pass
 
 
 def main():
@@ -427,7 +435,7 @@ def main():
     try:
         t1 = Thread(target = recv_data)
         t2 = Thread(target = get_trigger_from_drone)
-        t3 = Thread(target = manual_trigger_events)
+        t3 = Thread(target = get_timestamp)
         t4 = Thread(target = heartbeat_udp)
         t1.start()
         t2.start()

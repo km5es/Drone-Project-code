@@ -43,18 +43,21 @@ toggle_OFF          = 'stop_acq'                            # message from paylo
 shutdown            = 'shutdown'                            # force shutdown of all SDRs
 reboot_payload      = '_reboot_'                            # reboot payload computer
 pingtest            = 'pingtest'                            # manually test connection
+update_wp           = 'updateWP'                            # manual update to WP table
+restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
 repeat_keyword      = 4
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
 metadata_acq_time   = 5
 path                = expanduser("~") + "/"         # define home path
-logs_path           = path + '/Drone-Project-code/logs/'             
+logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
 network             = 'telemetry'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
 wp_timeout          = 12
+rospy.set_param('trigger/sequence', False)
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -313,6 +316,8 @@ def begin_sequence():
     """
     create_server()
     addr = "127.0.0.1"
+    send_telem(startup_initiate, ser, repeat_keyword, addr)
+    reset_buffer()
     while not rospy.is_shutdown():
         time.sleep(0.1)
         if rospy.get_param('trigger/sequence') == True:
@@ -366,33 +371,66 @@ def serial_comms():
     while True:
         time.sleep(0.1)
         if rospy.get_param('trigger/sequence') == False:
-            get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
-            logging.debug("serial data: " +str(get_handshake))
-            if startup_initiate in get_handshake:
-                print(colored('The base has started up and is talking.', 'grey', 'on_green'))
-                logging.info("The base has started up and is talking")
-                send_telem(startup_confirm, ser, repeat_keyword, addr)
-                reset_buffer()
+            try:
+                get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
+                logging.debug("serial data: " +str(get_handshake))
+                if startup_initiate in get_handshake:
+                    print(colored('The base has started up and is talking.', 'grey', 'on_green'))
+                    logging.info("The base has started up and is talking")
+                    send_telem(startup_confirm, ser, repeat_keyword, addr)
+                    reset_buffer()
 
-            elif shutdown in get_handshake:
-                reset_buffer()
-                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-                os.system('lsof -t -i tcp:8810 | xargs kill -9')
-                print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-                logging.info("Manual kill command from base recd. Shutting down SDR code")
-                break
+                elif shutdown in get_handshake:
+                    os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                    os.system('lsof -t -i tcp:8810 | xargs kill -9')
+                    print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
+                    logging.info("Manual kill command from base recd. Shutting down SDR code")
+                    reset_buffer()
+                    break
+                
+                elif reboot_payload in get_handshake:
+                    print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
+                    logging.info(">>>REBOOTING PAYLOAD<<<")
+                    os.system('sudo reboot now')
+                    reset_buffer()
+
+                elif pingtest in get_handshake:
+                    send_telem(pingtest, ser, repeat_keyword, addr)
+                    print("Ping test received. Sending return ping.")
+                    logging.info("Ping test received. Sending return ping.")
+                    reset_buffer()
+
+                elif update_wp in get_handshake:
+                    print("Base station command to update WP table.")
+                    logging.info("Base station command to update WP table.")
+                    rospy.set_param('trigger/waypoint', True)
+                    reset_buffer()
+                
+                elif restart_wp_node in get_handshake:
+                    print("Resetting write_WPs.py and wp_trigger.py")
+                    logging.info("Resetting write_WPs.py and wp_trigger.py")
+                    os.system('pkill -f write_WPs.py')
+                    os.system('pkill -f wp_trigger.py')
+                    os.system('python ~/Drone-Project-code/Payload\ Computer/write_WPs.py &')
+                    os.system('python ~/Drone-Project-code/Payload\ Computer/wp_trigger.py &')
+                    reset_buffer()
+                #FIXME: this will also cause WP to be updated. fix later.
+                elif handshake_start in get_handshake:
+                    print('Manual trigger of sequence from base station.')
+                    logging.info('Manual trigger of sequence from base station.')
+                    rospy.set_param('trigger/sequence', True)
+                    reset_buffer()
             
-            elif reboot_payload in get_handshake:
-                reset_buffer()
-                print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
-                logging.info(">>>REBOOTING PAYLOAD<<<")
-                os.system('sudo reboot now')
+            except:
+                pass
 
-            elif pingtest in get_handshake:
-                reset_buffer()
-                send_telem(pingtest, ser, repeat_keyword, addr)
-                print("Ping test received. Sending return ping.")
-                logging.info("Ping test received. Sending return ping.")
+
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    timestring = time.strftime("%H%M%S-%d%m%Y")
+    return timestring
 
 
 def main():
@@ -401,7 +439,7 @@ def main():
     """
     t1 = Thread(target = begin_sequence)
     t2 = Thread(target = stream_file)
-    t3 = Thread(target = serial_comms)
+    t3 = Thread(target = get_timestamp)
     t1.start()
     t2.start()
     t3.start()

@@ -26,7 +26,7 @@ from mavros_msgs.srv import *
 #filename = "120m_10s_1passes_Ardupilot_4-wps.waypoints"
 #filename    = "60m_10s_1passes_Ardupilot.waypoints"
 filename    = "mission.waypoints"
-path        = expanduser("~")  + "/Drone-Project-code/mission/"
+path        = expanduser("~")  + "/catkin_ws/src/Drone-Project-code/mission/"
 filename    = path + filename
 rospy.set_param('trigger/waypoint', False)
 timeout     = 12            # timeout before updating new WP
@@ -136,11 +136,13 @@ def main():
                 change_mode()
             except IndexError:
                 print("End of WP table reached. Doing an RTL now.")
-                wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                wl.append(wp)
-                push_wp()
-                change_mode()
-                pass
+                try:
+                    wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
+                    wl.append(wp)
+                    push_wp()
+                    change_mode()
+                except IndexError:
+                    pass
 
 
 if __name__ == '__main__':

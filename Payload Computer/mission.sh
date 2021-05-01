@@ -9,11 +9,12 @@ source /opt/ros/melodic/setup.bash
 ### wait for MAVROS and FCU to boot up
 sleep 30
 
+cd ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/
 ### ROS node for updating WP table
-python ~/Drone-Project-code/Payload\ Computer/write_WPs.py &
+python write_WPs.py &
 sleep 1
 ### ROS node for detecting if WP is reached
-python ~/Drone-Project-code/Payload\ Computer/wp_trigger.py &
+python wp_trigger.py &
 sleep 1
 ### ROS node for saving metadata
-python ~/Drone-Project-code/Payload\ Computer/get_metadata.py &
+python get_metadata.py &
