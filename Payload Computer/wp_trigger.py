@@ -30,8 +30,8 @@ n               = 1
 event           = Event()
 vel_threshold   = 0.15      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
-rospy.set_param('trigger/waypoint', False)
-#rospy.set_param('trigger/sequence', False)
+#rospy.set_param('trigger/waypoint', False)
+rospy.set_param('trigger/sequence', False)
 seq_timeout     = 30
 timeout_event   = Event()
 start           = time.time()
@@ -52,8 +52,8 @@ def get_velocity(data):
     try:
         if event.is_set() and v < vel_threshold:
             print("Drone is (almost) not moving. Triggering  payload flag")
-            rospy.set_param('trigger/waypoint', True)
-            #rospy.set_param('trigger/sequence', True)
+            #rospy.set_param('trigger/waypoint', True)
+            rospy.set_param('trigger/sequence', True)
             event.clear()
         elif timeout_event.is_set():
             start = time.time()
