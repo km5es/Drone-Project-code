@@ -403,6 +403,7 @@ def get_trigger_from_drone():
     #TODO: if send_telem has msg then stop recv_telem() briefly. implement while loop.
     while True:
 #        if send_telem.event().clear():
+        sleep(1e-6)
         try:
             get_handshake = recv_telem(msg_len, ser, repeat_keyword)
             if handshake_start in get_handshake:
