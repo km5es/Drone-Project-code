@@ -169,17 +169,16 @@ def get_distance(data):
         print('The closest WP is: %s m away.' %(distance))
         if distance <= error_tolerance and v <= vel_threshold:
             print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
-            rospy.set_param('trigger/waypoint', True)
-            #rospy.set_param('trigger/command', True)
+            #rospy.set_param('trigger/waypoint', True)
+            rospy.set_param('trigger/sequence', True)
     event.clear()
 
 
 def main():
     global get_mission
     try:
-        rospy.init_node('ground_station', anonymous = True)
-    #        rospy.Subscriber('/mavros/mission/reached', WaypointReached, trigger_node)
-        get_mission = rospy.Subscriber('/mavros/mission/waypoints', WaypointList, get_waypoints)
+        rospy.init_node('wp_trigger', anonymous = True)
+        rospy.Subscriber('/mavros/mission/waypoints', WaypointList, get_waypoints)
         rospy.Subscriber('/mavros/global_position/global', NavSatFix, get_haversine)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, get_distance)
         rospy.Subscriber('/mavros/local_position/odom', Odometry, get_velocity)
