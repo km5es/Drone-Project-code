@@ -49,6 +49,7 @@ repeat_keyword      = 4
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
+serial_event        = Event()
 metadata_acq_time   = 5
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/'             
@@ -331,7 +332,7 @@ def begin_sequence():
                 if handshake_conf in get_handshake_conf:
                     print(colored("Handshake confirmation received from base. Beginning calibration sequence", 'green'))
                     logging.info("Handshake confirmation received from base. Beginning calibration sequence")
-                    rospy.set_param('trigger/sequence', False)
+                    #rospy.set_param('trigger/sequence', False)
                     rospy.set_param('trigger/metadata', True)
                     start_time = time.time()
                     trigger_event.set()
@@ -354,11 +355,11 @@ def begin_sequence():
                 else:
                     print("No handshake confirmation from base. Retry attempt #: %s" %retry)
                     logging.warning("No handshake confirmation from base. Retry attempt #: %s" %retry)
-                    #TODO: add a retry feature somehow.
+                    # * retry feature very useful * #
             if rospy.get_param('trigger/sequence') == True:
                 print(colored("Handshake with base station failed after 3 attempts. Moving to next WP now.", "red"))
                 logging.debug("Handshake with base station failed after 3 attempts. Moving to next WP now.")
-                rospy.set_param('trigger/sequence', False)
+                #rospy.set_param('trigger/sequence', False)
                 rospy.set_param('trigger/waypoint', True)
 
 
@@ -374,6 +375,7 @@ def serial_comms():
             try:
                 get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
                 logging.debug("serial data: " +str(get_handshake))
+                # ! currently disabled.
                 if startup_initiate in get_handshake:
                     print(colored('The base has started up and is talking.', 'grey', 'on_green'))
                     logging.info("The base has started up and is talking")
@@ -393,28 +395,30 @@ def serial_comms():
                     logging.info(">>>REBOOTING PAYLOAD<<<")
                     os.system('sudo reboot now')
                     reset_buffer()
-
+                # ! just table this for now, do I really need it?
                 elif pingtest in get_handshake:
-                    send_telem(pingtest, ser, repeat_keyword, addr)
                     print("Ping test received. Sending return ping.")
                     logging.info("Ping test received. Sending return ping.")
+                    #serial_event.set()
+                    send_telem(pingtest, ser, repeat_keyword, addr)
                     reset_buffer()
-
+                # ! this works but the new WP does not meet the yaw cond
                 elif update_wp in get_handshake:
                     print("Base station command to update WP table.")
                     logging.info("Base station command to update WP table.")
                     rospy.set_param('trigger/waypoint', True)
                     reset_buffer()
-                
+                # ! this is doing something weird, causing this script to fail
                 elif restart_wp_node in get_handshake:
                     print("Resetting write_WPs.py and wp_trigger.py")
                     logging.info("Resetting write_WPs.py and wp_trigger.py")
                     os.system('pkill -f write_WPs.py')
                     os.system('pkill -f wp_trigger.py')
-                    os.system('python ~/Drone-Project-code/Payload\ Computer/write_WPs.py &')
-                    os.system('python ~/Drone-Project-code/Payload\ Computer/wp_trigger.py &')
+                    os.system('python ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/write_WPs.py &')
+                    os.system('python ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/wp_trigger.py &')
                     reset_buffer()
                 #FIXME: this will also cause WP to be updated. fix later.
+                # ! this needs a complete makeover
                 elif handshake_start in get_handshake:
                     print('Manual trigger of sequence from base station.')
                     logging.info('Manual trigger of sequence from base station.')
@@ -439,7 +443,7 @@ def main():
     """
     t1 = Thread(target = begin_sequence)
     t2 = Thread(target = stream_file)
-    t3 = Thread(target = get_timestamp)
+    t3 = Thread(target = serial_comms)
     t1.start()
     t2.start()
     t3.start()

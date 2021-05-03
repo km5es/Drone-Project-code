@@ -125,14 +125,17 @@ def get_waypoints(data):
     global wp_x_lat
     global wp_y_long
     global wp_z_alt
-    wp_list = data.waypoints
-    # skip first two waypoints, i.e. home and takeoff
-    target_wp = wp_list[2:]
-    wp_x_lat = target_wp[0].x_lat
-    wp_y_long = target_wp[0].y_long
-    wp_z_alt = target_wp[0].z_alt
-    print("Retrieved WP list.")
-    print("The current target WP coords are: %s, %s, and %s" %(wp_x_lat, wp_y_long, wp_z_alt))
+    try:
+        wp_list = data.waypoints
+        # skip first two waypoints, i.e. home and takeoff
+        target_wp = wp_list[2:]
+        wp_x_lat = target_wp[0].x_lat
+        wp_y_long = target_wp[0].y_long
+        wp_z_alt = target_wp[0].z_alt
+        print("Retrieved WP list.")
+        print("The current target WP coords are: %s, %s, and %s" %(wp_x_lat, wp_y_long, wp_z_alt))
+    except IndexError:
+        pass
 
 
 def get_haversine(data):
@@ -167,7 +170,7 @@ def get_distance(data):
             print("Waypoints not received from FCU.")
             pass
         print('The closest WP is: %s m away.' %(distance))
-        if distance <= error_tolerance and v <= vel_threshold:
+        if distance <= error_tolerance and v <= vel_threshold and rospy.get_param('trigger/waypoint') == False:
             print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
             #rospy.set_param('trigger/waypoint', True)
             rospy.set_param('trigger/sequence', True)

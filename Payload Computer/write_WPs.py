@@ -29,6 +29,7 @@ filename    = "mission.waypoints"
 path        = expanduser("~")  + "/catkin_ws/src/Drone-Project-code/mission/"
 filename    = path + filename
 rospy.set_param('trigger/waypoint', False)
+rospy.set_param('trigger/sequence', False)
 timeout     = 12            # timeout before updating new WP
 
 
@@ -122,9 +123,9 @@ def main():
         # * clear waypoint table before ending sequence so that it does not re-trigger.
         if rospy.get_param('trigger/sequence') == True:
             waypoint_clear_client()
+            rospy.set_param('trigger/sequence', False)
         if rospy.get_param('trigger/waypoint') == True:
             try:
-                rospy.set_param('trigger/waypoint', False)
                 print("Updating WP table.")
                 n = n + 2
 #                waypoint_clear_client()
@@ -137,9 +138,11 @@ def main():
                 wl.append(wp)
                 push_wp()
                 change_mode()
+                rospy.set_param('trigger/waypoint', False)
             except IndexError:
                 print("End of WP table reached. Doing an RTL now.")
                 try:
+                    #FIXME: the coords here should be different because this is triggering the sequence
                     wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
                     wl.append(wp)
                     push_wp()
