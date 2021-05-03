@@ -119,6 +119,9 @@ def main():
     push_wp()
     while True:
         time.sleep(0.05)
+        # * clear waypoint table before ending sequence so that it does not re-trigger.
+        if rospy.get_param('trigger/sequence') == True:
+            waypoint_clear_client()
         if rospy.get_param('trigger/waypoint') == True:
             try:
                 rospy.set_param('trigger/waypoint', False)

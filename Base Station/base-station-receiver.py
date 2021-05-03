@@ -288,7 +288,7 @@ def manual_trigger_events():
     Manually trigger payload and initiate saving data on base station.
     '''
     #TODO: make it so that a manual initiation of the sequence can be implemented
-    #TODO: how can I have two-way serial comms with the drone beginning the sequence?
+    # ? how can I have two-way serial comms with the drone for beginning the sequence?
     while True:
         #sleep(1e-6)                                     
         msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
@@ -407,7 +407,7 @@ def get_trigger_from_drone():
         try:
             get_handshake = recv_telem(msg_len, ser, repeat_keyword)
             if handshake_start in get_handshake:
-                print(colored("Drone has reached WP, sending confirmation and beginning acquisition now."), "green")
+                print(colored("Drone has reached WP, sending confirmation and beginning acquisition now.", "green"))
                 logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
                 logging.debug("serial data: %s" %get_handshake)
                 send_telem(handshake_conf, ser, repeat_keyword)
