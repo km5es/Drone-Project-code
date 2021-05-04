@@ -174,104 +174,6 @@ def get_timestamp():
     return timestring
 
 
-def recv_data():
-    '''
-    Wait for acq_event to begin and stop saving data.
-    '''
-    while True:
-        sleep(1e-6)
-
-        if acq_event.is_set():
-            print('Trigger from payload recd. Saving data now.')
-            timestring      = get_timestamp()         
-            filename        = path + timestring + str("_milton.dat")
-            f               = open(filename, "w")
-            print(colored('Saving data now in ' + str(filename), 'cyan'))
-            logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
-#                iocnt1 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-            start           = time.time()
-            start_timeout   = start + timeout            
-            while True:
-                SDRdata     = client.recv(4096*8*16, socket.MSG_WAITALL)
-                f.write(SDRdata)
-                if acq_event.is_set() == False:
-                    break               
-                elif time.time() > start_timeout:
-                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
-                    logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
-                    acq_event.clear()
-                    rospy.set_param('trigger/acknowledgement', True)
-                    reset_buffer()
-                    break
-            end = time.time()
-#                iocnt2 = psutil.disk_io_counters(perdisk=True)['/dev/nvme0n1p7']
-            print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'grey', 'on_green'))
-            logging.info('Finished saving data in: ' +str(end - start) + ' seconds.')
-
-
-def serial_comms():
-    '''
-    Manually trigger payload and initiate saving data on base station.
-    '''
-    #TODO: make it so that a manual initiation of the sequence can be implemented
-    # ? how can I have two-way serial comms with the drone for beginning the sequence?
-    while True:
-        #sleep(1e-6)                                     
-        msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
-        sendtime = time.time()
-        send_telem(msg, ser, repeat_keyword)
-
-        if msg == str(shutdown):
-            print(colored('Shutting down payload and this code.', 'red'))
-            logging.info("Manual kill switch. Shutting down payload and base station")
-            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
-            pass
-
-        elif msg == str(handshake_start):
-#            get_handshake_conf = ser_timeout.read(msg_len)
-            try:
-                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
-                print(get_handshake_conf)
-                logging.info("Manual payload trigger")
-                logging.debug("serial data: " +str(get_handshake_conf))
-                if handshake_conf in get_handshake_conf:
-                    reset_buffer()
-                    print('Handshake confirmation recd from payload. Triggering calibration and saving data.')
-                    logging.info('Handshake confirmation recd -- acquiring data')
-                    send_telem(toggle_ON, ser, repeat_keyword)
-                    acq_event.set()
-#                    get_stop_acq_trigger = ser.read(msg_len*repeat_keyword)
-                    get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
-                    print(get_stop_acq_trigger)
-                    logging.debug('serial data: ' +str(get_stop_acq_trigger))
-                    if toggle_OFF in get_stop_acq_trigger:
-                        logging.info('Data acquisition toggled OFF')
-                        acq_event.clear()
-                        reset_buffer()
-                else:
-                    print(colored('Handshake with drone comms failed. No data will be saved.', 'grey', 'on_red', attrs=['blink']))
-                    logging.warning('Handshake with payload failed. No data saved')
-                    pass
-            except:
-                pass
-        
-        elif msg == str(pingtest):
-            try:
-                get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
-                if pingtest in get_return_ping:
-                    recvtime = time.time()
-                    RTT = (recvtime - sendtime)*1000.0		# in ms
-                    RTT = round(RTT, 2)
-                    print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
-                    logging.info("Ping reply recd from payload.")
-                else:
-                    print(colored('Payload not responding to ping test.', 'red'))
-                    logging.warning("Payload not responding to ping test.")
-            except:
-                pass
-
-
 def heartbeat_udp():
     """
     Send heartbeat over UDP to ensure payload comms are okay. 
@@ -299,6 +201,77 @@ def heartbeat_udp():
                 print(colored('No heartbeat received from payload', 'grey', 'on_red'))
                 logging.debug('No heartbeat received from payload')
                 pass
+
+
+def recv_data():
+    '''
+    Wait for acq_event to begin and stop saving data.
+    '''
+    while True:
+        sleep(1e-6)
+
+        if acq_event.is_set():
+            print('Trigger from payload recd. Saving data now.')
+            timestring      = get_timestamp()         
+            filename        = path + timestring + str("_milton.dat")
+            f               = open(filename, "w")
+            print(colored('Saving data now in ' + str(filename), 'cyan'))
+            logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
+            start           = time.time()
+            start_timeout   = start + timeout            
+            while True:
+                SDRdata     = client.recv(4096*8*16, socket.MSG_WAITALL)
+                f.write(SDRdata)
+                if acq_event.is_set() == False:
+                    break               
+                elif time.time() > start_timeout:
+                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
+                    logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
+                    acq_event.clear()
+                    rospy.set_param('trigger/acknowledgement', True)
+                    reset_buffer()
+                    break
+            end = time.time()
+            print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'grey', 'on_green'))
+            logging.info('Finished saving data in: ' +str(end - start) + ' seconds.')
+
+
+def serial_comms():
+    '''
+    Manually trigger payload and initiate saving data on base station.
+    '''
+    global sendtime
+    while True:                                     
+        msg = raw_input("Enter serial comms message here: ")        # send is_comms handshake request
+        sendtime = time.time()
+        send_telem(msg, ser, repeat_keyword)
+
+        if msg == str(shutdown):
+            print(colored('Shutting down payload and this code.', 'red'))
+            logging.info("Manual kill switch. Shutting down payload and base station")
+            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+            pass
+        
+        elif msg == str(toggle_ON):
+            print("Manually trigger payload cal.")
+            logging.info("Manually trigger payload cal.")
+            pass
+
+        #elif msg == str(pingtest):
+        #    try:
+        #        get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
+        #        if pingtest in get_return_ping:
+        #            recvtime = time.time()
+        #            RTT = (recvtime - sendtime)*1000.0		# in ms
+        #            RTT = round(RTT, 2)
+        #            print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
+        #            logging.info("Ping reply recd from payload.")
+        #        else:
+        #            print(colored('Payload not responding to ping test.', 'red'))
+        #            logging.warning("Payload not responding to ping test.")
+        #    except:
+        #        pass
 
 
 def get_trigger_from_drone():
@@ -330,7 +303,13 @@ def get_trigger_from_drone():
                 print(colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
                 logging.info("The payload is UP and RUNNING.")
                 reset_buffer()
-        
+            
+            elif pingtest in get_handshake:
+                recvtime = time.time()
+                RTT = (recvtime - sendtime)*1000.0		# in ms
+                RTT = round(RTT, 2)
+                print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
+                logging.info("Ping reply recd from payload.")
         except:
             pass
 
@@ -343,15 +322,15 @@ def main():
         t1 = Thread(target = recv_data)
         t2 = Thread(target = get_trigger_from_drone)
         t3 = Thread(target = serial_comms)
-        t4 = Thread(target = heartbeat_udp)
+        #t4 = Thread(target = heartbeat_udp)
         t1.start()
         t2.start()
         t3.start()
-        t4.start()
+        #t4.start()
         t1.join()
         t2.join()
         t3.join()
-        t4.join()
+        #t4.join()
     except (serial.SerialException, socket.error):
         print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')

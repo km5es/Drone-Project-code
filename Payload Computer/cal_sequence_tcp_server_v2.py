@@ -210,85 +210,6 @@ def stream_file():
             trigger_event.clear()
 
 
-def sync_events():
-    '''
-    This object is for serial comms. When a handshake request is received, an event will be set in the stream_file() object which 
-    will begin the calibration. When calibration is finished an event is set in stream_file() which sends a serial msg from this
-    object to the base to stop acquisiiton.
-    In addition, ROS flags will be set to begin and stop metadata generation.
-    '''
-    while True:
-        create_server()
-#        get_handshake = ser.read(msg_len*repeat_keyword)
-        try:
-            while True:
-                get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
-                logging.debug("serial data: " +str(get_handshake))
-                if handshake_start in get_handshake:
-                    print(colored('Received handshake request from base station. Sending confirmation', 'cyan'))
-                    logging.info("Received handshake from base. Sending confirmation")
-                    send_telem(handshake_conf, ser, repeat_keyword, addr)
-                    reset_buffer()
-#                        get_trigger_from_base = ser_timeout.read(msg_len*repeat_keyword) ### set timeout here for handshake
-                    get_trigger_from_base, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
-                    logging.debug("serial data: " +str(get_trigger_from_base))
-                    if toggle_ON in get_trigger_from_base:
-                        trigger_event.set()
-                        rospy.set_param('trigger/metadata', True)
-                        while trigger_event.is_set() == True:
-                            if stop_acq_event.is_set():
-                                stop_acq_event.clear()
-                                time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
-                                send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                                reset_buffer()
-                                time.sleep(metadata_acq_time)
-                                rospy.set_param('trigger/metadata', False)
-                    else:
-                        print(colored('No start cal trigger recd from base. Waiting for next handshake request', 'magenta'))
-                        logging.info("No start cal trigger from base")
-                        pass
-                    
-                elif startup_initiate in get_handshake:
-                    print(colored('The base has started up and is talking.', 'grey', 'on_green'))
-                    logging.info("The base has started up and is talking")
-                    send_telem(startup_confirm, ser, repeat_keyword, addr)
-                    reset_buffer()
-    
-                elif heartbeat_check in get_handshake:
-                    send_telem(heartbeat_conf, ser, repeat_keyword, addr)
-                    reset_buffer()
-    
-                elif shutdown in get_handshake:
-                    reset_buffer()
-                    os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-                    os.system('lsof -t -i tcp:8810 | xargs kill -9')
-                    print(colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
-                    logging.info("Manual kill command from base recd. Shutting down SDR code")
-                    break
-                
-                elif reboot_payload in get_handshake:
-                    reset_buffer()
-                    print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
-                    logging.info(">>>REBOOTING PAYLOAD<<<")
-                    os.system('sudo reboot now')
-
-                elif get_handshake is None:
-                    print('Connection to base broken.')
-                    logging.debug('Connection to base broken.')
-                    pass
-
-                elif pingtest in get_handshake:
-                    reset_buffer()
-                    send_telem(pingtest, ser, repeat_keyword, addr)
-                    print("Ping test received. Sending return ping.")
-                    logging.info("Ping test received. Sending return ping.")
-
-        except socket.error:
-            print('Connection to base broken.')
-            logging.debug('Connection to base broken.')
-            pass
-
-
 def heartbeat_udp():
     """
     Send heartbeat over UDP to ensure base connection is okay.
@@ -320,47 +241,54 @@ def begin_sequence():
     send_telem(startup_initiate, ser, repeat_keyword, addr)
     reset_buffer()
     while not rospy.is_shutdown():
-        time.sleep(0.1)
-        if rospy.get_param('trigger/sequence') == True:
-            for retry in range(1,4):
-                print(colored("Drone has reached WP. Metadata is being saved, and sending handshake to base.", 'cyan'))
-                logging.info("Drone has reached WP. Metadata is being saved, and sending handshake to base.")
-                send_telem(handshake_start, ser, repeat_keyword, addr)
-                get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
-                logging.debug("Serial data: %s" %get_handshake_conf)
-                reset_buffer()
-                if handshake_conf in get_handshake_conf:
-                    print(colored("Handshake confirmation received from base. Beginning calibration sequence", 'green'))
-                    logging.info("Handshake confirmation received from base. Beginning calibration sequence")
-                    #rospy.set_param('trigger/sequence', False)
-                    rospy.set_param('trigger/metadata', True)
-                    start_time = time.time()
-                    trigger_event.set()
-                    while trigger_event.is_set() == True:
-                        if stop_acq_event.is_set():
-                            stop_acq_event.clear()
-                            time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
-                            send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                            reset_buffer()
-                            time.sleep(metadata_acq_time)
-                            rospy.set_param('trigger/metadata', False)
-                            rospy.set_param('trigger/waypoint', True)
-                        elif time.time() >= start_time + wp_timeout:
-                            print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
-                            logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
-                            rospy.set_param('trigger/metadata', False)
-                            rospy.set_param('trigger/waypoint', True)
-                    break
-
-                else:
-                    print("No handshake confirmation from base. Retry attempt #: %s" %retry)
-                    logging.warning("No handshake confirmation from base. Retry attempt #: %s" %retry)
-                    # * retry feature very useful * #
+        try:
+            time.sleep(0.01)
             if rospy.get_param('trigger/sequence') == True:
-                print(colored("Handshake with base station failed after 3 attempts. Moving to next WP now.", "red"))
-                logging.debug("Handshake with base station failed after 3 attempts. Moving to next WP now.")
-                #rospy.set_param('trigger/sequence', False)
-                rospy.set_param('trigger/waypoint', True)
+                serial_event.set()      # stop other thread from recv telem
+                for retry in range(1,4):
+                    print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
+                    logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
+                    send_telem(handshake_start, ser, repeat_keyword, addr)
+                    get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                    logging.debug("Serial data: %s" %get_handshake_conf)
+                    reset_buffer()
+                    if handshake_conf in get_handshake_conf:
+                        print(colored("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.", 'green'))
+                        logging.info("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.")
+                        #rospy.set_param('trigger/sequence', False)
+                        rospy.set_param('trigger/metadata', True)
+                        start_time = time.time()
+                        trigger_event.set()
+                        while trigger_event.is_set() == True:
+                            if stop_acq_event.is_set():
+                                stop_acq_event.clear()
+                                time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
+                                send_telem(toggle_OFF, ser, repeat_keyword, addr)
+                                reset_buffer()
+                                time.sleep(metadata_acq_time)
+                                rospy.set_param('trigger/metadata', False)
+                                rospy.set_param('trigger/waypoint', True)
+                                serial_event.clear()    # allow other thread to recv telem
+                            elif time.time() >= start_time + wp_timeout:
+                                print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
+                                logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
+                                rospy.set_param('trigger/metadata', False)
+                                rospy.set_param('trigger/waypoint', True)
+                                serial_event.clear()    # allow other thread to recv telem
+                        break
+
+                    else:
+                        print("No handshake confirmation from base. Retry attempt #: %s" %retry)
+                        logging.warning("No handshake confirmation from base. Retry attempt #: %s" %retry)
+                        # * retry feature very useful * #
+                if rospy.get_param('trigger/sequence') == True:
+                    print(colored("Handshake with base station failed after 3 attempts. Moving to next WP now.", "red"))
+                    logging.debug("Handshake with base station failed after 3 attempts. Moving to next WP now.")
+                    #rospy.set_param('trigger/sequence', False)
+                    rospy.set_param('trigger/waypoint', True)
+                    serial_event.clear()    # allow other thread to recv telem
+        except serial.SerialException, e:
+            pass
 
 
 def serial_comms():
@@ -370,8 +298,8 @@ def serial_comms():
     It also has a pingtest feature which ensures things are running.
     """
     while True:
-        time.sleep(0.1)
-        if rospy.get_param('trigger/sequence') == False:
+        time.sleep(0.01)
+        if rospy.get_param('trigger/sequence') == False and serial_event.is_set() == False:
             try:
                 get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
                 logging.debug("serial data: " +str(get_handshake))
@@ -381,7 +309,7 @@ def serial_comms():
                     logging.info("The base has started up and is talking")
                     send_telem(startup_confirm, ser, repeat_keyword, addr)
                     reset_buffer()
-
+                # * working okay
                 elif shutdown in get_handshake:
                     os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
                     os.system('lsof -t -i tcp:8810 | xargs kill -9')
@@ -389,42 +317,40 @@ def serial_comms():
                     logging.info("Manual kill command from base recd. Shutting down SDR code")
                     reset_buffer()
                     break
-                
+                # ? no idea how this is doing
                 elif reboot_payload in get_handshake:
                     print(colored('Rebooting payload', 'grey', 'on_red', attrs=['blink']))
                     logging.info(">>>REBOOTING PAYLOAD<<<")
                     os.system('sudo reboot now')
                     reset_buffer()
-                # ! just table this for now, do I really need it?
+                # * this seems to work but does not print an exception is ping is missed
                 elif pingtest in get_handshake:
                     print("Ping test received. Sending return ping.")
                     logging.info("Ping test received. Sending return ping.")
                     #serial_event.set()
                     send_telem(pingtest, ser, repeat_keyword, addr)
                     reset_buffer()
-                # ! this works but the new WP does not meet the yaw cond
+                # ? this works but the new WP does not meet the yaw cond
                 elif update_wp in get_handshake:
                     print("Base station command to update WP table.")
                     logging.info("Base station command to update WP table.")
                     rospy.set_param('trigger/waypoint', True)
                     reset_buffer()
-                # ! this is doing something weird, causing this script to fail
+                # * working okay now
                 elif restart_wp_node in get_handshake:
                     print("Resetting write_WPs.py and wp_trigger.py")
                     logging.info("Resetting write_WPs.py and wp_trigger.py")
                     os.system('pkill -f write_WPs.py')
                     os.system('pkill -f wp_trigger.py')
-                    os.system('python ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/write_WPs.py &')
-                    os.system('python ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/wp_trigger.py &')
+                    os.system('rosrun beam_mapping write_WPs.py &')
+                    os.system('rosrun beam_mapping wp_trigger.py &')
                     reset_buffer()
                 #FIXME: this will also cause WP to be updated. fix later.
-                # ! this needs a complete makeover
-                elif handshake_start in get_handshake:
+                elif toggle_ON in get_handshake:
                     print('Manual trigger of sequence from base station.')
                     logging.info('Manual trigger of sequence from base station.')
                     rospy.set_param('trigger/sequence', True)
                     reset_buffer()
-            
             except:
                 pass
 
