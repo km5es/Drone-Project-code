@@ -267,13 +267,13 @@ def begin_sequence():
                                 reset_buffer()
                                 time.sleep(metadata_acq_time)
                                 rospy.set_param('trigger/metadata', False)
-                                rospy.set_param('trigger/waypoint', True)
+                                #rospy.set_param('trigger/waypoint', True)
                                 serial_event.clear()    # allow other thread to recv telem
                             elif time.time() >= start_time + wp_timeout:
                                 print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
                                 logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
                                 rospy.set_param('trigger/metadata', False)
-                                rospy.set_param('trigger/waypoint', True)
+                                #rospy.set_param('trigger/waypoint', True)
                                 serial_event.clear()    # allow other thread to recv telem
                         break
 
@@ -285,8 +285,9 @@ def begin_sequence():
                     print(colored("Handshake with base station failed after 3 attempts. Moving to next WP now.", "red"))
                     logging.debug("Handshake with base station failed after 3 attempts. Moving to next WP now.")
                     #rospy.set_param('trigger/sequence', False)
-                    rospy.set_param('trigger/waypoint', True)
+                    #rospy.set_param('trigger/waypoint', True)
                     serial_event.clear()    # allow other thread to recv telem
+                rospy.set_param('trigger/waypoint', True)
         except serial.SerialException, e:
             pass
 

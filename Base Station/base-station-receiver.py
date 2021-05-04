@@ -228,7 +228,6 @@ def recv_data():
                     print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
                     logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
                     acq_event.clear()
-                    rospy.set_param('trigger/acknowledgement', True)
                     reset_buffer()
                     break
             end = time.time()
