@@ -1,3 +1,4 @@
+#exclude these files
 /logs/base/*
 /logs/payload/*
 /logs/metadata/*
@@ -5,3 +6,6 @@
 /logs/pose_logs.csv
 /mission/waypoints.csv
 /mission/waypoints_copy.csv
+
+# exception to the rule
+!logs/.gitkeep 
