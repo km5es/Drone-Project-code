@@ -33,7 +33,7 @@ xu4_addr            = "10.42.0.47"
 hrt_beat_port       = 5678
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 path                = expanduser("~") + "/"         # define home path
-logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/'             
+logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/base/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_base_station_events.log") 
 heartbeat_check     = 'hrt_beat'                    # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                    # heartbeat confirmation
@@ -43,6 +43,7 @@ handshake_start     = 'is_comms'                    # begin handshake prior to s
 handshake_conf      = 'serialOK'                    # confirmation from payload before save
 toggle_ON           = 'start_tx'                    # message to payload to start cal
 toggle_OFF          = 'stop_acq'                    # message from payload to stop saving
+stop_acq_conf       = 'confSTOP'                    # confirm that acquisition has stopped
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
 startup_SDR         = 'beginSDR'                    # boot up SDR codes.
 reboot_payload      = '_reboot_'                    # reboot payload computer
@@ -296,6 +297,7 @@ def get_trigger_from_drone():
                 if toggle_OFF in get_stop_acq_trigger:
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
+                    send_telem(stop_acq_conf, ser, repeat_keyword)
                     reset_buffer()
             
             elif startup_initiate in get_handshake:

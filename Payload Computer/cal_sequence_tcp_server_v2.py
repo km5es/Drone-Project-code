@@ -40,6 +40,7 @@ handshake_start     = 'is_comms'                            # begin handshake pr
 handshake_conf      = 'serialOK'                            # confirmation from payload before save
 toggle_ON           = 'start_tx'                            # message to payload to start cal                
 toggle_OFF          = 'stop_acq'                            # message from payload to stop saving
+stop_acq_conf       = 'confSTOP'                    # confirm that acquisition has stopped
 shutdown            = 'shutdown'                            # force shutdown of all SDRs
 reboot_payload      = '_reboot_'                            # reboot payload computer
 pingtest            = 'pingtest'                            # manually test connection
@@ -50,14 +51,14 @@ client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
 serial_event        = Event()
-metadata_acq_time   = 5
+metadata_acq_time   = 2
 path                = expanduser("~") + "/"         # define home path
-logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/'             
+logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/payload/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
 network             = 'telemetry'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
-wp_timeout          = 12
+wp_timeout          = 15
 rospy.set_param('trigger/sequence', False)
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
@@ -265,11 +266,16 @@ def begin_sequence():
                                 stop_acq_event.clear()
                                 time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
                                 send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                                reset_buffer()
-                                time.sleep(metadata_acq_time)
-                                rospy.set_param('trigger/metadata', False)
-                                #rospy.set_param('trigger/waypoint', True)
-                                serial_event.clear()    # allow other thread to recv telem
+                                get_stop_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                                if stop_acq_conf in get_stop_conf:
+                                    reset_buffer()
+                                    rospy.set_param('trigger/metadata', False)
+                                    #rospy.set_param('trigger/waypoint', True)
+                                    print('Base has stopped acquisition. Sequence complete. serial data: %s' %get_stop_conf)
+                                    logging.info('Base has stopped acquisition. Sequence complete.')
+                                    serial_event.clear()    # allow other thread to recv telem
+                                else:
+                                    print('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
                             elif time.time() >= start_time + wp_timeout:
                                 print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
                                 logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)

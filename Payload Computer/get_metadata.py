@@ -24,7 +24,7 @@ from mavros_msgs.srv import *
 
 
 path            = expanduser("~") + "/"             # data files save path
-logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/'             
+logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/metadata/'             
 local_pose      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_local_pose.log")
 global_pos      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_global_pose.log")
 set_target      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_set_target.log")
