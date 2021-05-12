@@ -1,6 +1,6 @@
-/logs/base/
-/logs/payload/
-/logs/metadata/
+/logs/base/*
+/logs/payload/*
+/logs/metadata/*
 /logs/mission_events.csv
 /logs/pose_logs.csv
 /mission/waypoints.csv
