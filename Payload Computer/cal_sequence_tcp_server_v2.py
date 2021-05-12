@@ -271,11 +271,12 @@ def begin_sequence():
                                     reset_buffer()
                                     rospy.set_param('trigger/metadata', False)
                                     #rospy.set_param('trigger/waypoint', True)
-                                    print('Base has stopped acquisition. Sequence complete. serial data: %s' %get_stop_conf)
+                                    print('Base has stopped acquisition. Sequence complete.)
                                     logging.info('Base has stopped acquisition. Sequence complete.')
                                     serial_event.clear()    # allow other thread to recv telem
                                 else:
                                     print('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
+                                    logging.debug('No stop acq confirmation from base. serial data: %s' %get_stop_conf')
                             elif time.time() >= start_time + wp_timeout:
                                 print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
                                 logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
