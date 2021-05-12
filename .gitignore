@@ -9,3 +9,6 @@
 
 # exception to the rule
 !logs/.gitkeep 
+!logs/base/.gitkeep
+!logs/payload/.gitkeep
+!logs/metadata/.gitkeep
