@@ -46,7 +46,7 @@ reboot_payload      = '_reboot_'                            # reboot payload com
 pingtest            = 'pingtest'                            # manually test connection
 update_wp           = 'updateWP'                            # manual update to WP table
 restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
-repeat_keyword      = 4
+repeat_keyword      = 64
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
@@ -244,7 +244,7 @@ def begin_sequence():
     while not rospy.is_shutdown():
         # ? something is still weird about this. why does it retry so often? does the sleep time need adjustment?
         try:
-            time.sleep(0.01)
+            time.sleep(1e-4)
             if rospy.get_param('trigger/sequence') == True:
                 serial_event.set()      # stop other thread from recv telem
                 for retry in range(1,4):
@@ -307,7 +307,7 @@ def serial_comms():
     It also has a pingtest feature which ensures things are running.
     """
     while True:
-        time.sleep(0.01)
+        time.sleep(1e-4)
         if rospy.get_param('trigger/sequence') == False and serial_event.is_set() == False:
             try:
                 get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
@@ -368,15 +368,83 @@ def get_timestamp():
     """
     Returns current time for data logging.
     """
-    timestring = time.strftime("%H%M%S-%d%m%Y")
+    time_now = time.time()
+    # Rounds to nearest millisecond
+    timestring = ("Time : %s.%s\n" % (time.strftime('%x %X',time.localtime(time_now)), str('%.3f'%time_now).split('.')[1])) 
     return timestring
+
+
+def begin_sequence_simple():
+    """
+    This object will initiate the calibration sequence when a WP is reached.
+    The WP is detected by wp_trigger.py
+    When a WP is reached, the base station receiver will start recording data. 
+    At the same time, metadata will be saved using get_metadata.py and trigger/metadata
+    When the sequence is completed another ROS flag trigger/waypoint
+    NOTE: I am just using telemetry for now.
+    """
+    create_server()
+    addr = "127.0.0.1"
+    send_telem(startup_initiate, ser, repeat_keyword, addr)
+    reset_buffer()
+    while not rospy.is_shutdown():
+        # ? something is still weird about this. why does it retry so often? does the sleep time need adjustment?
+        try:
+            time.sleep(1e-4)
+            if rospy.get_param('trigger/sequence') == True:
+                serial_event.set()      # stop other thread from recv telem
+                print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
+                logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
+                send_telem(handshake_start, ser, repeat_keyword, addr)
+                get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                logging.debug("Serial data: %s" %get_handshake_conf)
+                reset_buffer()
+                if handshake_conf in get_handshake_conf:
+                    print(colored("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.", 'green'))
+                    logging.info("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.")
+                    #rospy.set_param('trigger/sequence', False)
+                    rospy.set_param('trigger/metadata', True)
+                    start_time = time.time()
+                    trigger_event.set()
+                    while trigger_event.is_set() == True:
+                        if stop_acq_event.is_set():
+                            stop_acq_event.clear()
+                            time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
+                            send_telem(toggle_OFF, ser, repeat_keyword, addr)
+                            get_stop_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                            if stop_acq_conf in get_stop_conf:
+                                reset_buffer()
+                                rospy.set_param('trigger/metadata', False)
+                                rospy.set_param('trigger/waypoint', True)
+                                print('Base has stopped acquisition. Sequence complete.')
+                                logging.info('Base has stopped acquisition. Sequence complete.')
+                                serial_event.clear()    # allow other thread to recv telem
+                            else:
+                                print('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
+                                logging.debug('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
+                        elif time.time() >= start_time + wp_timeout:
+                            print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
+                            logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
+                            rospy.set_param('trigger/metadata', False)
+                            rospy.set_param('trigger/waypoint', True)
+                            serial_event.clear()    # allow other thread to recv telem
+                            break
+
+                else:
+                    print("No handshake confirmation from base.")
+                    logging.warning("No handshake confirmation from base.")
+                    serial_event.clear()    # allow other thread to recv telem
+                #rospy.set_param('trigger/waypoint', True)
+                reset_buffer()
+        except serial.SerialException, e:
+            pass
 
 
 def main():
     """
     Initiate threads.
     """
-    t1 = Thread(target = begin_sequence)
+    t1 = Thread(target = begin_sequence_simple)
     t2 = Thread(target = stream_file)
     t3 = Thread(target = get_timestamp)
     t1.start()

@@ -144,7 +144,7 @@ def get_haversine(data):
     """
     global h
     #while True:
-    time.sleep(0.01)
+    #time.sleep(0.01)
     if data.status.status == 0:
         if event.is_set() == False:
             h = haversine(data.latitude, data.longitude, wp_x_lat, wp_y_long)
@@ -162,19 +162,20 @@ def get_distance(data):
         try:
             alt_diff = wp_z_alt - data.pose.position.z
             distance = (h**2 + alt_diff**2)**0.5
-        #except (IndexError, NameError):
+            #print('The closest WP is: %s m away.' %(distance))
+            event.clear()
+            if distance <= error_tolerance and v <= vel_threshold and rospy.get_param('trigger/waypoint') == False:
+                print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
+                #rospy.set_param('trigger/waypoint', True)
+                rospy.set_param('trigger/sequence', True)
+                #FIXME: this is another open loop. what do? can't seem to avoid them
+                time.sleep(25)
         except IndexError:
             print("index error")
             pass
         except NameError:
             print("Waypoints not received from FCU.")
             pass
-        print('The closest WP is: %s m away.' %(distance))
-        if distance <= error_tolerance and v <= vel_threshold and rospy.get_param('trigger/waypoint') == False:
-            print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
-            #rospy.set_param('trigger/waypoint', True)
-            rospy.set_param('trigger/sequence', True)
-    event.clear()
 
 
 def main():

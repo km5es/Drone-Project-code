@@ -52,7 +52,7 @@ update_wp           = 'updateWP'                    # manual update to WP table
 restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
 acq_event           = Event()                       # save radio data
 timeout             = 8                             # time after which saving data will stop if no trigger
-repeat_keyword      = 4                             # number of times to repeat a telem msg
+repeat_keyword      = 64                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
 network             = 'telemetry'                        # options: wifi or telemtry 
@@ -208,6 +208,7 @@ def recv_data():
     '''
     Wait for acq_event to begin and stop saving data.
     '''
+    global tel_flag
     while True:
         sleep(1e-6)
 
@@ -273,6 +274,7 @@ def serial_comms():
         #    except:
         #        pass
 
+tel_flag = True
 
 def get_trigger_from_drone():
     """
@@ -280,6 +282,7 @@ def get_trigger_from_drone():
     a WP. Moving forward, it will also save trigger the saving of SDR metadata.
     """
     #TODO: if send_telem has msg then stop recv_telem() briefly. implement while loop.
+    global tel_flag
     while True:
 #        if send_telem.event().clear():
         sleep(1e-6)

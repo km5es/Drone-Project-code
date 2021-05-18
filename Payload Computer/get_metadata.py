@@ -31,12 +31,22 @@ set_target      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_set_target.log")
 refresh_rate    = 25.0
 
 
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    time_now = time.time()
+    # Rounds to nearest millisecond
+    timestring = ("Time : %s.%s\n" % (time.strftime('%x %X',time.localtime(time_now)), str('%.3f'%time_now).split('.')[1])) 
+    return timestring
+
+
 def callback_local(data):
     """
     Callback object for drone's local position and timestamp.
     """
     try:
-        current_time = time.strftime("%H%M%S-%d%m%Y")
+        current_time = get_timestamp()
         local_pose_f_a.write("%s\t%s\t%s\t%s\n" % (current_time, data.pose.position.x,
                                                    data.pose.position.y, data.pose.position.z))
         rospy.sleep(1/refresh_rate)
@@ -49,7 +59,7 @@ def callback_setpoint(data):
     Callback object for drone's setpoint position and timestamp.
     """
     try:
-        current_time = time.strftime("%H%M%S-%d%m%Y")
+        current_time = get_timestamp()
         set_target_f_a.write("%s\t%s\t%s\t%s\n" %
                              (current_time, data.position.x, data.position.y, data.position.z))
         rospy.sleep(1/refresh_rate)
@@ -62,7 +72,7 @@ def callback_global(data):
     Callback object for drone's GPS location.
     """
     try:
-        current_time = time.strftime("%H%M%S-%d%m%Y")
+        current_time = get_timestamp()
         global_pos_f_a.write("%s\t%s\t%s\t%s\n" %(current_time, data.latitude, data.longitude, data.altitude))
         rospy.sleep(1/refresh_rate)
     except ValueError:
