@@ -52,7 +52,7 @@ update_wp           = 'updateWP'                    # manual update to WP table
 restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
 acq_event           = Event()                       # save radio data
 timeout             = 8                             # time after which saving data will stop if no trigger
-repeat_keyword      = 64                             # number of times to repeat a telem msg
+repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
 network             = 'telemetry'                        # options: wifi or telemtry 
@@ -259,22 +259,6 @@ def serial_comms():
             logging.info("Manually trigger payload cal.")
             pass
 
-        #elif msg == str(pingtest):
-        #    try:
-        #        get_return_ping = recv_telem(msg_len, ser_timeout, repeat_keyword)
-        #        if pingtest in get_return_ping:
-        #            recvtime = time.time()
-        #            RTT = (recvtime - sendtime)*1000.0		# in ms
-        #            RTT = round(RTT, 2)
-        #            print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
-        #            logging.info("Ping reply recd from payload.")
-        #        else:
-        #            print(colored('Payload not responding to ping test.', 'red'))
-        #            logging.warning("Payload not responding to ping test.")
-        #    except:
-        #        pass
-
-tel_flag = True
 
 def get_trigger_from_drone():
     """
@@ -298,10 +282,16 @@ def get_trigger_from_drone():
                 print(get_stop_acq_trigger)
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
                 if toggle_OFF in get_stop_acq_trigger:
+                    print('Data acquisition togled OFF')
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
                     send_telem(stop_acq_conf, ser, repeat_keyword)
                     reset_buffer()
+                    # * in case the drone does a retry
+                elif handshake_start in get_stop_acq_trigger:
+                    print('Drone has re-initiated sequence.')
+                    send_telem(handshake_conf, ser, repeat_keyword)
+                    pass
             
             elif startup_initiate in get_handshake:
                 print(colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
@@ -313,7 +303,7 @@ def get_trigger_from_drone():
                 RTT = (recvtime - sendtime)*1000.0		# in ms
                 RTT = round(RTT, 2)
                 print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
-                logging.info("Ping reply recd from payload.")
+                logging.info('Ping reply recd from payload in {} ms.'.format(RTT))
         except:
             pass
 
@@ -325,7 +315,7 @@ def main():
     try:
         t1 = Thread(target = recv_data)
         t2 = Thread(target = get_trigger_from_drone)
-        t3 = Thread(target = get_timestamp)
+        t3 = Thread(target = serial_comms)
         #t4 = Thread(target = heartbeat_udp)
         t1.start()
         t2.start()

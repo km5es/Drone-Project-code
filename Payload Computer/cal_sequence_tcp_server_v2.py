@@ -46,7 +46,7 @@ reboot_payload      = '_reboot_'                            # reboot payload com
 pingtest            = 'pingtest'                            # manually test connection
 update_wp           = 'updateWP'                            # manual update to WP table
 restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
-repeat_keyword      = 64
+repeat_keyword      = 4
 client_script_name  = 'gr_cal_tcp_loopback_client.py'
 trigger_event       = Event()
 stop_acq_event      = Event()
@@ -392,14 +392,15 @@ def begin_sequence_simple():
         try:
             time.sleep(1e-4)
             if rospy.get_param('trigger/sequence') == True:
+                reset_buffer()
                 serial_event.set()      # stop other thread from recv telem
                 print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
                 logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
                 send_telem(handshake_start, ser, repeat_keyword, addr)
                 get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 logging.debug("Serial data: %s" %get_handshake_conf)
-                reset_buffer()
                 if handshake_conf in get_handshake_conf:
+                    reset_buffer()
                     print(colored("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.", 'green'))
                     logging.info("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.")
                     #rospy.set_param('trigger/sequence', False)
@@ -414,15 +415,20 @@ def begin_sequence_simple():
                             get_stop_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
                             if stop_acq_conf in get_stop_conf:
                                 reset_buffer()
-                                rospy.set_param('trigger/metadata', False)
-                                rospy.set_param('trigger/waypoint', True)
                                 print('Base has stopped acquisition. Sequence complete.')
                                 logging.info('Base has stopped acquisition. Sequence complete.')
+                                rospy.set_param('trigger/metadata', False)
+                                rospy.set_param('trigger/waypoint', True)
                                 serial_event.clear()    # allow other thread to recv telem
                             else:
+                                reset_buffer()
                                 print('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
                                 logging.debug('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
+                                rospy.set_param('trigger/metadata', False)
+                                rospy.set_param('trigger/waypoint', True)
+                                serial_event.clear()
                         elif time.time() >= start_time + wp_timeout:
+                            reset_buffer()
                             print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
                             logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
                             rospy.set_param('trigger/metadata', False)
@@ -431,8 +437,10 @@ def begin_sequence_simple():
                             break
 
                 else:
+                    reset_buffer()
                     print("No handshake confirmation from base.")
                     logging.warning("No handshake confirmation from base.")
+                    rospy.set_param('trigger/waypoint', True)
                     serial_event.clear()    # allow other thread to recv telem
                 #rospy.set_param('trigger/waypoint', True)
                 reset_buffer()
@@ -446,7 +454,7 @@ def main():
     """
     t1 = Thread(target = begin_sequence_simple)
     t2 = Thread(target = stream_file)
-    t3 = Thread(target = get_timestamp)
+    t3 = Thread(target = serial_comms)
     t1.start()
     t2.start()
     t3.start()

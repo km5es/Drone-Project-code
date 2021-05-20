@@ -37,6 +37,7 @@ timeout_event   = Event()
 start           = time.time()
 error_tolerance = 1.0       ## distance in m from where to begin sequence
 GPS_refresh     = 10
+wp_wait_timeout = 10
 
 
 def get_velocity(data):
@@ -169,7 +170,7 @@ def get_distance(data):
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)
                 #FIXME: this is another open loop. what do? can't seem to avoid them
-                time.sleep(10)
+                time.sleep(wp_wait_timeout)
         except IndexError:
             print("index error")
             pass
