@@ -454,7 +454,7 @@ def main():
     """
     t1 = Thread(target = begin_sequence_simple)
     t2 = Thread(target = stream_file)
-    t3 = Thread(target = serial_comms)
+    t3 = Thread(target = get_timestamp)
     t1.start()
     t2.start()
     t3.start()
