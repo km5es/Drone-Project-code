@@ -36,9 +36,9 @@ def get_timestamp():
     Returns current time for data logging.
     """
     time_now = time.time()
-    # Rounds to nearest millisecond
-    timestring = ("Time : %s.%s\n" % (time.strftime('%x %X',time.localtime(time_now)), str('%.3f'%time_now).split('.')[1])) 
-    return timestring
+    mlsec = repr(time_now).split('.')[1][:3]
+    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
+    return time_now
 
 
 def callback_local(data):

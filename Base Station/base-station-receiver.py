@@ -76,9 +76,20 @@ if args.port:
 if args.address:
     pi_addr = args.address
 
+
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    time_now = time.time()
+    mlsec = repr(time_now).split('.')[1][:3]
+    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
+    return time_now
+
+
 ## Establish connections
 if network == 'wifi':
-    print(colored('Connecting to the drone via UDP', 'green'))
+    print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via UDP', 'green'))
     ## UDP connection
     # conn 1 for sync
     payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -88,20 +99,20 @@ if network == 'wifi':
     payload_conn2.settimeout(timeout)
 
 elif network == 'telemetry':
-    print(colored('Connecting to the drone via ' + str(network), 'green'))
+    print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via ' + str(network), 'green'))
     try:
         ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
         ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
-        print(colored("Serial radio link established to T960 payload.", "green"))
+        print('%s: ' %(get_timestamp()) + colored("Serial radio link established to T960 payload.", "green"))
         logging.info("Serial radio link established to T960 payload.")
     except:
         try:
             ser         = serial.Serial('/dev/ttyF450', 57600)
             ser_timeout = serial.Serial('/dev/ttyF450', 57600, timeout=2)
-            print(colored("Serial radio link established to F450 payload.", "green"))
+            print('%s: ' %(get_timestamp()) + colored("Serial radio link established to F450 payload.", "green"))
             logging.info("Serial radio link established to F450 payload.")
         except:
-            print(colored("No telemetry found. Check for Wi-Fi link...", "red"))
+            print('%s: ' %(get_timestamp()) + colored("No telemetry found. Check for Wi-Fi link...", "red"))
             logging.warning("No serial telemetry found")
             pass
 
@@ -114,7 +125,7 @@ else:
 
 # Connect to GRC flowgraph
 client.connect((address))
-print(colored('TCP connection to GRC opened on ' +str(address), 'green'))
+print('%s: ' %(get_timestamp()) + colored('TCP connection to GRC opened on ' +str(address), 'green'))
 logging.info("TCP connection to GRC flowgraph open.")
 
 
@@ -151,7 +162,7 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
             message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
             return message
         except (socket.timeout, TypeError):
-            print(colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
+            print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
             logging.debug('Socket recv timed out in ' +str(timeout) + '  seconds. Is the payload operatinal?')
             pass
 
@@ -165,14 +176,6 @@ def reset_buffer():
         ser.reset_output_buffer()
     except serial.SerialException:
         pass
-
-
-def get_timestamp():
-    """
-    Returns current time for data logging.
-    """
-    timestring = time.strftime("%H%M%S-%d%m%Y")
-    return timestring
 
 
 def heartbeat_udp():
@@ -196,10 +199,10 @@ def heartbeat_udp():
                 if ping in message:
                     #print('Heartbeat confirmation recd from server in {} ms'.format(RTT))
                     if RTT > 2000:
-                        print(colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
+                        print('%s: ' %(get_timestamp()) + colored('RTT to payload is high: {} ms'.format(RTT), 'red'))
                         logging.warning('RTT to payload is high: {} ms'.format(RTT))
             except socket.timeout:
-                print(colored('No heartbeat received from payload', 'grey', 'on_red'))
+                print('%s: ' %(get_timestamp()) + colored('No heartbeat received from payload', 'grey', 'on_red'))
                 logging.debug('No heartbeat received from payload')
                 pass
 
@@ -213,11 +216,11 @@ def recv_data():
         sleep(1e-6)
 
         if acq_event.is_set():
-            print('Trigger from payload recd. Saving data now.')
-            timestring      = get_timestamp()         
+            print('%s: ' %(get_timestamp()) + 'Trigger from payload recd. Saving data now.')
+            timestring      = time.strftime("%H%M%S-%d%m%Y")         
             filename        = path + timestring + str("_milton.dat")
             f               = open(filename, "w")
-            print(colored('Saving data now in ' + str(filename), 'cyan'))
+            print('%s: ' %(get_timestamp()) + colored('Saving data now in ' + str(filename), 'cyan'))
             logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
             start           = time.time()
             start_timeout   = start + timeout            
@@ -227,13 +230,13 @@ def recv_data():
                 if acq_event.is_set() == False:
                     break               
                 elif time.time() > start_timeout:
-                    print(colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
+                    print('%s: ' %(get_timestamp()) + colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
                     logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
                     acq_event.clear()
                     reset_buffer()
                     break
             end = time.time()
-            print(colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'grey', 'on_green'))
+            print('%s: ' %(get_timestamp()) + colored('\nFinished saving data in: ' +str(end - start) + ' seconds. Waiting for next waypoint.', 'grey', 'on_green'))
             logging.info('Finished saving data in: ' +str(end - start) + ' seconds.')
 
 
@@ -248,14 +251,14 @@ def serial_comms():
         send_telem(msg, ser, repeat_keyword)
 
         if msg == str(shutdown):
-            print(colored('Shutting down payload and this code.', 'red'))
+            print('%s: ' %(get_timestamp()) + colored('Shutting down payload and this code.', 'red'))
             logging.info("Manual kill switch. Shutting down payload and base station")
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
             os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
             pass
         
         elif msg == str(toggle_ON):
-            print("Manually trigger payload cal.")
+            print('%s: ' %(get_timestamp()) + "Manually trigger payload cal.")
             logging.info("Manually trigger payload cal.")
             pass
 
@@ -273,28 +276,28 @@ def get_trigger_from_drone():
         try:
             get_handshake = recv_telem(msg_len, ser, repeat_keyword)
             if handshake_start in get_handshake:
-                print(colored("Drone has reached WP, sending confirmation and beginning acquisition now.", "green"))
+                print('%s: ' %(get_timestamp()) + colored("Drone has reached WP, sending confirmation and beginning acquisition now.", "green"))
                 logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
                 logging.debug("serial data: %s" %get_handshake)
                 send_telem(handshake_conf, ser, repeat_keyword)
                 acq_event.set()
                 get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
-                print(get_stop_acq_trigger)
+                print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
                 if toggle_OFF in get_stop_acq_trigger:
-                    print('Data acquisition togled OFF')
+                    print('%s: ' %(get_timestamp()) + 'Data acquisition togled OFF')
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
                     send_telem(stop_acq_conf, ser, repeat_keyword)
                     reset_buffer()
                     # * in case the drone does a retry
                 elif handshake_start in get_stop_acq_trigger:
-                    print('Drone has re-initiated sequence.')
+                    print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
                     send_telem(handshake_conf, ser, repeat_keyword)
                     pass
             
             elif startup_initiate in get_handshake:
-                print(colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
+                print('%s: ' %(get_timestamp()) + colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
                 logging.info("The payload is UP and RUNNING.")
                 reset_buffer()
             
@@ -302,7 +305,7 @@ def get_trigger_from_drone():
                 recvtime = time.time()
                 RTT = (recvtime - sendtime)*1000.0		# in ms
                 RTT = round(RTT, 2)
-                print(colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
+                print('%s: ' %(get_timestamp()) + colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
                 logging.info('Ping reply recd from payload in {} ms.'.format(RTT))
         except:
             pass
@@ -326,7 +329,7 @@ def main():
         t3.join()
         #t4.join()
     except (serial.SerialException, socket.error):
-        print(colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
+        print('%s: ' %(get_timestamp()) + colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')
         os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 
