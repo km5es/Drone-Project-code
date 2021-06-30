@@ -218,6 +218,7 @@ def stream_file():
                 if pulses == 2*togglePoint/3:
                     #GPIO.output(20, GPIO.LOW)
                     #GPIO.output(21, GPIO.HIGH)
+                    pass
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
