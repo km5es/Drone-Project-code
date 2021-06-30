@@ -28,6 +28,7 @@ logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/metadata/'
 local_pose      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_local_pose.log")
 global_pos      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_global_pose.log")
 set_target      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_set_target.log")
+sdr_drone_temp  = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_sdr_drone_temp.log")
 refresh_rate    = 25.0
 
 
@@ -83,8 +84,12 @@ def callback_SDR(data):
     """
     Callback object for SDR temperature.
     """
-    file.write("%s\t" % (data))
-    rospy.sleep(1/refresh_rate)
+    try:
+        current_time = get_timestamp()
+        sdr_ground_temp_f_a.write("%s\t%s\n" %(current_time, data.data))
+        rospy.sleep(1/refresh_rate)
+    except ValueError, NameError:
+        pass
 
 
 def main_sitl():
@@ -132,6 +137,7 @@ def main():
     global local_pose_f_a
     global set_target_f_a
     global global_pos_f_a
+    global sdr_drone_temp_f_a
 
     local_pose_f = open(local_pose, "w+")
     local_pose_f.write(
@@ -144,6 +150,10 @@ def main():
     global_pos_f = open(global_pos, "w+")
     global_pos_f.write("Timestamp\tLatitude\tLongitude\tAltitude\n")
     global_pos_f.close()
+    sdr_drone_temp_f = open(sdr_drone_temp, "w+")
+    sdr_drone_temp_f.write("Timestamp\tSDR Temperature (deg C)")
+    sdr_drone_temp_f.close()
+
     rospy.init_node('get_metadata', anonymous=True)
     rospy.set_param('trigger/metadata', False)
     wp_num = 0
@@ -157,21 +167,25 @@ def main():
             local_pose_f_a = open(local_pose, "a+")
             set_target_f_a = open(set_target, "a+")
             global_pos_f_a = open(global_pos, "a+")
+            sdr_drone_temp_f_a = open(sdr_drone_temp, "a+")
             local_pose_f_a.write("Waypoint #%s\n" % (wp_num))
             set_target_f_a.write("Waypoint #%s\n" % (wp_num))
-            global_pos_f_a.write("waypoint #%s\n" % (wp_num))
+            global_pos_f_a.write("Waypoint #%s\n" % (wp_num))
+            sdr_drone_temp_f_a.write("Waypoint #%s\n" % (wp_num))
             wp_num += 1
             rospy.Subscriber('/mavros/local_position/pose',
                                 PoseStamped, callback_local)
             rospy.Subscriber('/mavros/setpoint_raw/target_local',
                                 PositionTarget, callback_setpoint)
             rospy.Subscriber('/mavros/global_position/global', NavSatFix, callback_global)
+            rospy.Subscriber('/sdr_temperature', Float32, callback_SDR)
             while True:
                 if rospy.get_param('trigger/metadata') == False:
                     print('Finished saving metadata for this WP.')
                     local_pose_f_a.close()
                     set_target_f_a.close()
                     global_pos_f_a.close()
+                    sdr_ground_temp_f_a.close()
                     break
 
 

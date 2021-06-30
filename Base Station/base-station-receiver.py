@@ -49,7 +49,7 @@ startup_SDR         = 'beginSDR'                    # boot up SDR codes.
 reboot_payload      = '_reboot_'                    # reboot payload computer
 pingtest            = 'pingtest'                    # manually test connection to payload
 update_wp           = 'updateWP'                    # manual update to WP table
-restart_wp_node     = 'rswpnode'                            # manual reset of ROS WP nodes
+restart_wp_node     = 'rswpnode'                    # manual reset of ROS WP nodes
 acq_event           = Event()                       # save radio data
 timeout             = 8                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
@@ -233,6 +233,7 @@ def recv_data():
                     print('%s: ' %(get_timestamp()) + colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
                     logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
                     acq_event.clear()
+                    rospy.set_param('trigger/metadata', False)
                     reset_buffer()
                     break
             end = time.time()
@@ -281,6 +282,7 @@ def get_trigger_from_drone():
                 logging.debug("serial data: %s" %get_handshake)
                 send_telem(handshake_conf, ser, repeat_keyword)
                 acq_event.set()
+                rospy.set_param('trigger/metadata', True)
                 get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
                 print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
@@ -288,6 +290,7 @@ def get_trigger_from_drone():
                     print('%s: ' %(get_timestamp()) + 'Data acquisition togled OFF')
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
+                    rospy.set_param('trigger/metadata', False)
                     send_telem(stop_acq_conf, ser, repeat_keyword)
                     reset_buffer()
                     # * in case the drone does a retry
