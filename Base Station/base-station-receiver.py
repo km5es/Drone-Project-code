@@ -101,14 +101,14 @@ if network == 'wifi':
 elif network == 'telemetry':
     print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via ' + str(network), 'green'))
     try:
-        ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
-        ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
+        ser         = serial.Serial('/dev/ttyPAYLOAD', 4800)
+        ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 4800, timeout=2)
         print('%s: ' %(get_timestamp()) + colored("Serial radio link established to T960 payload.", "green"))
         logging.info("Serial radio link established to T960 payload.")
     except:
         try:
-            ser         = serial.Serial('/dev/ttyF450', 57600)
-            ser_timeout = serial.Serial('/dev/ttyF450', 57600, timeout=2)
+            ser         = serial.Serial('/dev/ttyF450', 4800)
+            ser_timeout = serial.Serial('/dev/ttyF450', 4800, timeout=2)
             print('%s: ' %(get_timestamp()) + colored("Serial radio link established to F450 payload.", "green"))
             logging.info("Serial radio link established to F450 payload.")
         except:
@@ -293,7 +293,8 @@ def get_trigger_from_drone():
                     # * in case the drone does a retry
                 elif handshake_start in get_stop_acq_trigger:
                     print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
-                    send_telem(handshake_conf, ser, repeat_keyword)
+                    logging.debug("Drone has re-initiated sequence.")
+                    #send_telem(handshake_conf, ser, repeat_keyword)
                     pass
             
             elif startup_initiate in get_handshake:
