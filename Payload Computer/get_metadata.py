@@ -86,7 +86,7 @@ def callback_SDR(data):
     """
     try:
         current_time = get_timestamp()
-        sdr_ground_temp_f_a.write("%s\t%s\n" %(current_time, data.data))
+        sdr_drone_temp_f_a.write("%s\t%s\n" %(current_time, data.data))
         rospy.sleep(1/refresh_rate)
     except ValueError, NameError:
         pass
