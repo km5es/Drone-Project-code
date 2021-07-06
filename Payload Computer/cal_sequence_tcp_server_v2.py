@@ -410,7 +410,7 @@ def begin_sequence_simple():
     while not rospy.is_shutdown():
         # ? something is still weird about this. why does it retry so often? does the sleep time need adjustment?
         try:
-            time.sleep(1e-4)
+            time.sleep(1e-2)
             if rospy.get_param('trigger/sequence') == True:
                 reset_buffer()
                 serial_event.set()      # stop other thread from recv telem
@@ -474,13 +474,13 @@ def main():
     """
     t1 = Thread(target = begin_sequence_simple)
     t2 = Thread(target = stream_file)
-    t3 = Thread(target = get_timestamp)
+    #t3 = Thread(target = get_timestamp)
     t1.start()
     t2.start()
-    t3.start()
+    #t3.start()
     t1.join()
     t2.join()
-    t3.join()
+    #t3.join()
 
 
 if __name__ == '__main__':
