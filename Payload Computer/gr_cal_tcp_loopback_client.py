@@ -96,7 +96,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
     def get_temp(self):
-        return self.uhd_usrp_source_0.get_sensor('temp').to_real()
+        return self.uhd_usrp_sink_0.get_sensor('temp').to_real()
 
 def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
