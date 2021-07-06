@@ -119,7 +119,7 @@ def main():
     wl.append(wp)
     push_wp()
     while True:
-        time.sleep(1e-4)
+        time.sleep(1e-2)
         # * clear waypoint table before ending sequence so that it does not re-trigger.
         if rospy.get_param('trigger/sequence') == True:
             waypoint_clear_client()
