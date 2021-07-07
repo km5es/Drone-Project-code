@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Tue Jul  6 21:21:13 2021
+# Generated: Tue Jul  6 21:38:38 2021
 ##################################################
 
 from gnuradio import blocks
@@ -36,6 +36,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.meas_freq = meas_freq = 150e6
         self.samp_rate = samp_rate = 7.68e6*2
         self.min_buffer = min_buffer = 4096*16
+        self.gain = gain = 60
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
@@ -51,7 +52,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_clock_source('external', 0)
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
         self.uhd_usrp_sink_0.set_center_freq(freq, 0)
-        self.uhd_usrp_sink_0.set_gain(20, 0)
+        self.uhd_usrp_sink_0.set_gain(gain, 0)
         self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
         (self.blocks_vector_to_stream_0).set_min_output_buffer(65536)
         self.blks2_tcp_source_0 = grc_blks2.tcp_source(
@@ -102,6 +103,14 @@ class gr_cal_tcp_loopback_client(gr.top_block):
 
     def set_min_buffer(self, min_buffer):
         self.min_buffer = min_buffer
+
+    def get_gain(self):
+        return self.gain
+
+    def set_gain(self, gain):
+        self.gain = gain
+        self.uhd_usrp_sink_0.set_gain(self.gain, 0)
+
 
     def get_freq(self):
         return self.freq

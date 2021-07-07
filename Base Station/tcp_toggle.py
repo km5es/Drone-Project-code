@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Tue Jul  6 21:22:25 2021
+# Generated: Tue Jul  6 21:45:54 2021
 ##################################################
 
 from gnuradio import eng_notation
@@ -28,6 +28,7 @@ class tcp_toggle(gr.top_block):
         self.meas_freq = meas_freq = 150e6
         self.samp_rate = samp_rate = 30.72e6
         self.min_buffer = min_buffer = 512*8200*2
+        self.gain = gain = 50
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
@@ -45,7 +46,7 @@ class tcp_toggle(gr.top_block):
         self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_center_freq(freq, 0)
-        self.uhd_usrp_source_0.set_gain(20, 0)
+        self.uhd_usrp_source_0.set_gain(gain, 0)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
         self.blks2_tcp_sink_0 = grc_blks2.tcp_sink(
         	itemsize=gr.sizeof_gr_complex*1,
@@ -87,6 +88,14 @@ class tcp_toggle(gr.top_block):
 
     def set_min_buffer(self, min_buffer):
         self.min_buffer = min_buffer
+
+    def get_gain(self):
+        return self.gain
+
+    def set_gain(self, gain):
+        self.gain = gain
+        self.uhd_usrp_source_0.set_gain(self.gain, 0)
+
 
     def get_freq(self):
         return self.freq
