@@ -32,7 +32,10 @@ seq_port            = 6789
 xu4_addr            = "10.42.0.47"
 hrt_beat_port       = 5678
 client_script_name  = 'tcp_toggle.py'               # TCP client name
-path                = expanduser("~") + "/"         # define home path
+### uncomment to save in home folder
+#path                = expanduser("~") + "/"         # define home path
+### uncomment below to save on SSD
+path                = '/mnt/78ACE633ACE5EB96/milton_raw_data/'
 logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/base/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_base_station_events.log") 
 heartbeat_check     = 'hrt_beat'                    # heartbeat every n secs
