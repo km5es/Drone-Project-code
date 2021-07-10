@@ -33,10 +33,10 @@ xu4_addr            = "10.42.0.47"
 hrt_beat_port       = 5678
 client_script_name  = 'tcp_toggle.py'               # TCP client name
 ### uncomment to save in home folder
-path                = expanduser("~") + "/"         # define home path
+home_path           = expanduser("~") + "/"         # define home path
 ### uncomment below to save on SSD
-#path                = '/mnt/78ACE633ACE5EB96/milton_raw_data/'
-logs_path           = path + 'catkin_ws/src/Drone-Project-code/logs/base/'             
+data_path           = '/mnt/78ACE633ACE5EB96/milton_raw_data/'
+logs_path           = home_path + 'catkin_ws/src/Drone-Project-code/logs/base/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_base_station_events.log") 
 heartbeat_check     = 'hrt_beat'                    # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                    # heartbeat confirmation
@@ -221,7 +221,7 @@ def recv_data():
         if acq_event.is_set():
             print('%s: ' %(get_timestamp()) + 'Trigger from payload recd. Saving data now.')
             timestring      = time.strftime("%H%M%S-%d%m%Y")         
-            filename        = path + timestring + str("_milton.dat")
+            filename        = data_path + timestring + str("_milton.dat")
             f               = open(filename, "w")
             print('%s: ' %(get_timestamp()) + colored('Saving data now in ' + str(filename), 'cyan'))
             logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
