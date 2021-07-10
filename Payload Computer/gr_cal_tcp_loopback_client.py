@@ -17,6 +17,8 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
+import rospy
+from std_msgs.msg import Float32
 
 
 class gr_cal_tcp_loopback_client(gr.top_block):
@@ -118,6 +120,9 @@ class gr_cal_tcp_loopback_client(gr.top_block):
     def set_freq(self, freq):
         self.freq = freq
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
+    
+    def get_temp(self):
+        return self.uhd_usrp_sink_0.get_sensor('temp').to_real()
 
 
 def argument_parser():
@@ -137,6 +142,13 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
+
+    while not rospy.is_shutdown():
+        temp = tb.get_temp()
+#        rospy.loginfo(temp)
+        pub.publish(temp)
+        rate.sleep()
+
     tb.wait()
 
 

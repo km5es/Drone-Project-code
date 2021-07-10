@@ -14,6 +14,8 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
+import rospy
+from std_msgs.msg import Float32
 
 
 class tcp_toggle(gr.top_block):
@@ -104,18 +106,27 @@ class tcp_toggle(gr.top_block):
         self.freq = freq
         self.uhd_usrp_source_0.set_center_freq(self.freq, 0)
         self.uhd_usrp_source_0.set_center_freq(self.freq, 1)
+    
+    def get_temp(self):
+        return self.uhd_usrp_source_0.get_sensor('temp').to_real()
 
 
 def main(top_block_cls=tcp_toggle, options=None):
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
-
+    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
+    rospy.init_node('SDR_temperature_node', anonymous=True)
+    rate = rospy.Rate(5) # 5 Hz
+    
     tb = top_block_cls()
     tb.start()
-    try:
-        raw_input('Press Enter to quit: ')
-    except EOFError:
-        pass
+
+    while not rospy.is_shutdown():
+        temp = tb.get_temp()
+#        rospy.loginfo(temp)
+        pub.publish(temp)
+        rate.sleep()
+
     tb.stop()
     tb.wait()
 
