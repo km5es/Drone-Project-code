@@ -29,7 +29,7 @@ local_pose      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_local_pose.log")
 global_pos      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_global_pose.log")
 set_target      = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_set_target.log")
 sdr_drone_temp  = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_sdr_drone_temp.log")
-refresh_rate    = 25.0
+refresh_rate    = 10.0
 
 
 def get_timestamp():

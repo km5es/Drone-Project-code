@@ -17,7 +17,7 @@ from std_msgs.msg import Float32
 path            = expanduser("~")             # data files save path
 logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/metadata/'             
 sdr_ground_temp = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_sdr_ground_temp.log")
-refresh_rate    = 10
+refresh_rate    = 10.0
 
 
 def get_timestamp():

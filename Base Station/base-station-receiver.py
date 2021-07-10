@@ -35,7 +35,7 @@ client_script_name  = 'tcp_toggle.py'               # TCP client name
 ### uncomment to save in home folder
 home_path           = expanduser("~") + "/"         # define home path
 ### uncomment below to save on SSD
-data_path           = '/mnt/78ACE633ACE5EB96/milton_raw_data/'
+data_path           = home_path
 logs_path           = home_path + 'catkin_ws/src/Drone-Project-code/logs/base/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_base_station_events.log") 
 heartbeat_check     = 'hrt_beat'                    # heartbeat every n secs
