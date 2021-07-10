@@ -140,6 +140,10 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
 
+    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
+    rospy.init_node('SDR_temperature_node', anonymous=True)
+    rate = rospy.Rate(5) # 5 Hz
+
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
 
