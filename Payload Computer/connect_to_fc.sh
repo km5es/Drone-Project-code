@@ -6,7 +6,7 @@ source ~/.bashrc
 source /opt/ros/melodic/setup.bash
 
 ### wait for FC to boot up
-sleep 8;
+sleep 10;
 
 ### start MAVROS
 
