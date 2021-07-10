@@ -95,8 +95,8 @@ elif network == 'telemetry':
 ### Make TCP and serial connections
 
 try:
-    ser                 = serial.Serial('/dev/ttyTELEM', 4800)  
-    ser_timeout         = serial.Serial('/dev/ttyTELEM', 4800, timeout=3)
+    ser                 = serial.Serial('/dev/ttyTELEM', 57600)  
+    ser_timeout         = serial.Serial('/dev/ttyTELEM', 57600, timeout=3)
 except:
     print("No telemetry found. Check for Wi-Fi link...")
     logging.warning("No serial telemetry found")
