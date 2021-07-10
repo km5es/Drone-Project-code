@@ -185,7 +185,7 @@ def main():
                     local_pose_f_a.close()
                     set_target_f_a.close()
                     global_pos_f_a.close()
-                    sdr_ground_temp_f_a.close()
+                    sdr_drone_temp_f_a.close()
                     break
 
 

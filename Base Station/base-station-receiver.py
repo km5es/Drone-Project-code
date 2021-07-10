@@ -297,10 +297,10 @@ def get_trigger_from_drone():
                     send_telem(stop_acq_conf, ser, repeat_keyword)
                     reset_buffer()
                     # * in case the drone does a retry
-                elif handshake_start in get_stop_acq_trigger:
-                    print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
-                    send_telem(handshake_conf, ser, repeat_keyword)
-                    pass
+                #elif handshake_start in get_stop_acq_trigger:
+                #    print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
+                #    send_telem(handshake_conf, ser, repeat_keyword)
+                #    pass
             
             elif startup_initiate in get_handshake:
                 print('%s: ' %(get_timestamp()) + colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
