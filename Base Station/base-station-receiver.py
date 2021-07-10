@@ -289,7 +289,7 @@ def get_trigger_from_drone():
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
                     send_telem(stop_acq_conf, ser, repeat_keyword)
-                    reset_buffer()
+                    #reset_buffer()
                     # * in case the drone does a retry
                 elif handshake_start in get_stop_acq_trigger:
                     print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
@@ -300,7 +300,7 @@ def get_trigger_from_drone():
             elif startup_initiate in get_handshake:
                 print('%s: ' %(get_timestamp()) + colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
                 logging.info("The payload is UP and RUNNING.")
-                reset_buffer()
+                #reset_buffer()
             
             elif pingtest in get_handshake:
                 recvtime = time.time()
