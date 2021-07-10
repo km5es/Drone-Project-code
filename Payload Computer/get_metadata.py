@@ -159,7 +159,7 @@ def main():
     wp_num = 0
     print(colored('ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.', 'green'))
     while not rospy.is_shutdown():
-        time.sleep(0.01)
+        time.sleep(0.05)
         if rospy.get_param('trigger/metadata') == True:
             current_time = time.strftime("%H%M%S-%d%m%Y")
             print(colored('[' + str(current_time) + ']Saving Waypoint #' + str(wp_num) + ' metadata in ' +
