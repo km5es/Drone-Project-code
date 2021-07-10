@@ -324,15 +324,15 @@ def main():
     try:
         t1 = Thread(target = recv_data)
         t2 = Thread(target = get_trigger_from_drone)
-        t3 = Thread(target = get_timestamp)
+        #t3 = Thread(target = get_timestamp)
         #t4 = Thread(target = heartbeat_udp)
         t1.start()
         t2.start()
-        t3.start()
+        #t3.start()
         #t4.start()
         t1.join()
         t2.join()
-        t3.join()
+        #t3.join()
         #t4.join()
     except (serial.SerialException, socket.error):
         print('%s: ' %(get_timestamp()) + colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))

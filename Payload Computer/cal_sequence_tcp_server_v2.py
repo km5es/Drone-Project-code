@@ -264,7 +264,7 @@ def begin_sequence():
     while not rospy.is_shutdown():
         # ? something is still weird about this. why does it retry so often? does the sleep time need adjustment?
         try:
-            time.sleep(1e-2)
+            time.sleep(0.05)
             if rospy.get_param('trigger/sequence') == True:
                 serial_event.set()      # stop other thread from recv telem
                 for retry in range(1,4):
@@ -327,7 +327,7 @@ def serial_comms():
     It also has a pingtest feature which ensures things are running.
     """
     while True:
-        time.sleep(1e-2)
+        time.sleep(0.05)
         if rospy.get_param('trigger/sequence') == False and serial_event.is_set() == False:
             try:
                 get_handshake, addr = recv_telem(msg_len, ser, repeat_keyword)
@@ -410,7 +410,7 @@ def begin_sequence_simple():
     while not rospy.is_shutdown():
         # ? something is still weird about this. why does it retry so often? does the sleep time need adjustment?
         try:
-            time.sleep(1e-2)
+            time.sleep(0.05)
             if rospy.get_param('trigger/sequence') == True:
                 reset_buffer()
                 serial_event.set()      # stop other thread from recv telem
