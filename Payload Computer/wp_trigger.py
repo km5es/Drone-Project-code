@@ -154,6 +154,7 @@ def get_distance(data):
                 rospy.set_param('trigger/sequence', True)
                 #FIXME: this is another open loop. what do? can't seem to avoid them
                 time.sleep(wp_wait_timeout)
+                rospy.set_param('trigger/sequence', False)
         except IndexError:
             print("index error")
             pass

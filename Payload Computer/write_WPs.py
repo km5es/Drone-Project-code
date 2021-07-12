@@ -121,34 +121,34 @@ def main():
     while True:
         time.sleep(1e-1)
         # * clear waypoint table before ending sequence so that it does not re-trigger.
-        if rospy.get_param('trigger/sequence') == True:
-            if rospy.get_param('trigger/waypoint') == True:
-                waypoint_clear_client()
-                rospy.set_param('trigger/waypoint', False)
-                try:
-                    print("Updating WP table.")
-                    n = n + 2
+        #if rospy.get_param('trigger/sequence') == True:
+        if rospy.get_param('trigger/waypoint') == True:
+            waypoint_clear_client()
+            rospy.set_param('trigger/waypoint', False)
+            try:
+                print("Updating WP table.")
+                n = n + 2
 #                    waypoint_clear_client()
-                    wl = []
-                    wp = create_waypoint(22, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                    wl.append(wp)
-                    wp = create_waypoint(115, float(reader[n+1][4]), float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                    wl.append(wp)
-                    wp = create_waypoint(16, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
+                wl = []
+                wp = create_waypoint(22, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
+                wl.append(wp)
+                wp = create_waypoint(115, float(reader[n+1][4]), float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
+                wl.append(wp)
+                wp = create_waypoint(16, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
+                wl.append(wp)
+                push_wp()
+                change_mode()
+            except IndexError:
+                print("End of WP table reached. Doing an RTL now.")
+                try:
+                    #FIXME: the coords here should be different because this is triggering the sequence
+                    wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
                     wl.append(wp)
                     push_wp()
                     change_mode()
                 except IndexError:
-                    print("End of WP table reached. Doing an RTL now.")
-                    try:
-                        #FIXME: the coords here should be different because this is triggering the sequence
-                        wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                        wl.append(wp)
-                        push_wp()
-                        change_mode()
-                    except IndexError:
-                        pass
-            rospy.set_param('trigger/sequence', False)
+                    pass
+                #rospy.set_param('trigger/sequence', False)
 
 
 if __name__ == '__main__':
