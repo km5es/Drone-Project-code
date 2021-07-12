@@ -121,14 +121,15 @@ def main():
     while True:
         time.sleep(1e-1)
         # * clear waypoint table before ending sequence so that it does not re-trigger.
-        #if rospy.get_param('trigger/sequence') == True:
-        if rospy.get_param('trigger/waypoint') == True:
+        if rospy.get_param('trigger/sequence') == True:
             waypoint_clear_client()
+            rospy.set_param('trigger/sequence', False)
+        if rospy.get_param('trigger/waypoint') == True:
             rospy.set_param('trigger/waypoint', False)
             try:
                 print("Updating WP table.")
                 n = n + 2
-#                    waypoint_clear_client()
+#                waypoint_clear_client()
                 wl = []
                 wp = create_waypoint(22, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
                 wl.append(wp)
@@ -148,8 +149,6 @@ def main():
                     change_mode()
                 except IndexError:
                     pass
-                #rospy.set_param('trigger/sequence', False)
-
 
 if __name__ == '__main__':
     main()
