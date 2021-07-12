@@ -5,7 +5,7 @@
 # Title: Generate Waveform Sine
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Tue Jul  6 21:10:35 2021
+# Generated: Mon Jul 12 18:43:33 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -61,7 +61,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6*2
+        self.samp_rate = samp_rate = 7.68e6/2
         self.wave_samp_rate = wave_samp_rate = samp_rate
         self.wave_freq = wave_freq = samp_rate/8
         self.ON_cycles = ON_cycles = 512
