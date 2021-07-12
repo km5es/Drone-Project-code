@@ -163,19 +163,8 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     """
     Receive messages from the payload via telemetry or TCP.
     """
-    if network == 'telemetry':
-        message = serial_object.read(msg_len*repeat_keyword)
-        return message, "127.0.0.1"
-    if network == 'wifi':
-        try:
-#            message = base_conn.recv(msg_len*repeat_keyword)
-            message, addr = base_conn.recvfrom(msg_len*repeat_keyword)  # UDP server
-            return message, addr
-        except:
-#            print(colored('Socket recv timed out in 4 seconds. Is the base in range?', 'grey', 'on_red', attrs=['blink']))
-#            logging.debug('Socket recv timed out in 4 seconds. Is the base in range?')
-            pass
-
+    message = serial_object.read(msg_len*repeat_keyword)
+    return message
 
 def reset_buffer():
     """
@@ -412,15 +401,12 @@ def begin_sequence_simple():
         try:
             time.sleep(0.05)
             if rospy.get_param('trigger/sequence') == True:
-                reset_buffer()
-                serial_event.set()      # stop other thread from recv telem
                 print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
                 logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
                 send_telem(handshake_start, ser, repeat_keyword, addr)
-                get_handshake_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 logging.debug("Serial data: %s" %get_handshake_conf)
                 if handshake_conf in get_handshake_conf:
-                    reset_buffer()
                     print(colored("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.", 'green'))
                     logging.info("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.")
                     #rospy.set_param('trigger/sequence', False)
@@ -430,30 +416,25 @@ def begin_sequence_simple():
                     while trigger_event.is_set() == True:
                         if stop_acq_event.is_set():
                             stop_acq_event.clear()
-                            time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
+                            #time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
                             send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                            get_stop_conf, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                            get_stop_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
                             if stop_acq_conf in get_stop_conf:
-                                reset_buffer()
                                 print('Base has stopped acquisition. Sequence complete.')
                                 logging.info('Base has stopped acquisition. Sequence complete.')
                                 rospy.set_param('trigger/metadata', False)
                                 rospy.set_param('trigger/waypoint', True)
-                                serial_event.clear()    # allow other thread to recv telem
                             else:
-                                reset_buffer()
                                 print('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
                                 logging.debug('No stop acq confirmation from base. serial data: %s' %get_stop_conf)
                                 rospy.set_param('trigger/metadata', False)
                                 rospy.set_param('trigger/waypoint', True)
                                 serial_event.clear()
                         elif time.time() >= start_time + wp_timeout:
-                            reset_buffer()
                             print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
                             logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
                             rospy.set_param('trigger/metadata', False)
                             rospy.set_param('trigger/waypoint', True)
-                            serial_event.clear()    # allow other thread to recv telem
                             break
 
                 else:
@@ -461,9 +442,7 @@ def begin_sequence_simple():
                     print("No handshake confirmation from base.")
                     logging.warning("No handshake confirmation from base.")
                     rospy.set_param('trigger/waypoint', True)
-                    serial_event.clear()    # allow other thread to recv telem
                 #rospy.set_param('trigger/waypoint', True)
-                reset_buffer()
         except serial.SerialException, e:
             pass
 
