@@ -153,7 +153,7 @@ def get_distance(data):
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)
                 #FIXME: this is another open loop. what do? can't seem to avoid them
-                #time.sleep(wp_wait_timeout)
+                time.sleep(wp_wait_timeout)
         except IndexError:
             print("index error")
             pass
