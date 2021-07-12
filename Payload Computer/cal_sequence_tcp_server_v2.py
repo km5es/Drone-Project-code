@@ -430,15 +430,14 @@ def begin_sequence_simple():
                                 rospy.set_param('trigger/metadata', False)
                                 rospy.set_param('trigger/waypoint', True)
                                 serial_event.clear()
-                        elif time.time() >= start_time + wp_timeout:
-                            print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
-                            logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
-                            rospy.set_param('trigger/metadata', False)
-                            rospy.set_param('trigger/waypoint', True)
-                            break
+                        #elif time.time() >= start_time + wp_timeout:
+                        #    print(colored("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq.", "red") %wp_timeout)
+                        #    logging.warning("Sequence timeout out in %s seconds. Updating WP table and stopping metadata acq." %wp_timeout)
+                        #    rospy.set_param('trigger/metadata', False)
+                        #    rospy.set_param('trigger/waypoint', True)
+                        #    break
 
                 else:
-                    reset_buffer()
                     print("No handshake confirmation from base.")
                     logging.warning("No handshake confirmation from base.")
                     rospy.set_param('trigger/waypoint', True)
