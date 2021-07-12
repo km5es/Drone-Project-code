@@ -125,7 +125,6 @@ def main():
             waypoint_clear_client()
             rospy.set_param('trigger/sequence', False)
         if rospy.get_param('trigger/waypoint') == True:
-            rospy.set_param('trigger/waypoint', False)
             try:
                 print("Updating WP table.")
                 n = n + 2
@@ -149,6 +148,7 @@ def main():
                     change_mode()
                 except IndexError:
                     pass
+            rospy.set_param('trigger/waypoint', False)
 
 
 if __name__ == '__main__':

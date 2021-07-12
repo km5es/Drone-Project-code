@@ -51,23 +51,6 @@ def get_velocity(data):
     z_vel = data.twist.twist.linear.z
     v = (x_vel**2 + y_vel**2 + z_vel**2)**0.5
 
-#    try:
-#        if event.is_set() and v < vel_threshold:
-#            print("Drone is (almost) not moving. Triggering  payload flag")
-#            #rospy.set_param('trigger/waypoint', True)
-#            rospy.set_param('trigger/sequence', True)
-#            event.clear()
-#        elif timeout_event.is_set():
-#            start = time.time()
-#            timeout_event.clear()
-#        if time.time() >= start + seq_timeout:
-#            #FIXME: currently, this runs on a loop after final waypoint. fix?
-#            print("Seq timeout. Updating WP table")
-#            rospy.set_param('trigger/waypoint', True)
-#            start = time.time()
-#    except UnboundLocalError, NameError:
-#        pass
-
 
 def wp_reached(data):
     """
@@ -170,7 +153,7 @@ def get_distance(data):
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)
                 #FIXME: this is another open loop. what do? can't seem to avoid them
-                time.sleep(wp_wait_timeout)
+                #time.sleep(wp_wait_timeout)
         except IndexError:
             print("index error")
             pass
