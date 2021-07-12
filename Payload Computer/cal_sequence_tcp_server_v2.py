@@ -397,7 +397,7 @@ def begin_sequence_simple():
     send_telem(startup_initiate, ser, repeat_keyword, addr)
     reset_buffer()
     while not rospy.is_shutdown():
-        # ? something is still weird about this. why does it retry so often? does the sleep time need adjustment?
+        # ? something is still weird about this. there should be no retry if first handshake fails.
         try:
             time.sleep(0.05)
             if rospy.get_param('trigger/sequence') == True:

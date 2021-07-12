@@ -296,7 +296,10 @@ def get_trigger_from_drone():
                     rospy.set_param('trigger/metadata', False)
                     send_telem(stop_acq_conf, ser, repeat_keyword)
                     reset_buffer()
-                    # * in case the drone does a retry
+                    # ! if there is a retry begin loop again
+                #else:
+                #    ser.reset_input_buffer()
+                #    pass
                 #elif handshake_start in get_stop_acq_trigger:
                 #    print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
                 #    send_telem(handshake_conf, ser, repeat_keyword)
