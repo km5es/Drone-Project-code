@@ -105,13 +105,13 @@ elif network == 'telemetry':
     print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via ' + str(network), 'green'))
     try:
         ser         = serial.Serial('/dev/ttyPAYLOAD', 57600)
-        ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=2)
+        ser_timeout = serial.Serial('/dev/ttyPAYLOAD', 57600, timeout=timeout)
         print('%s: ' %(get_timestamp()) + colored("Serial radio link established to T960 payload.", "green"))
         logging.info("Serial radio link established to T960 payload.")
     except:
         try:
             ser         = serial.Serial('/dev/ttyF450', 57600)
-            ser_timeout = serial.Serial('/dev/ttyF450', 57600, timeout=2)
+            ser_timeout = serial.Serial('/dev/ttyF450', 57600, timeout=timeout)
             print('%s: ' %(get_timestamp()) + colored("Serial radio link established to F450 payload.", "green"))
             logging.info("Serial radio link established to F450 payload.")
         except:
@@ -286,7 +286,7 @@ def get_trigger_from_drone():
                 send_telem(handshake_conf, ser, repeat_keyword)
                 acq_event.set()
                 rospy.set_param('trigger/metadata', True)
-                get_stop_acq_trigger = recv_telem(msg_len, ser, repeat_keyword)
+                get_stop_acq_trigger = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
                 if toggle_OFF in get_stop_acq_trigger:
