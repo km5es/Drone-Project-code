@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Mon Jul 12 18:46:31 2021
+# Generated: Tue Jul 13 19:21:08 2021
 ##################################################
 
 from gnuradio import eng_notation
@@ -28,7 +28,7 @@ class tcp_toggle(gr.top_block):
         self.wave_freq = wave_freq = samp_rate/8
         self.meas_freq = meas_freq = 150e6
         self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 20
+        self.gain = gain = 60
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
