@@ -399,7 +399,7 @@ def begin_sequence_simple():
     while not rospy.is_shutdown():
         # ? something is still weird about this. there should be no retry if first handshake fails.
         try:
-            time.sleep(0.05)
+            time.sleep(0.001)
             if rospy.get_param('trigger/sequence') == True:
                 print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
                 logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
