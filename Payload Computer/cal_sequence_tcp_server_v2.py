@@ -453,6 +453,7 @@ def main():
     """
     Initiate threads.
     """
+    rospy.init_node('cal_sequence', anonymous = True)
     t1 = Thread(target = begin_sequence_simple)
     t2 = Thread(target = stream_file)
     #t3 = Thread(target = get_timestamp)

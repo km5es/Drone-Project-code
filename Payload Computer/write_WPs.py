@@ -108,6 +108,7 @@ def main():
     """
     global wl
     n = 2
+    rospy.init_node('write_WP', anonymous = True)
     with open(filename, 'r') as f:
         reader = csv.reader(f, dialect='excel', delimiter='\t')
         reader = list(reader)
