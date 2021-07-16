@@ -180,6 +180,7 @@ def main():
             rospy.Subscriber('/mavros/global_position/global', NavSatFix, callback_global)
             rospy.Subscriber('/sdr_temperature', Float32, callback_SDR)
             while True:
+                time.sleep(0.1)
                 if rospy.get_param('trigger/metadata') == False:
                     print('Finished saving metadata for this WP.')
                     local_pose_f_a.close()
