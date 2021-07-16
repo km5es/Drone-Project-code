@@ -415,6 +415,7 @@ def begin_sequence_simple():
                     start_time = time.time()
                     trigger_event.set()
                     while trigger_event.is_set() == True:
+                        time.sleep(0.1)
                         if stop_acq_event.is_set():
                             stop_acq_event.clear()
                             #time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
