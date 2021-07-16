@@ -28,7 +28,7 @@ from nav_msgs.msg import Odometry
 
 n               = 1
 event           = Event()
-vel_threshold   = 0.15      # linear vel threshold below which drone is considered "stationary" (m/s)
+vel_threshold   = 0.35      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
 #rospy.set_param('trigger/waypoint', False)
 rospy.set_param('trigger/sequence', False)
@@ -153,8 +153,7 @@ def get_distance(data):
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)
                 #FIXME: this is another open loop. what do? can't seem to avoid them
-                time.sleep(wp_wait_timeout)
-                rospy.set_param('trigger/sequence', False)
+                #time.sleep(wp_wait_timeout)
         except IndexError:
             print("index error")
             pass

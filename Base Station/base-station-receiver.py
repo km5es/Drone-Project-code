@@ -284,18 +284,19 @@ def get_trigger_from_drone():
                 logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
                 logging.debug("serial data: %s" %get_handshake)
                 send_telem(handshake_conf, ser, repeat_keyword)
+                reset_buffer()
                 acq_event.set()
                 rospy.set_param('trigger/metadata', True)
                 get_stop_acq_trigger = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
+                reset_buffer()
                 if toggle_OFF in get_stop_acq_trigger:
                     print('%s: ' %(get_timestamp()) + 'Data acquisition togled OFF')
                     logging.info('Data acquisition toggled OFF')
                     acq_event.clear()
                     rospy.set_param('trigger/metadata', False)
                     send_telem(stop_acq_conf, ser, repeat_keyword)
-                    reset_buffer()
                     # ! if there is a retry begin loop again
                 #else:
                 #    ser.reset_input_buffer()

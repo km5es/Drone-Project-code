@@ -399,13 +399,14 @@ def begin_sequence_simple():
     while not rospy.is_shutdown():
         # ? something is still weird about this. there should be no retry if first handshake fails.
         try:
-            time.sleep(0.05)
+            time.sleep(0.01)
             if rospy.get_param('trigger/sequence') == True:
                 print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
                 logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
                 send_telem(handshake_start, ser, repeat_keyword, addr)
                 get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 logging.debug("Serial data: %s" %get_handshake_conf)
+                reset_buffer()
                 if handshake_conf in get_handshake_conf:
                     print(colored("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.", 'green'))
                     logging.info("Handshake confirmation received from base. Beginning calibration sequence, and saving metadata.")
@@ -419,6 +420,7 @@ def begin_sequence_simple():
                             #time.sleep(0.25)                                    ### buffer time for the receiver to "catch up".
                             send_telem(toggle_OFF, ser, repeat_keyword, addr)
                             get_stop_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                            reset_buffer()
                             if stop_acq_conf in get_stop_conf:
                                 print('Base has stopped acquisition. Sequence complete.')
                                 logging.info('Base has stopped acquisition. Sequence complete.')
@@ -441,6 +443,7 @@ def begin_sequence_simple():
                     print("No handshake confirmation from base.")
                     logging.warning("No handshake confirmation from base.")
                     rospy.set_param('trigger/waypoint', True)
+                    reset_buffer()
                 #rospy.set_param('trigger/waypoint', True)
         except serial.SerialException, e:
             pass
