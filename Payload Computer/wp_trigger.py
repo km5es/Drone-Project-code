@@ -148,7 +148,7 @@ def get_distance(data):
             distance = (h**2 + alt_diff**2)**0.5
             #print('The closest WP is: %s m away.' %(distance))
             event.clear()
-            if distance <= error_tolerance and v <= vel_threshold and rospy.get_param('trigger/waypoint') == False:
+            if distance <= error_tolerance and v <= vel_threshold and rospy.get_param('trigger/lock') == False:
                 print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)

@@ -401,6 +401,7 @@ def begin_sequence_simple():
         try:
             time.sleep(0.01)
             if rospy.get_param('trigger/sequence') == True:
+                rospy.set_param('trigger/lock', True)
                 print(colored("Drone has reached WP. Sending handshake to base to begin acquisition.", 'cyan'))
                 logging.info("Drone has reached WP. Sending handshake to base to begin acquisition.")
                 send_telem(handshake_start, ser, repeat_keyword, addr)

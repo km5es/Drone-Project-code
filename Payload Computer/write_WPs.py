@@ -30,7 +30,9 @@ path        = expanduser("~")  + "/catkin_ws/src/Drone-Project-code/mission/"
 filename    = path + filename
 rospy.set_param('trigger/waypoint', False)
 rospy.set_param('trigger/sequence', False)
-timeout     = 12            # timeout before updating new WP
+rospy.set_param('trigger/lock', False)          # block wp_trigger at each WP
+timeout         = 12                            # timeout before updating new WP
+lock_timeout    = 5                             # time to unlock trigger/sequence
 
 
 def waypoint_clear_client():
@@ -123,6 +125,7 @@ def main():
         # * clear waypoint table before ending sequence so that it does not re-trigger.
         if rospy.get_param('trigger/sequence') == True:
             waypoint_clear_client()
+            rospy.set_param('trigger/sequence', False)
         if rospy.get_param('trigger/waypoint') == True:
             rospy.set_param('trigger/waypoint', False)
             try:
@@ -148,7 +151,8 @@ def main():
                     change_mode()
                 except IndexError:
                     pass
-            rospy.set_param('trigger/sequence', False)
+            time.sleep(lock_timeout)
+            rospy.set_param('trigger/lock', False)
 
 if __name__ == '__main__':
     main()
