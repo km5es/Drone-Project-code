@@ -122,7 +122,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.freq = freq
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
-def get_temp(self):
+    def get_temp(self):
         return self.uhd_usrp_sink_0.get_sensor('temp').to_real()
 
 def argument_parser():
