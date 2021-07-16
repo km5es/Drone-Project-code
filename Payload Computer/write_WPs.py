@@ -151,8 +151,6 @@ def main():
                     change_mode()
                 except IndexError:
                     pass
-            time.sleep(lock_timeout)
-            rospy.set_param('trigger/lock', False)
 
 if __name__ == '__main__':
     main()
