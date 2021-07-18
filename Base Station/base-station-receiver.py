@@ -301,8 +301,8 @@ def get_trigger_from_drone():
                     send_telem(stop_acq_conf, ser, repeat_keyword)
                 #TODO: add elif call for special stop_acq msg
                 elif no_data_tx in get_stop_acq_trigger:
-                    print('%s: ' %(get_timestamp()) + 'Handshaking failed. CAL was NOT performed. Discard WP data.')
-                    logging.warning('Handshaking failed. CAL was NOT performed. Discard WP data.')
+                    print('%s: ' %(get_timestamp()) + 'Handshaking failed on drone side. CAL was NOT performed. Discard WP data.')
+                    logging.warning('Handshaking failed on drone side. CAL was NOT performed. Discard WP data.')
                     acq_event.clear()
                     rospy.set_param('trigger/metadata', False)
                     #send_telem(stop_acq_conf, ser, repeat_keyword)

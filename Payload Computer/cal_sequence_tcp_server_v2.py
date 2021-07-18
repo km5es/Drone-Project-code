@@ -194,7 +194,7 @@ def stream_file():
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print(colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             logging.info("Trigger from base recd. CAL ON")
             pulses = 0
             for pulses in range(togglePoint):
@@ -204,7 +204,7 @@ def stream_file():
                     GPIO.output(12, GPIO.LOW)
                     GPIO.output(16, GPIO.HIGH)
                     GPIO.output(20, GPIO.HIGH)
-                    print(colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
                 if pulses == 2*togglePoint/3:
                     GPIO.output(20, GPIO.LOW)
@@ -213,7 +213,7 @@ def stream_file():
             end = time.time()
             total_time = end - start
             stop_acq_event.set()
-            print(colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             GPIO.output(16, GPIO.LOW)
             GPIO.output(20, GPIO.LOW)
