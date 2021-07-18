@@ -5,7 +5,9 @@ source /opt/ros/melodic/setup.bash
 
 lsof -t -i tcp:8810 | xargs kill -9
 cd ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/
+
 sleep 35        # wait for connection to wifi hotspot
-python cal_sequence_tcp_server_v2.py &
+/usr/bin/python cal_sequence_tcp_server_v2.py &
+
 sleep 1
-python gr_cal_tcp_loopback_client.py  
+/usr/bin/python gr_cal_tcp_loopback_client.py  
