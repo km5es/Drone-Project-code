@@ -25,6 +25,7 @@ elif ls /dev/ttyFC | grep -q 'ttyFC'; then
     #roslaunch mavros apm.launch fcu_url:="udp://:16550@10.42.0.1:16551" &
 
 elif echo $USER | grep -q 'pi'; then
+    echo "Raspberry Pi OS detected..."
 	roslaunch mavros apm.launch fcu_url:="/dev/ttyS0:921600" &
     ### uncomment for SITL simulations
     #roslaunch mavros apm.launch fcu_url:="udp://:16550@10.42.0.1:16551" &
