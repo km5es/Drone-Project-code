@@ -438,7 +438,7 @@ def begin_sequence_simple():
 
                 #TODO: if no handshake then send special msg to stop acq so base knows no cal
                 else:
-                    send_telem(no_data_tx, serial, repeat_keyword, addr)
+                    send_telem(no_data_tx, ser, repeat_keyword, addr)
                     print('%s: ' %(get_timestamp()) + "No handshake confirmation from base. CAL was NOT performed.")
                     logging.warning("No handshake confirmation from base. CAL was NOT performed.")
                     rospy.set_param('trigger/waypoint', True)
