@@ -47,6 +47,7 @@ handshake_conf      = 'serialOK'                    # confirmation from payload 
 toggle_ON           = 'start_tx'                    # message to payload to start cal
 toggle_OFF          = 'stop_acq'                    # message from payload to stop saving
 stop_acq_conf       = 'confSTOP'                    # confirm that acquisition has stopped
+no_data_tx          = 'no__data'                            # tell base no cal was done here
 shutdown            = 'shutdown'                    # force shutdown of all SDRs
 startup_SDR         = 'beginSDR'                    # boot up SDR codes.
 reboot_payload      = '_reboot_'                    # reboot payload computer
@@ -287,6 +288,7 @@ def get_trigger_from_drone():
                 reset_buffer()
                 acq_event.set()
                 rospy.set_param('trigger/metadata', True)
+                # ! is the serial really timing out?
                 get_stop_acq_trigger = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
                 logging.debug('serial data: ' +str(get_stop_acq_trigger))
@@ -297,15 +299,19 @@ def get_trigger_from_drone():
                     acq_event.clear()
                     rospy.set_param('trigger/metadata', False)
                     send_telem(stop_acq_conf, ser, repeat_keyword)
-                    # ! if there is a retry begin loop again
-                #else:
-                #    ser.reset_input_buffer()
-                #    pass
-                #elif handshake_start in get_stop_acq_trigger:
-                #    print('%s: ' %(get_timestamp()) + 'Drone has re-initiated sequence.')
-                #    send_telem(handshake_conf, ser, repeat_keyword)
-                #    pass
-            
+                #TODO: add elif call for special stop_acq msg
+                elif no_data_tx in get_stop_acq_trigger:
+                    print('%s: ' %(get_timestamp()) + 'Handshaking failed. CAL was NOT performed. Discard WP data.')
+                    logging.warning('Handshaking failed. CAL was NOT performed. Discard WP data.')
+                    acq_event.clear()
+                    rospy.set_param('trigger/metadata', False)
+                    #send_telem(stop_acq_conf, ser, repeat_keyword)
+            #TODO: add another elif call for special stop_acq msg for handshake start
+            elif no_data_tx in get_handshake:
+                print('%s: ' %(get_timestamp()) + 'Sequence error. CAL was not performed.')
+                logging.debug('Sequence error. CAL was not performed.')
+                reset_buffer()
+
             elif startup_initiate in get_handshake:
                 print('%s: ' %(get_timestamp()) + colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
                 logging.info("The payload is UP and RUNNING.")
