@@ -8,13 +8,9 @@ date: Jul 18th 2021
 
 import os
 import time
-#from os.path import expanduser
 
-
-#path            = expanduser("~") + "/"             # data files save path
 logs_path       = '/home/pi/catkin_ws/src/Drone-Project-code/logs/metadata/'             
 pi_cpu          = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_pi_cpu.log")
-
 
 
 def measure_temp():
@@ -38,16 +34,19 @@ def get_timestamp():
 
 
 def main():
-        pi_cpu_a = open(pi_cpu, "a+")
-        pi_cpu_a.write("Timestamp\tTemperature (deg C)\tThrottle register\n")
-        #pi_cpu_w.close()
-        #pi_cpu_a = open(pi_cpu, "a+")
-        while True:
-                time.sleep(5)
-                current_time = get_timestamp()
-                current_temp = measure_temp()
-                current_thro = get_throttled()
-                pi_cpu_a.write("%s\t%s\t%s\n" % (current_time, current_temp, current_thro))
+        pi_cpu_w = open(pi_cpu, "w+")
+        pi_cpu_w.write("Timestamp\tTemperature (deg C)\tThrottle register\n")
+        try:
+                while True:
+                        pi_cpu_a = open(pi_cpu, "a+")
+                        current_time = get_timestamp()
+                        current_temp = measure_temp()
+                        current_thro = get_throttled()
+                        pi_cpu_a.write("%s\t%s\t%s\n" % (current_time, current_temp, current_thro))
+                        pi_cpu_a.close()
+                        time.sleep(5)
+        except KeyboardInterrupt:
+                pi_cpu_a.close()
 
 
 if __name__ == '__main__':
