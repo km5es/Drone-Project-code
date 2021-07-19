@@ -8,33 +8,33 @@ date: Jul 18th 2021
 
 import os
 import time
-from os.path import expanduser
+#from os.path import expanduser
 
 
-path            = expanduser("~") + "/"             # data files save path
-logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/metadata/'             
+#path            = expanduser("~") + "/"             # data files save path
+logs_path       = '/home/pi/catkin_ws/src/Drone-Project-code/logs/metadata/'             
 pi_cpu          = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_pi_cpu.log")
 
 
 
 def measure_temp():
         temp = os.popen("vcgencmd measure_temp").readline()
-        return (temp.replace("temp=",""))
+        return (temp.replace("temp=""))
 
 
 def get_throttled():
         throttle = os.popen("vcgencmd get_throttled").readline()
-        return (throttle.replace("throttled=",""))
+        return (throttle.replace("throttled=""))
 
 
 def get_timestamp():
-    """
-    Returns current time for data logging.
-    """
-    time_now = time.time()
-    mlsec = repr(time_now).split('.')[1][:3]
-    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
-    return time_now
+        """
+        Returns current time for data logging.
+        """
+        time_now = time.time()
+        mlsec = repr(time_now).split('.')[1][:3]
+        time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
+        return time_now
 
 
 def main():
@@ -51,4 +51,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+        main()
