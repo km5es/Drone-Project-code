@@ -19,12 +19,12 @@ pi_cpu          = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_pi_cpu.log")
 
 def measure_temp():
         temp = os.popen("vcgencmd measure_temp").readline()
-        return (temp.replace("temp=""))
+        return (temp.replace("temp=",""))
 
 
 def get_throttled():
         throttle = os.popen("vcgencmd get_throttled").readline()
-        return (throttle.replace("throttled=""))
+        return (throttle.replace("throttled=",""))
 
 
 def get_timestamp():
