@@ -8,11 +8,15 @@ using GPIO. That number is defined as togglePoint and 2x togglePoint causes the 
 In addition, some "magic" commands can be used to manually trigger calibration and shut down the codes. There is also a system reboot 
 command. Logs are saved in the /logs directory of the repo.
 
-Author: Krishna Makhija
-date: 21st July 2020
-last modified: 28th Jan 2021
 v2.0 now will transmit zeros while the trigger is not set. This will ensure an integer number of cycles on the LO to complete before the
 cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
+
+UPDATE: several telemetry failures later, I am choosing to forego any synchronization with the base with regards to saving data. The 
+new code will simply trigger when the drone reaches a WP and sets the trigger/sequence flag.
+
+Author: Krishna Makhija
+date: 21st July 2020
+last modified: Jul 21st 2021
 '''
 
 import socket, serial, os, sys, time, rospy, logging, argparse
@@ -449,7 +453,7 @@ def begin_sequence_simple():
             pass
 
 
-def main():
+def main_telem():
     """
     Initiate threads.
     """
@@ -463,6 +467,59 @@ def main():
     t1.join()
     t2.join()
     #t3.join()
+
+
+def stream_file_no_telem():
+    """
+    Stream file to GRC code. Begin calibration when /trigger/sequence is set.
+    This function is used when there is to be no telemetry sync with base.
+    """
+    zeros = open('zeros', 'rb')
+    condition_LO = zeros.read()
+    filename = 'sine_waveform'
+    f = open(filename,'rb')
+    cal_signal = f.read()
+    while True:
+        conn.send(condition_LO)
+
+        if rospy.get_param('trigger/sequence') == True:
+            rospy.set_param('trigger/sequence') == False
+            rospy.set_param('trigger/metadata') == True
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
+            pulses = 0
+            for pulses in range(togglePoint):
+                conn.send(cal_signal)
+                pulses += 1
+                if pulses == togglePoint/3:
+                    GPIO.output(12, GPIO.LOW)
+                    GPIO.output(16, GPIO.HIGH)
+                    GPIO.output(20, GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    logging.info("Switching polarization now")
+                if pulses == 2*togglePoint/3:
+                    GPIO.output(20, GPIO.LOW)
+                    GPIO.output(21, GPIO.HIGH)
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
+            rospy.set_param('trigger/metadata') == False
+            rospy.set_param('trigger/waypoint') == True
+            GPIO.output(16, GPIO.LOW)
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(21, GPIO.LOW)
+            GPIO.output(12, GPIO.HIGH)
+
+
+def main():
+    """
+    Use this when no telemetry sync with base.
+    """
+    stream_file_no_telem()
 
 
 if __name__ == '__main__':

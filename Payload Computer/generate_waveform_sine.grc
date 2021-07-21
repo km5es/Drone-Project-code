@@ -340,6 +340,33 @@
     </param>
     <param>
       <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1136, 72)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>TX_time_0</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>(ON_time + OFF_time)/4</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
       <value>1</value>
     </param>
     <param>
@@ -858,7 +885,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(40, 316)</value>
+      <value>(44, 248)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -964,7 +991,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>file</key>
@@ -972,7 +999,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1464, 236)</value>
+      <value>(1448, 350)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1023,7 +1050,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(728, 612)</value>
+      <value>(512, 802)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1070,7 +1097,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>2</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1180,7 +1207,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1048, 356)</value>
+      <value>(1036, 356)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1204,7 +1231,7 @@
     </param>
     <param>
       <key>vlen</key>
-      <value>4096</value>
+      <value>ring_buffer_size</value>
     </param>
   </block>
   <block>
@@ -1278,7 +1305,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(872, 364)</value>
+      <value>(864, 364)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1302,7 +1329,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>4096</value>
+      <value>ring_buffer_size</value>
     </param>
     <param>
       <key>vlen</key>
@@ -1384,7 +1411,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1000, 628)</value>
+      <value>(784, 816)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1558,7 +1585,7 @@ identification during post processing.</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1264, 364)</value>
+      <value>(1252, 364)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1582,7 +1609,7 @@ identification during post processing.</value>
     </param>
     <param>
       <key>num_items</key>
-      <value>4096</value>
+      <value>ring_buffer_size</value>
     </param>
     <param>
       <key>vlen</key>
@@ -1691,7 +1718,7 @@ identification during post processing.</value>
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>fftsize</key>
@@ -1699,7 +1726,7 @@ identification during post processing.</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1488, 428)</value>
+      <value>(1412, 642)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1986,7 +2013,7 @@ identification during post processing.</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1264, 612)</value>
+      <value>(1048, 802)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -2349,11 +2376,11 @@ identification during post processing.</value>
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1488, 348)</value>
+      <value>(1412, 562)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -2625,7 +2652,7 @@ identification during post processing.</value>
     </param>
     <param>
       <key>size</key>
-      <value>1024*256</value>
+      <value>1024*128</value>
     </param>
     <param>
       <key>srate</key>
@@ -2765,18 +2792,6 @@ identification during post processing.</value>
   <connection>
     <source_block_id>blocks_vector_to_stream_0</source_block_id>
     <sink_block_id>blocks_file_sink_1</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_vector_to_stream_0</source_block_id>
-    <sink_block_id>qtgui_freq_sink_x_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_vector_to_stream_0</source_block_id>
-    <sink_block_id>qtgui_time_sink_x_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

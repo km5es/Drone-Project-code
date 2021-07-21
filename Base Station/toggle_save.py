@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 ##################################################
 # GNU Radio Python Flow Graph
-# Title: Top Block
-# Generated: Tue Jul 20 03:14:59 2021
+# Title: Save Data
+# Author: Krishna Makhija
+# Description: This flowgraph will simply save data when the checkbox is ticked.
+# Generated: Wed Jul 21 19:38:17 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -17,26 +19,25 @@ if __name__ == '__main__':
             print "Warning: failed to XInitThreads()"
 
 from PyQt4 import Qt
-from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
-from gnuradio import qtgui
+from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
-import sip
 import sys
+import time
 from gnuradio import qtgui
 
 
-class top_block(gr.top_block, Qt.QWidget):
+class save_data(gr.top_block, Qt.QWidget):
 
-    def __init__(self):
-        gr.top_block.__init__(self, "Top Block")
+    def __init__(self, timestamp=time.strftime("%H%M%S-%d%m%Y")):
+        gr.top_block.__init__(self, "Save Data")
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Top Block")
+        self.setWindowTitle("Save Data")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -54,9 +55,14 @@ class top_block(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "top_block")
+        self.settings = Qt.QSettings("GNU Radio", "save_data")
         self.restoreGeometry(self.settings.value("geometry").toByteArray())
 
+
+        ##################################################
+        # Parameters
+        ##################################################
+        self.timestamp = timestamp
 
         ##################################################
         # Variables
@@ -79,82 +85,50 @@ class top_block(gr.top_block, Qt.QWidget):
         self._toggle_callback(self.toggle)
         _toggle_check_box.stateChanged.connect(lambda i: self.set_toggle(self._toggle_choices[bool(i)]))
         self.top_grid_layout.addWidget(_toggle_check_box)
-        self.qtgui_time_sink_x_0 = qtgui.time_sink_c(
-        	1024, #size
-        	samp_rate, #samp_rate
-        	"", #name
-        	1 #number of inputs
+        self.uhd_usrp_source_0 = uhd.usrp_source(
+        	",".join(("num_recv_frames=512, recv_frame_size=8200", "")),
+        	uhd.stream_args(
+        		cpu_format="fc32",
+        		otw_format='sc16',
+        		channels=range(1),
+        	),
         )
-        self.qtgui_time_sink_x_0.set_update_time(0.10)
-        self.qtgui_time_sink_x_0.set_y_axis(-1, 1)
-
-        self.qtgui_time_sink_x_0.set_y_label('Amplitude', "")
-
-        self.qtgui_time_sink_x_0.enable_tags(-1, True)
-        self.qtgui_time_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.qtgui_time_sink_x_0.enable_autoscale(False)
-        self.qtgui_time_sink_x_0.enable_grid(False)
-        self.qtgui_time_sink_x_0.enable_axis_labels(True)
-        self.qtgui_time_sink_x_0.enable_control_panel(False)
-        self.qtgui_time_sink_x_0.enable_stem_plot(False)
-
-        if not True:
-          self.qtgui_time_sink_x_0.disable_legend()
-
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
-        widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "blue"]
-        styles = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-                   -1, -1, -1, -1, -1]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
-
-        for i in xrange(2):
-            if len(labels[i]) == 0:
-                if(i % 2 == 0):
-                    self.qtgui_time_sink_x_0.set_line_label(i, "Re{{Data {0}}}".format(i/2))
-                else:
-                    self.qtgui_time_sink_x_0.set_line_label(i, "Im{{Data {0}}}".format(i/2))
-            else:
-                self.qtgui_time_sink_x_0.set_line_label(i, labels[i])
-            self.qtgui_time_sink_x_0.set_line_width(i, widths[i])
-            self.qtgui_time_sink_x_0.set_line_color(i, colors[i])
-            self.qtgui_time_sink_x_0.set_line_style(i, styles[i])
-            self.qtgui_time_sink_x_0.set_line_marker(i, markers[i])
-            self.qtgui_time_sink_x_0.set_line_alpha(i, alphas[i])
-
-        self._qtgui_time_sink_x_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0.pyqwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_time_sink_x_0_win)
-        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_null_sink_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
-        self.blks2_selector_0_0 = grc_blks2.selector(
+        self.uhd_usrp_source_0.set_clock_source('external', 0)
+        self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_center_freq(freq, 0)
+        self.uhd_usrp_source_0.set_gain(gain, 0)
+        (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
+        self.blocks_null_sink_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(self.timestamp) + 'cal_data.dat', True)
+        self.blocks_file_sink_0.set_unbuffered(False)
+        self.blks2_selector_0_0_0 = grc_blks2.selector(
         	item_size=gr.sizeof_gr_complex*1,
         	num_inputs=1,
         	num_outputs=2,
         	input_index=0,
         	output_index=toggle,
         )
-        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 1000, 1, 0)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_sig_source_x_0, 0), (self.blocks_throttle_0, 0))
-        self.connect((self.blks2_selector_0_0, 0), (self.blocks_null_sink_0, 0))
-        self.connect((self.blks2_selector_0_0, 1), (self.qtgui_time_sink_x_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.blks2_selector_0_0, 0))
+        self.connect((self.blks2_selector_0_0_0, 1), (self.blocks_file_sink_0, 0))
+        self.connect((self.blks2_selector_0_0_0, 0), (self.blocks_null_sink_0_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blks2_selector_0_0_0, 0))
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "top_block")
+        self.settings = Qt.QSettings("GNU Radio", "save_data")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
+
+    def get_timestamp(self):
+        return self.timestamp
+
+    def set_timestamp(self, timestamp):
+        self.timestamp = timestamp
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -162,9 +136,7 @@ class top_block(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_wave_freq(self.samp_rate/8)
-        self.qtgui_time_sink_x_0.set_samp_rate(self.samp_rate)
-        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
-        self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
+        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
 
     def get_wave_freq(self):
         return self.wave_freq
@@ -186,7 +158,7 @@ class top_block(gr.top_block, Qt.QWidget):
     def set_toggle(self, toggle):
         self.toggle = toggle
         self._toggle_callback(self.toggle)
-        self.blks2_selector_0_0.set_output_index(int(self.toggle))
+        self.blks2_selector_0_0_0.set_output_index(int(self.toggle))
 
     def get_min_buffer(self):
         return self.min_buffer
@@ -199,15 +171,30 @@ class top_block(gr.top_block, Qt.QWidget):
 
     def set_gain(self, gain):
         self.gain = gain
+        self.uhd_usrp_source_0.set_gain(self.gain, 0)
+
 
     def get_freq(self):
         return self.freq
 
     def set_freq(self, freq):
         self.freq = freq
+        self.uhd_usrp_source_0.set_center_freq(self.freq, 0)
+        self.uhd_usrp_source_0.set_center_freq(self.freq, 1)
 
 
-def main(top_block_cls=top_block, options=None):
+def argument_parser():
+    description = 'This flowgraph will simply save data when the checkbox is ticked.'
+    parser = OptionParser(usage="%prog: [options]", option_class=eng_option, description=description)
+    parser.add_option(
+        "", "--timestamp", dest="timestamp", type="string", default=time.strftime("%H%M%S-%d%m%Y"),
+        help="Set timestamp [default=%default]")
+    return parser
+
+
+def main(top_block_cls=save_data, options=None):
+    if options is None:
+        options, _ = argument_parser().parse_args()
 
     from distutils.version import StrictVersion
     if StrictVersion(Qt.qVersion()) >= StrictVersion("4.5.0"):
@@ -215,7 +202,7 @@ def main(top_block_cls=top_block, options=None):
         Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls()
+    tb = top_block_cls(timestamp=options.timestamp)
     tb.start()
     tb.show()
 
