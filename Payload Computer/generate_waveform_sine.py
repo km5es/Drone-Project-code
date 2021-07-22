@@ -5,7 +5,7 @@
 # Title: Generate Waveform Sine
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Wed Jul 21 19:44:53 2021
+# Generated: Wed Jul 21 23:13:12 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -94,20 +94,15 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, ring_buffer_size)
         self.blocks_vector_source_x_0 = blocks.vector_source_c(np.hstack((np.zeros(OFF), np.ones(ON))), True, 1, [])
         (self.blocks_vector_source_x_0).set_min_output_buffer(4096)
         (self.blocks_vector_source_x_0).set_max_output_buffer(4096)
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         (self.blocks_throttle_0).set_min_output_buffer(4096)
         (self.blocks_throttle_0).set_max_output_buffer(4096)
-        self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, ring_buffer_size)
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
         (self.blocks_multiply_xx_0).set_min_output_buffer(4096)
         (self.blocks_multiply_xx_0).set_max_output_buffer(4096)
-        self.blocks_multiply_const_vxx_1 = blocks.multiply_const_vcc((gauss_envelope))
-        (self.blocks_multiply_const_vxx_1).set_min_output_buffer(4096)
-        (self.blocks_multiply_const_vxx_1).set_max_output_buffer(4096)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.5, ))
         self.blocks_head_0_0_0 = blocks.head(gr.sizeof_gr_complex*1, head)
         self.blocks_file_sink_1 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/sine_waveform', False)
@@ -120,14 +115,11 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.connect((self.analog_sig_source_x_0, 0), (self.blocks_multiply_xx_0, 0))
-        self.connect((self.blocks_head_0_0_0, 0), (self.blocks_stream_to_vector_0, 0))
+        self.connect((self.blocks_head_0_0_0, 0), (self.blocks_file_sink_1, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_head_0_0_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_1, 0), (self.blocks_vector_to_stream_0, 0))
         self.connect((self.blocks_multiply_xx_0, 0), (self.blocks_throttle_0, 0))
-        self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_1, 0))
         self.connect((self.blocks_throttle_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_multiply_xx_0, 1))
-        self.connect((self.blocks_vector_to_stream_0, 0), (self.blocks_file_sink_1, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "generate_waveform_sine")
@@ -307,7 +299,6 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
 
     def set_gauss_envelope(self, gauss_envelope):
         self.gauss_envelope = gauss_envelope
-        self.blocks_multiply_const_vxx_1.set_k((self.gauss_envelope))
 
     def get_gain(self):
         return self.gain
