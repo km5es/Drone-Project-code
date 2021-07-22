@@ -483,8 +483,8 @@ def stream_file_no_telem():
         conn.send(condition_LO)
 
         if rospy.get_param('trigger/sequence') == True:
-            rospy.set_param('trigger/sequence') == False
-            rospy.set_param('trigger/metadata') == True
+            rospy.set_param('trigger/sequence', False)
+            rospy.set_param('trigger/metadata', True)
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
@@ -507,8 +507,8 @@ def stream_file_no_telem():
             total_time = end - start
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
-            rospy.set_param('trigger/metadata') == False
-            rospy.set_param('trigger/waypoint') == True
+            rospy.set_param('trigger/metadata', False)
+            rospy.set_param('trigger/waypoint', True) 
             GPIO.output(16, GPIO.LOW)
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
