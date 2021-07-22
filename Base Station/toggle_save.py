@@ -72,7 +72,7 @@ class save_data(gr.top_block, Qt.QWidget):
         self.meas_freq = meas_freq = 150e6
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 20
+        self.gain = gain = 60
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
