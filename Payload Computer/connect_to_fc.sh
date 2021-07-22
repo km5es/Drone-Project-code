@@ -32,7 +32,7 @@ elif echo $USER | grep -q 'pi'; then
 
 elif uname -a | grep -q 'raspberrypi'; then
     echo "Raspberry Pi OS detected..."
-    /usr/bin/python run_on_pi.py &
+    /usr/bin/python /home/pi/catkin_ws/src/Drone-Project-code/Payload\ Computer/run_on_pi.py &
 	roslaunch mavros apm.launch fcu_url:="/dev/ttyS0:921600" &
     ### uncomment for SITL simulations
     #roslaunch mavros apm.launch fcu_url:="udp://:16550@10.42.0.1:16551" &
