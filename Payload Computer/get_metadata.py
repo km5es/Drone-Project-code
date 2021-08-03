@@ -173,12 +173,12 @@ def main():
             global_pos_f_a.write("Waypoint #%s\n" % (wp_num))
             sdr_drone_temp_f_a.write("Waypoint #%s\n" % (wp_num))
             wp_num += 1
-            rospy.Subscriber('/mavros/local_position/pose',
+            pos_sub = rospy.Subscriber('/mavros/local_position/pose',
                                 PoseStamped, callback_local)
-            rospy.Subscriber('/mavros/setpoint_raw/target_local',
+            loc_sub = rospy.Subscriber('/mavros/setpoint_raw/target_local',
                                 PositionTarget, callback_setpoint)
-            rospy.Subscriber('/mavros/global_position/global', NavSatFix, callback_global)
-            rospy.Subscriber('/sdr_temperature', Float32, callback_SDR)
+            glo_sub = rospy.Subscriber('/mavros/global_position/global', NavSatFix, callback_global)
+            sdr_sub = rospy.Subscriber('/sdr_temperature', Float32, callback_SDR)
             while True:
                 time.sleep(0.1)
                 if rospy.get_param('trigger/metadata') == False:
@@ -187,6 +187,10 @@ def main():
                     set_target_f_a.close()
                     global_pos_f_a.close()
                     sdr_drone_temp_f_a.close()
+                    pos_sub.unregister()
+                    loc_sub.unregister()
+                    glo_sub.unregister()
+                    sdr_sub.unregister()
                     break
 
 
