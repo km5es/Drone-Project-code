@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>meas_freq - wave_freq</value>
+      <value>149e6</value>
     </param>
   </block>
   <block>
@@ -565,7 +565,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/mnt/78ACE633ACE5EB96/milton_raw_data/data</value>
+      <value>/mnt/78ACE633ACE5EB96/milton_raw_data/data1</value>
     </param>
     <param>
       <key>_coordinate</key>

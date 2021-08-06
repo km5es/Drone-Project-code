@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 ##################################################
 # GNU Radio Python Flow Graph
-# Title: Save Data
+# Title: Toggle Save
 # Author: Krishna Makhija
 # Description: This flowgraph will simply save data when the checkbox is ticked.
-# Generated: Wed Jul 21 19:38:17 2021
+# Generated: Tue Aug  3 18:24:19 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -32,12 +32,12 @@ import time
 from gnuradio import qtgui
 
 
-class save_data(gr.top_block, Qt.QWidget):
+class toggle_save(gr.top_block, Qt.QWidget):
 
     def __init__(self, timestamp=time.strftime("%H%M%S-%d%m%Y")):
-        gr.top_block.__init__(self, "Save Data")
+        gr.top_block.__init__(self, "Toggle Save")
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Save Data")
+        self.setWindowTitle("Toggle Save")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -55,7 +55,7 @@ class save_data(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "save_data")
+        self.settings = Qt.QSettings("GNU Radio", "toggle_save")
         self.restoreGeometry(self.settings.value("geometry").toByteArray())
 
 
@@ -69,11 +69,11 @@ class save_data(gr.top_block, Qt.QWidget):
         ##################################################
         self.samp_rate = samp_rate = 3.84e6
         self.wave_freq = wave_freq = samp_rate/8
-        self.meas_freq = meas_freq = 150e6
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 60
-        self.freq = freq = meas_freq - wave_freq
+        self.meas_freq = meas_freq = 150e6
+        self.gain = gain = 30
+        self.freq = freq = 149e6
 
         ##################################################
         # Blocks
@@ -100,7 +100,7 @@ class save_data(gr.top_block, Qt.QWidget):
         self.uhd_usrp_source_0.set_gain(gain, 0)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
         self.blocks_null_sink_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(self.timestamp) + 'cal_data.dat', True)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data', True)
         self.blocks_file_sink_0.set_unbuffered(False)
         self.blks2_selector_0_0_0 = grc_blks2.selector(
         	item_size=gr.sizeof_gr_complex*1,
@@ -120,7 +120,7 @@ class save_data(gr.top_block, Qt.QWidget):
         self.connect((self.uhd_usrp_source_0, 0), (self.blks2_selector_0_0_0, 0))
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "save_data")
+        self.settings = Qt.QSettings("GNU Radio", "toggle_save")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
 
@@ -143,14 +143,6 @@ class save_data(gr.top_block, Qt.QWidget):
 
     def set_wave_freq(self, wave_freq):
         self.wave_freq = wave_freq
-        self.set_freq(self.meas_freq - self.wave_freq)
-
-    def get_meas_freq(self):
-        return self.meas_freq
-
-    def set_meas_freq(self, meas_freq):
-        self.meas_freq = meas_freq
-        self.set_freq(self.meas_freq - self.wave_freq)
 
     def get_toggle(self):
         return self.toggle
@@ -165,6 +157,12 @@ class save_data(gr.top_block, Qt.QWidget):
 
     def set_min_buffer(self, min_buffer):
         self.min_buffer = min_buffer
+
+    def get_meas_freq(self):
+        return self.meas_freq
+
+    def set_meas_freq(self, meas_freq):
+        self.meas_freq = meas_freq
 
     def get_gain(self):
         return self.gain
@@ -192,7 +190,7 @@ def argument_parser():
     return parser
 
 
-def main(top_block_cls=save_data, options=None):
+def main(top_block_cls=toggle_save, options=None):
     if options is None:
         options, _ = argument_parser().parse_args()
 
