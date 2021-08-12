@@ -1,30 +1,25 @@
 #!/bin/bash
 #### A convenience script to run the entire autonomy pipeline during the experiment.
 ###### Author: KM
-######## Date: Sep 13th 2020
+######## Date: Mar 5th 2021
 
 ### clear any previously running scripts
 lsof -t -i tcp:8800 | xargs kill -9
 
-### intitate MAVLink with drone
-mavlink-routerd -e 127.0.0.1:14550 -e 127.0.0.1:15550 /dev/ttyMAVROS:57600 &
-#roslaunch mavros px4.launch fcu_url:="/dev/ttyMAVROS:57600" &
-roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551" &
+roscore &
+
+#### begin ROS script
+gnome-terminal -e "bash -c 'python ~/catkin_ws/src/Drone-Project-code/Base\ Station/get_sdr_temp.py;'"
 
 
-sleep 4
-
-### begin ROS script
-gnome-terminal -e "bash -c 'rosrun beam_mapping drone_project.py;'"
-
-
-### run GRC TCP server
+#### run GRC TCP server
 gnome-terminal -e "bash -c 'python ~/catkin_ws/src/Drone-Project-code/Base\ Station/tcp_toggle.py;'"
 
 sleep 6;
 
-### run GRC TCP client
+#### run GRC TCP client
+
 gnome-terminal -e "bash -c 'python ~/catkin_ws/src/Drone-Project-code/Base\ Station/base-station-receiver.py;'"
 
-### run QGroundControl
+#### run QGroundControl
 ~/Downloads/QGroundControl.AppImage

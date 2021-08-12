@@ -1,2 +1,14 @@
-/logs
-/mission
+#exclude these files
+/logs/base/*
+/logs/payload/*
+/logs/metadata/*
+/logs/mission_events.csv
+/logs/pose_logs.csv
+/mission/waypoints.csv
+/mission/waypoints_copy.csv
+
+# exception to the rule
+!logs/.gitkeep 
+!logs/base/.gitkeep
+!logs/payload/.gitkeep
+!logs/metadata/.gitkeep

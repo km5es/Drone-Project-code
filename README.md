@@ -2,7 +2,7 @@
 <img src="calibration_animation.gif" width=1000 align=center>
 
 ## Description
-A high accuracy drone-based calibrator targeted towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. More details inside each folder. Clone the repo into a catkin workspace:
+A high accuracy drone-based calibrator targeted towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. The following README will detail how to get the SITL simulations to run. These simulations combine the SDR code with ROS and the flight stack to make the calibration autonomous. More details inside each folder. Clone the repo into a catkin workspace:
 ```
 mkdir /home/$USER/catkin_ws/src/ -p
 cd /home/$USER/catkin_ws/src
@@ -18,19 +18,10 @@ Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP
 
 ### ROS Melodic + SITL toolchain
 
-#### 1. Start [here](https://dev.px4.io/v1.9.0/en/setup/dev_env_linux_ubuntu.html). A convenience shell script will install ROS, Gazebo, MAVROS, Geographiclib and everything else. It will also set up a catkin workspace.
+#### 1. A convenience shell script will install ROS, Gazebo, MAVROS, Geographiclib and everything else. It will also set up a catkin workspace.
 ```
+cd /home/$USER/catkin_ws/src/Drone-Project-code/
 source ubuntu_sim_ros_melodic.sh
-```
-
-#### 2. As of now, the Fast-DDS install within the above shell script is broken. Get the full install [here](https://www.eprosima.com/index.php/downloads-all). The tar file is also included in the repository for convenience. 
-```
-cd ~/catkin_ws/src/Drone-Project-code/
-mkdir /home/$USER/Fast-DDS/
-tar -xzvf eProsima_Fast-DDS-2.0.0-Linux.tgz -C /home/$USER/Fast-DDS/
-cd /home/$USER/Fast-DDS/
-chmod +x install.sh
-sudo ./install.sh
 ```
 
 #### 3. Some additional dependencies that the shell script does not address (after getting repeated build errors):
@@ -40,24 +31,26 @@ sudo apt-get install libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad g
 pip install geographiclib termcolor && pip3 install geographiclib termcolor 
 ```
 
-#### 4. PX4 firmware:
+#### 4. Ardupilot firmware:
+Follow instructions [here](https://ardupilot.org/dev/docs/sitl-simulator-software-in-the-loop.html). To set a custom start location for the simulation edit the ```/home/$USER/.config/ardupilot/locations.txt``` file like so:
 ```
-cd $HOME
-mkdir /src/ && cd ~/src/
-git clone https://github.com/PX4/Firmware.git
-cd Firmware/
-make px4_sitl gazebo_solo
+#NAME=latitude,longitude,absolute-altitude,heading
+MiltonAirfield=37.994125,-78.397535,28.5,90
 ```
-Full instructions to be found [here](https://dev.px4.io/v1.9.0/en/setup/building_px4.html). To run in headless mode:
-```
-HEADLESS=1 make px4_sitl gazebo_solo
-```
-> **Note**: If the build script complains about geographiclib_datasets do the following:
+If ```locations.txt``` does not exist, create it. Change coordinates and the name of the starting location as necessary.
+
+Install Geographiclib datasets:
 ```
 cd ~/catkin_ws/src/Drone-Project-code/
 chmod +x install_geographiclib_datasets
 sudo ./install_geographiclib_datasets
 ```
+
+Install MAVROS:
+```
+sudo apt-get install ros-melodic-mavros
+```
+Install mavlink-routerd by following instructions [here](https://github.com/mavlink-router/mavlink-router). 
 
 #### 5. Install QGroundControl. Detailed instructions [here](https://docs.qgroundcontrol.com/en/getting_started/download_and_install.html). Before downloading the app image do this:
 ```
@@ -77,39 +70,35 @@ cd /home/$USER/catkin_ws/
 catkin_make
 ```
 
-#### 7. Finally, to set default take-off positions of the drone to Milton airfield add these lines to the bashrc file:
-```
-export PX4_HOME_LAT=37.994125
-export PX4_HOME_LON=-78.397535
-export PX4_HOME_ALT=28.5
-```
-Replace coordinates as necessary.
-
 ## Autonomy Pipeline
-The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). Here is a flow diagram of the entire process:
+The codes here enable complete autonomous calibration between the drone (SDR + payload computer) and the ground station (AUT + SDR + base station computer). They synchronize the drone's movement with the calibration and data acquisition. Here is a flow diagram of the entire process:
 
 ![pipeline](autonomy_pipeline_updated.png)
 
-Once the PX4 firmware is up and running, this is how one could simulate the entire pipeline using SITL + Gazebo + ROS + GNURadio/UHD.
+Once the flight stack installed and working, this is how one could simulate the entire pipeline using SITL + Gazebo + ROS + GNURadio/UHD.
 
 Terminal 1:
 ```
-cd ~/src/Firmware/
-HEADLESS=1 make px4_sitl gazebo_solo
+cd ~/ardupilot
+sim_vehicle.py -L MiltonAirfield -v ArduCopter --console –map
 ```
 Terminal 2:
 ```
-roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"
+mavlink-routerd -e 127.0.0.1:12550 -e 127.0.0.1:15550 127.0.0.1:14550
 ```
 Terminal 3:
 ```
-rosrun beam_mapping drone_project.py
+roslaunch mavros apm.launch fcu_url:="udp://:15550@127.0.0.1:15551"
 ```
 Terminal 4:
 ```
-python ~/catkin_ws/src/Drone-Project-code/Base\ Station/tcp_toggle.py
+rosrun beam_mapping ros-trigger.py
 ```
 Terminal 5:
+```
+python ~/catkin_ws/src/Drone-Project-code/Base\ Station/tcp_toggle.py
+```
+Terminal 6:
 ```
 python ~/catkin_ws/src/Drone-Project-code/Base\ Station/base-station-receiver.py
 ```

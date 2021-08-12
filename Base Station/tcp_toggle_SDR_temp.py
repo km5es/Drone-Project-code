@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Tue Jul 13 19:21:08 2021
+# Generated: Fri Jul 31 19:18:30 2020
 ##################################################
 
 from gnuradio import eng_notation
@@ -14,6 +14,8 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
+from threading import Thread
+import socket
 import rospy
 from std_msgs.msg import Float32
 
@@ -26,12 +28,9 @@ class tcp_toggle(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 30.72e6/4
-        self.wave_freq = wave_freq = samp_rate/8
-        self.meas_freq = meas_freq = 150e6
+        self.samp_rate = samp_rate = 7.68e6*4
         self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 60
-        self.freq = freq = meas_freq - wave_freq
+        self.freq = freq = 150e6
 
         ##################################################
         # Blocks
@@ -48,7 +47,7 @@ class tcp_toggle(gr.top_block):
         self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_center_freq(freq, 0)
-        self.uhd_usrp_source_0.set_gain(gain, 0)
+        self.uhd_usrp_source_0.set_gain(20, 0)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
         self.blks2_tcp_sink_0 = grc_blks2.tcp_sink(
         	itemsize=gr.sizeof_gr_complex*1,
@@ -69,36 +68,13 @@ class tcp_toggle(gr.top_block):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.set_wave_freq(self.samp_rate/8)
         self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
-
-    def get_wave_freq(self):
-        return self.wave_freq
-
-    def set_wave_freq(self, wave_freq):
-        self.wave_freq = wave_freq
-        self.set_freq(self.meas_freq - self.wave_freq)
-
-    def get_meas_freq(self):
-        return self.meas_freq
-
-    def set_meas_freq(self, meas_freq):
-        self.meas_freq = meas_freq
-        self.set_freq(self.meas_freq - self.wave_freq)
 
     def get_min_buffer(self):
         return self.min_buffer
 
     def set_min_buffer(self, min_buffer):
         self.min_buffer = min_buffer
-
-    def get_gain(self):
-        return self.gain
-
-    def set_gain(self, gain):
-        self.gain = gain
-        self.uhd_usrp_source_0.set_gain(self.gain, 0)
-
 
     def get_freq(self):
         return self.freq
@@ -110,6 +86,7 @@ class tcp_toggle(gr.top_block):
 
     def get_temp(self):
         return self.uhd_usrp_source_0.get_sensor('temp').to_real()
+
 
 def main(top_block_cls=tcp_toggle, options=None):
     if gr.enable_realtime_scheduling() != gr.RT_OK:
@@ -123,7 +100,7 @@ def main(top_block_cls=tcp_toggle, options=None):
 
     while not rospy.is_shutdown():
         temp = tb.get_temp()
-#        rospy.loginfo(temp)
+        rospy.loginfo(temp)
         pub.publish(temp)
         rate.sleep()
 
@@ -131,5 +108,35 @@ def main(top_block_cls=tcp_toggle, options=None):
     tb.wait()
 
 
+def temp_over_socket(top_block_cls=tcp_toggle, options=None):
+    """
+    When a ROS event is set, this object will send temp data over a socket connection to its companion
+    script.
+    """
+    if gr.enable_realtime_scheduling() != gr.RT_OK:
+        print "Error: failed to enable real-time scheduling."
+
+    tb = top_block_cls()
+    port    = 7890
+    #s       = socket.socket()                       # Create a socket object
+    #host    = socket.gethostbyname('127.0.0.1')     # Get local machine name
+    #s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    #s.bind((host, port))                            # Bind to the port
+#   # while True:
+    #s.listen(100)                                   # Now wait for client connection.
+    #conn, addr = s.accept()
+    #print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
+    #print(colored('Connection to GRC flowgraph established on ' + str(addr), 'green'))
+    #while conn is not False:
+    #    conn.send(tb.get_temp)
+    #    time.sleep(0.25)
+
 if __name__ == '__main__':
     main()
+#    t1 = Thread(target = main)
+#    t2 = Thread(target = temp_over_socket)
+#    t1.start()
+#    t2.start()
+#    t1.join()
+#    t2.join()
+

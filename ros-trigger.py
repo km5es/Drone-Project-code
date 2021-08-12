@@ -79,7 +79,8 @@ def get_waypoints(data):
         #file.write("\t")
         #file.write(str(m[21]))
         #file.write("\n")
-
+    print("Retrieved WP list. Unregistering from ROS topic /mavros/mission/waypoints.")
+    get_mission.unregister()
 
 def get_haversine(data):
     """
@@ -113,6 +114,7 @@ def get_distance(data):
                 distance.append((h[n]**2 + alt_diff**2)**0.5)
         #except (IndexError, NameError):
         except IndexError:
+            print("index error")
             pass
         except NameError:
             print("Waypoints not received from FCU.")
@@ -120,7 +122,7 @@ def get_distance(data):
         for i in distance:
             print('The closest WP is: ' +str(min(distance)) + 'm away')
             time.sleep(1/GPS_refresh)
-            if i <= error_tolerance:
+            if i <= error_tolerance and rospy.get_param('trigger/command') == False:
                 print(">>>>WP reached<<< ||| Pausing script for " +str(sleep_time) + " seconds")
                 rospy.set_param('trigger/command', True)
                 time.sleep(sleep_time)
@@ -128,10 +130,11 @@ def get_distance(data):
 
 
 def main():
+    global get_mission
     try:
         rospy.init_node('ground_station', anonymous = True)
     #        rospy.Subscriber('/mavros/mission/reached', WaypointReached, trigger_node)
-        rospy.Subscriber('/mavros/mission/waypoints', WaypointList, get_waypoints)
+        get_mission = rospy.Subscriber('/mavros/mission/waypoints', WaypointList, get_waypoints)
         rospy.Subscriber('/mavros/global_position/global', NavSatFix, get_haversine)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, get_distance)
         rospy.spin()

@@ -8,16 +8,24 @@ lsof -t -i udp:14540 | xargs kill -9
 kill -9 $(fuser /dev/ttyUSB0)
 lsof -t -i tcp:8800 | xargs kill -9
 
-### run MAVROS
-roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557" &
-
 ### run PX4 simulator in headless mode
-gnome-terminal -e "bash -c 'cd ~/src/Firmware/ && HEADLESS=1 make px4_sitl gazebo_solo;'"
+# PX4
+#gnome-terminal -e "bash -c 'cd ~/src/Firmware/ && HEADLESS=1 make px4_sitl gazebo_solo;'"
+# APM
+gnome-terminal -e "bash -c 'cd ~/ardupilot && sim_vehicle.py -L MiltonAirfield -v ArduCopter --console –map
+;'"
+
+### run MAVROS
+# PX4
+#roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557" &
+# APM
+roslaunch mavros apm.launch fcu_url:="udp://:14551@127.0.0.1:14551" &
+
 
 ### run MAVROS
 #gnome-terminal -e "bash -c 'roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14557"'"
 
-sleep 2.5;
+sleep 4;
 
 ### run ROS node
 gnome-terminal -e "bash -c 'rosrun beam_mapping drone_project.py;'"
