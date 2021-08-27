@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  roscpp
+  mavros_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -136,7 +138,10 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/f1tenth_sim_node.cpp)
-
+add_executable(imu_data src/imu_data.cpp)
+target_link_libraries(imu_data ${catkin_LIBRARIES})
+add_executable(wp_trigger src/wp_trigger.cpp)
+target_link_libraries(wp_trigger ${catkin_LIBRARIES}) 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
