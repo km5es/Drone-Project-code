@@ -9,6 +9,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "mavros_msgs/WaypointList.h"
+#include "mavros_msgs/Waypoint.h"
 #include <iostream>
 #include <math.h>
 #include <cmath>
@@ -16,7 +17,6 @@
 
 double vel_threshold = 0.35;
 double pos_error_tol = 1.0;
-double wp_x_lat, wp_y_long, wp_z_alt;
 double h;
 
 double haversine(double lat1, double long1, double lat2, double long2){
@@ -48,17 +48,29 @@ void get_velocity(const nav_msgs::Odometry::ConstPtr& msg){
     ROS_INFO("v = %f", v);
 }
 
-void get_waypoints(const mavros_msgs::WaypointList::ConstPtr& msg){
-    //std::vector<int> wp_list = msg->waypoints;
-    //double wp_list = msg->waypoints;
-    std::cout << msg << "\n";
+std::vector<mavros_msgs::Waypoint> wp_list;
+void get_waypoints(const mavros_msgs::WaypointList& msg){
+    //std::vector<mavros_msgs::Waypoint> wp_list = msg.waypoints;
+    wp_list = msg.waypoints;
+    ROS_INFO("Retrieved WP list");
+    ROS_INFO("The current target WP coords are %f, %f, and %f", wp_list[1].x_lat, wp_list[1].y_long, wp_list[1].z_alt);
+}
+
+void get_haversine(const sensor_msgs::NavSatFix::ConstPtr& msg){
+    if (msg->status.status == 0){
+        h = haversine(msg->latitude, msg->longitude, wp_list[1].x_lat, wp_list[1].y_long);
+        std::cout << "Distance to next WP is: " << h << " m." << std::endl;
+    }
+    else if (msg->status.status == -1){
+        ROS_ERROR("GPS signal not available.");
+    }
 }
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "wp_trigger");
     ros::NodeHandle n;
     ros::Subscriber sub1 = n.subscribe("/mavros/mission/waypoints", 1000, get_waypoints);
-    //ros::Subscriber sub2 = n.subscribe("/mavros/global_position/global", 1000, get_haversine);
+    ros::Subscriber sub2 = n.subscribe("/mavros/global_position/global", 1000, get_haversine);
     //ros::Subscriber sub3 = n.subscribe("/mavros/local_position/pose", 1000, get_distance);
     ros::Subscriber sub4 = n.subscribe("/mavros/local_position/odom", 1000, get_velocity);
     ros::spin();
