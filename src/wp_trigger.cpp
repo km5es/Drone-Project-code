@@ -14,10 +14,13 @@
 #include <math.h>
 #include <cmath>
 #include <thread>
+#include <mutex>
 
 double vel_threshold = 0.35;
 double pos_error_tol = 1.0;
-double h;
+double h, v;
+std::vector<mavros_msgs::Waypoint> wp_list;
+std::mutex h_mtx;                               // haversine calculation event
 
 double haversine(double lat1, double long1, double lat2, double long2){
     double r = 6.3781e6;
@@ -47,10 +50,8 @@ void get_velocity(const nav_msgs::Odometry::ConstPtr& msg){
     double v = sqrt(pow(x_vel, 2) + pow(y_vel, 2) + pow(z_vel, 2));
     ROS_INFO("v = %f", v);
 }
-
-std::vector<mavros_msgs::Waypoint> wp_list;
+//! make sure the indices are correct here
 void get_waypoints(const mavros_msgs::WaypointList& msg){
-    //std::vector<mavros_msgs::Waypoint> wp_list = msg.waypoints;
     wp_list = msg.waypoints;
     ROS_INFO("Retrieved WP list");
     ROS_INFO("The current target WP coords are %f, %f, and %f", wp_list[1].x_lat, wp_list[1].y_long, wp_list[1].z_alt);
@@ -59,20 +60,34 @@ void get_waypoints(const mavros_msgs::WaypointList& msg){
 void get_haversine(const sensor_msgs::NavSatFix::ConstPtr& msg){
     if (msg->status.status == 0){
         h = haversine(msg->latitude, msg->longitude, wp_list[1].x_lat, wp_list[1].y_long);
-        std::cout << "Distance to next WP is: " << h << " m." << std::endl;
+        ROS_INFO("Distance to next WP is %f m", h);
+        h_mtx.lock();
     }
     else if (msg->status.status == -1){
         ROS_ERROR("GPS signal not available.");
     }
 }
 
+void get_distance(const geometry_msgs::PoseStamped::ConstPtr& msg){
+    if (!h_mtx.try_lock()){
+        double alt_diff = wp_list[2].z_alt - msg->pose.position.z;
+        double distance = sqrt(pow(distance, 2) + pow(h, 2));
+        if (distance < pos_error_tol && v <= vel_threshold){
+            ROS_INFO(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.");
+            ros::param::set("trigger/sequence", true);
+        }
+        h_mtx.unlock();
+    }
+}
+
 int main(int argc, char **argv){
     ros::init(argc, argv, "wp_trigger");
     ros::NodeHandle n;
-    ros::Subscriber sub1 = n.subscribe("/mavros/mission/waypoints", 1000, get_waypoints);
-    ros::Subscriber sub2 = n.subscribe("/mavros/global_position/global", 1000, get_haversine);
-    //ros::Subscriber sub3 = n.subscribe("/mavros/local_position/pose", 1000, get_distance);
-    ros::Subscriber sub4 = n.subscribe("/mavros/local_position/odom", 1000, get_velocity);
+    ros::Subscriber sub1 = n.subscribe("/mavros/local_position/odom", 1000, get_velocity);
+    ros::Subscriber sub2 = n.subscribe("/mavros/mission/waypoints", 1000, get_waypoints);
+    ros::Subscriber sub3 = n.subscribe("/mavros/global_position/global", 1000, get_haversine);
+    ros::Subscriber sub4 = n.subscribe("/mavros/local_position/pose", 1000, get_distance);
     ros::spin();
+    n.setParam("trigger/sequence", false);
     return 0;
 }
