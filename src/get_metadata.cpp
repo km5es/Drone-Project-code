@@ -1,8 +1,8 @@
 /* 
 * C++ version of get_metadata.py
-* When a WP is reached a flag is set ("trigger/sequence"). This will begin saving metadata
-* in separate files in the ./logs folder. It will also set another flag ("trigger/metadata")
-* which will begin calibration.
+* When a WP is reached a flag is set ("trigger/sequence") which begins calibration from the 
+* cal_sequence script. That script also sets the trigger/metadata flag which causes this 
+* program to begin saving metadata from the FCU and SDR. 
 
 * author: KM
 * date: 28th Aug 2021
@@ -16,6 +16,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include "sensor_msgs/Imu.h"
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -23,9 +25,12 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "std_msgs/Float32.h"
 
+// Define global variables
 double refresh_rate = 20.0;         // sensor refresh rate set by mavros (see mission.sh)
 bool seq_flag;                      // sequene flag initialization b/c I do not understand C++
 bool met_flag;                      // metadata flag initialization b/c I do not understand C++
+struct passwd *pw = getpwuid(getuid());
+const char *homedir = pw->pw_dir;   // get path to home directory
 std::string local_pose;             
 std::string global_pose;            // these will point to the metadata filenames
 std::string sdr_d_temp;
@@ -94,7 +99,8 @@ void callback_SDR(const std_msgs::Float32::ConstPtr& msg){
 int main(int argc, char **argv){
     //? create metadata files and add column headings
     std::string time_now = get_filename();
-    std::string logs_path = "/home/kmakhija/catkin_ws/src/Drone-Project-code/logs/metadata/";
+    std::string logs_path = "/catkin_ws/src/Drone-Project-code/logs/metadata/";
+    logs_path = homedir + logs_path;
     std::string &local_ptr = local_pose;
     local_ptr = logs_path + time_now + "_local_pose.log";
     local_pose_f.open(local_pose);

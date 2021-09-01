@@ -144,6 +144,8 @@ add_executable(wp_trigger src/wp_trigger.cpp)
 target_link_libraries(wp_trigger ${catkin_LIBRARIES})
 add_executable(get_metadata src/get_metadata.cpp)
 target_link_libraries(get_metadata ${catkin_LIBRARIES})
+add_executable(write_WPs src/write_WPs.cpp)
+target_link_libraries(write_WPs ${catkin_LIBRARIES})
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
