@@ -23,8 +23,15 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "std_msgs/Float32.h"
 
-double refresh_rate = 10.0;         // sensor refresh rate set by mavros (see mission.sh)
+int refresh_rate = 20;              // sensor refresh rate set by mavros (see mission.sh)
 bool seq_flag;                      // sequene flag initialization b/c I do not understand C++
+bool met_flag;                      // metadata flag initialization b/c I do not understand C++
+std::string local_pose;             
+std::string global_pose;            // these will point to the metadata filenames
+std::string sdr_d_temp;
+std::ofstream local_pose_f;
+std::ofstream global_pose_f;        // declare ofsteam objects for writing to files later
+std::ofstream sdr_d_temp_f;         //      using the callback sub functions
 
 //? get current time and format for timestamping metadata
 std::string get_timestamp(){
@@ -42,7 +49,7 @@ std::string get_timestamp(){
     return timestamp;
 }
 
-//? create a different timestamp for metadata filenames and pass to make_file()
+//? create a different timestamp for metadata filenames
 std::string get_filename(){
     struct timeval tmnow;
     struct tm *tm;
@@ -53,37 +60,90 @@ std::string get_filename(){
     return namestamp;
 }
 
-//? create metadata files and add column headings
-void make_file(){
-    std::string time_now = get_filename();
-    std::string logs_path = "/home/kmakhija/catkin_ws/src/Drone-Project-code/logs/metadata/";
-    std::string local_pose = logs_path + time_now + "_local_pose.log";
-    std::ofstream local_pose_f;
-    local_pose_f.open(local_pose);
-    local_pose_f << "Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\n" << std::endl;
+//? close files after writing each line. is there a better way to do it?
+void close_files(){
     local_pose_f.close();
-    std::string global_pose = logs_path + time_now + "_global_pose.log";
-    std::ofstream global_pose_f;
-    global_pose_f.open(global_pose);
-    global_pose_f << "Timestamp\tLongitude\tLatitude\tAltitude\n";
     global_pose_f.close();
-    std::string sdr_d_temp = logs_path + time_now + "_sdr_drone_temp.log";
-    std::ofstream sdr_d_temp_f;
-    sdr_d_temp_f.open(sdr_d_temp);
-    sdr_d_temp_f << "Timestamp\tSDR Temperature (deg C)";
     sdr_d_temp_f.close();
 }
 
+//? define callback functions. these will write metadata to files.
+//* IMU pose data
+void callback_local(const geometry_msgs::PoseStamped::ConstPtr& msg){
+    std::string current_time = get_timestamp();
+    local_pose_f.open(local_pose, std::ios_base::app);
+    local_pose_f << current_time << "\t" << msg->pose.position.x << "\t" 
+                    << msg->pose.position.y << "\t" << msg->pose.position.z << std::endl;
+}
+
+//* GPS raw data
+void callback_global(const sensor_msgs::NavSatFix::ConstPtr& msg){
+    std::string current_time = get_timestamp();
+    global_pose_f.open(global_pose, std::ios_base::app);
+    global_pose_f << current_time << "\t" << msg->latitude << "\t" 
+                    << msg->longitude << "\t" << msg->altitude << std::endl; 
+}
+
+//* SDR temperature
+void callback_SDR(const std_msgs::Float32::ConstPtr& msg){
+    std::string current_time = get_timestamp();
+    sdr_d_temp_f.open(sdr_d_temp, std::ios_base::app);
+    sdr_d_temp_f << current_time << "\t" << msg->data << std::endl;
+}
+
 int main(int argc, char **argv){
+    //? create metadata files and add column headings
+    std::string time_now = get_filename();
+    std::string logs_path = "/home/kmakhija/catkin_ws/src/Drone-Project-code/logs/metadata/";
+    std::string &local_ptr = local_pose;
+    local_ptr = logs_path + time_now + "_local_pose.log";
+    local_pose_f.open(local_pose);
+    local_pose_f << "Timestamp\tLocal Position (x)\tLocal Position (y)\tLocal Position (z)\n";
+    std::string &global_ptr = global_pose;
+    global_ptr = logs_path + time_now + "_global_pose.log";
+    global_pose_f.open(global_pose);
+    global_pose_f << "Timestamp\tLongitude\tLatitude\tAltitude\n";
+    std::string &sdr_d_ptr = sdr_d_temp;
+    sdr_d_ptr = logs_path + time_now + "sdr_d_temp.log";
+    sdr_d_temp_f.open(sdr_d_temp);
+    sdr_d_temp_f << "Timestamp\tSDR Temperature (deg C)\n";
+    close_files();
+
+    //? initiate ROS node
     ros::init(argc, argv, "get_metadata");
     ros::NodeHandle n;
     n.setParam("trigger/metadata", false);
-    make_file();
-    while (ros::ok()){
-        sleep(1);
-        if (n.param("trigger/sequence", seq_flag) == true){
-            std::string time_now = get_timestamp();
-            std::cout << "The time now is: " << time_now << std::endl;
+    int wp_num = 0;                                                 // WP number counter
+    ROS_INFO("ROS metadata node intialized. Waiting for flag from SDR code to begin saving metadata.");
+    ros::Rate r(refresh_rate);
+    while (ros::ok()) {
+        usleep(1/refresh_rate * 1e6);                               // refresh rate in us
+        if (n.param("trigger/metadata", met_flag) == true){         // check if flag set by wp_trigger
+            ROS_INFO("Saving Waypoint #%i metadata in ./logs/metadata/", wp_num);
+            local_pose_f.open(local_pose, std::ios_base::app);
+            global_pose_f.open(global_pose, std::ios_base::app);    // append data to previous
+            sdr_d_temp_f.open(sdr_d_temp, std::ios_base::app);      //      ofstream objects
+            local_pose_f << "Waypoint #" << wp_num << std::endl;
+            global_pose_f << "Waypoint #" << wp_num << std::endl;   // tag new waypoints
+            sdr_d_temp_f << "Waypoint #" << wp_num << std::endl;
+            close_files();
+            wp_num++;
+            ros::Subscriber loc_sub = n.subscribe("/mavros/local_position/pose", 1000, callback_local);
+            ros::Subscriber glo_sub = n.subscribe("/mavros/global_position/global", 1000, callback_global);
+            ros::Subscriber sdr_sub = n.subscribe("/sdr_temperature", 1000, callback_SDR);
+            while (ros::ok()){
+                ros::spinOnce();                                    // spin once because subscribe                                 
+                r.sleep();                                          //   and spin work differently
+                close_files();                                      //    in C++ and Python
+                if (n.param("trigger/metadata", met_flag) == false){
+                    ROS_INFO("Finished saving metadata for this WP.");
+                    close_files();
+                    loc_sub.shutdown();
+                    glo_sub.shutdown();
+                    sdr_sub.shutdown();
+                    break;
+                }
+            }
         }
     }
     return 0;
