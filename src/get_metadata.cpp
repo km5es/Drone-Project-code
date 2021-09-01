@@ -23,7 +23,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "std_msgs/Float32.h"
 
-int refresh_rate = 20;              // sensor refresh rate set by mavros (see mission.sh)
+double refresh_rate = 20.0;         // sensor refresh rate set by mavros (see mission.sh)
 bool seq_flag;                      // sequene flag initialization b/c I do not understand C++
 bool met_flag;                      // metadata flag initialization b/c I do not understand C++
 std::string local_pose;             
