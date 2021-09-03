@@ -89,10 +89,10 @@ void waypoint_clear_client(){
 mavros_msgs::Waypoint create_waypoint(int command, double param1, double latitude, 
                                                 double longitude, double altitude){
     mavros_msgs::Waypoint wp_msg;
-    wp_msg.frame = 0;  
+    wp_msg.frame = 3;  
     wp_msg.command = command;
     wp_msg.is_current = false;
-    wp_msg.autocontinue = false;
+    wp_msg.autocontinue = true;
     wp_msg.param1 = param1;
     wp_msg.param2 = 0;
     wp_msg.param3 = 0;
@@ -139,7 +139,7 @@ int main(int argc, char **argv){
     waypoint_clear_client();
     int n = 1;                                      // wp counters
     //? create initial WP on bootup
-    wp = create_waypoint(22, 0, latitude[n], longitude[n], altitude[n]);
+    wp = create_waypoint(22, 0, latitude[0], longitude[0], altitude[0]);
     wp_push_srv.request.waypoints.push_back(wp);
     wp = create_waypoint(115, param1[n+1], latitude[n], longitude[n], altitude[n]);
     wp_push_srv.request.waypoints.push_back(wp);
@@ -150,9 +150,12 @@ int main(int argc, char **argv){
         usleep(5e4);
         if (nh.param("trigger/sequence", seq_flag) == true){
             waypoint_clear_client();
+            nh.setParam("trigger/metadata", true);                  // ! remove this later
+            sleep(10);                                               // ! remove this later
         }
         if (nh.param("trigger/waypoint", seq_flag) == true){
             nh.setParam("trigger/waypoint", false);
+            nh.setParam("trigger/metadata", false);                 // ! remove this later      
             ROS_INFO("Updating WP table.");
             waypoint_clear_client();                                // ! remove this later
             n = n + 2;
@@ -164,12 +167,14 @@ int main(int argc, char **argv){
                 wp = create_waypoint(16, 0, latitude[n], longitude[n], altitude[n]);
                 wp_push_srv.request.waypoints.push_back(wp);
                 wp_client.call(wp_push_srv);
+                change_mode();
             }
             else {
                 ROS_INFO("End of WP table reached. Doing an RTL now.");
                 wp = create_waypoint(20, 0, 0, 0, 0);               // ! double check this in SITL
                 wp_push_srv.request.waypoints.push_back(wp);
                 wp_client.call(wp_push_srv);
+                change_mode();
             }
         }
     }

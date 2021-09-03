@@ -126,6 +126,7 @@ int main(int argc, char **argv){
         usleep(1/refresh_rate * 1e6);                               // refresh rate in us
         if (n.param("trigger/metadata", met_flag) == true){         // check if flag set by wp_trigger
             ROS_INFO("Saving Waypoint #%i metadata in ./logs/metadata/", wp_num);
+            n.setParam("trigger/waypoint", true);                   // ! remove this later
             local_pose_f.open(local_pose, std::ios_base::app);
             global_pose_f.open(global_pose, std::ios_base::app);    // append data to previous
             sdr_d_temp_f.open(sdr_d_temp, std::ios_base::app);      //      ofstream objects
