@@ -7,6 +7,7 @@
 * author: KM
 * date: 28th Aug 2021
 */
+// #FIXME: precision of the data being written is too low
 
 #include "ros/ros.h"
 #include <iostream>
