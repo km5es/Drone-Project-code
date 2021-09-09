@@ -22,7 +22,8 @@
 #include <iterator>
 #include <sstream>
 #include <iomanip>
-#include <stdexcept>      // std::out_of_range
+#include <stdexcept>        // std::out_of_range
+#include <stdlib.h>         // EXIT_SUCCESS         
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/Waypoint.h>
@@ -150,16 +151,15 @@ int main(int argc, char **argv){
         usleep(5e4);
         if (nh.param("trigger/sequence", seq_flag) == true){
             waypoint_clear_client();
-            nh.setParam("trigger/metadata", true);                  // ! remove this later
-            sleep(10);                                               // ! remove this later
         }
-        if (nh.param("trigger/waypoint", seq_flag) == true){
+        if (nh.param("trigger/waypoint", way_flag) == true){
             nh.setParam("trigger/waypoint", false);
-            nh.setParam("trigger/metadata", false);                 // ! remove this later      
             ROS_INFO("Updating WP table.");
-            waypoint_clear_client();                                // ! remove this later
             n = n + 2;
             if (n <= altitude.size() - 2){
+                //mavros_msgs::Waypoint* wp_p = &wp;
+                //delete wp_p;                          // this is dumb
+                //mavros_msgs::Waypoint wp;           // re-initialize wp so it is empty
                 wp = create_waypoint(22, 0, latitude[n], longitude[n], altitude[n]);
                 wp_push_srv.request.waypoints.push_back(wp);
                 wp = create_waypoint(115, param1[n+1], latitude[n], longitude[n], altitude[n]);
@@ -170,11 +170,12 @@ int main(int argc, char **argv){
                 change_mode();
             }
             else {
-                ROS_INFO("End of WP table reached. Doing an RTL now.");
+                ROS_INFO("End of WP table reached. Doing an RTL now and terminating this program.");
                 wp = create_waypoint(20, 0, 0, 0, 0);               // ! double check this in SITL
                 wp_push_srv.request.waypoints.push_back(wp);
                 wp_client.call(wp_push_srv);
                 change_mode();
+                exit(EXIT_SUCCESS);
             }
         }
     }

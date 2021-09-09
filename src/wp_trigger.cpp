@@ -58,7 +58,7 @@ void get_velocity(const nav_msgs::Odometry::ConstPtr& msg){
     double y_vel = msg->twist.twist.linear.y;
     double z_vel = msg->twist.twist.linear.z;
     double v = sqrt(pow(x_vel, 2) + pow(y_vel, 2) + pow(z_vel, 2));
-    ROS_INFO("v = %f", v);
+    //ROS_INFO("v = %f", v);
 }
 
 // Retrieve current waypoints on the FCU
@@ -73,7 +73,7 @@ void get_waypoints(const mavros_msgs::WaypointList& msg){
 void get_haversine(const sensor_msgs::NavSatFix::ConstPtr& msg){
     if (msg->status.status == 0){
         h = haversine(msg->latitude, msg->longitude, wp_list[1].x_lat, wp_list[1].y_long);
-        ROS_INFO("Distance to next WP is %f m", h);
+        //ROS_INFO("Distance to next WP is %f m", h);
         h_mtx.lock();   // lock this thread so that 3D distance can be computed
     }
     else if (msg->status.status == -1){
@@ -100,11 +100,11 @@ void get_distance(const geometry_msgs::PoseStamped::ConstPtr& msg){
 int main(int argc, char **argv){
     ros::init(argc, argv, "wp_trigger");
     ros::NodeHandle n;
+    n.setParam("trigger/sequence", false);
     ros::Subscriber sub1 = n.subscribe("/mavros/local_position/odom", 1000, get_velocity);
     ros::Subscriber sub2 = n.subscribe("/mavros/mission/waypoints", 1000, get_waypoints);
     ros::Subscriber sub3 = n.subscribe("/mavros/global_position/global", 1000, get_haversine);
     ros::Subscriber sub4 = n.subscribe("/mavros/local_position/pose", 1000, get_distance);
     ros::spin();
-    n.setParam("trigger/sequence", false);
     return 0;
 }
