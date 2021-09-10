@@ -26,6 +26,7 @@ double vel_threshold    = 0.35;     // linear velocity threshold for starting ca
 double pos_error_tol    = 1.0;      // acceptable 3D radius around setpoint to start cal (m)
 double wp_wait_timeout  = 10.0;     // sleep code for this much time after flag is set (s)
 double h, v;                        // global 2D haversince distance and linear velocity (m, m/s)
+bool loc_flag;                      // this flag is set on RTL so as to not trigger seq then
 std::vector<mavros_msgs::Waypoint> wp_list;
 std::mutex h_mtx;                   // haversine calculation event
 
@@ -83,11 +84,12 @@ void get_haversine(const sensor_msgs::NavSatFix::ConstPtr& msg){
 
 // Calculate in real-time what teh 3D distance is to the current WP
 void get_distance(const geometry_msgs::PoseStamped::ConstPtr& msg){
+    ros::NodeHandle m;
     if (!h_mtx.try_lock()){     // ensure that 2D distance is first calculated
         double alt_diff = wp_list[1].z_alt - msg->pose.position.z;
         double distance = sqrt(pow(distance, 2) + pow(h, 2));
         // check to see if drone stability conditions are met
-        if (distance < pos_error_tol && v <= vel_threshold){
+        if (distance < pos_error_tol && v <= vel_threshold && m.param("trigger/locktrig", loc_flag) == false){
             ROS_INFO(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.");
             // this begins the whole sequence. will trigger/metadata next.
             ros::param::set("trigger/sequence", true);

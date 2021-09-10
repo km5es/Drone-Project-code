@@ -133,11 +133,14 @@ int main(int argc, char **argv){
     }
     ros::init(argc, argv, "write_WP");
     ros::NodeHandle nh;
+    nh.setParam("trigger/sequence", false);                     // seq flag begins events
+    nh.setParam("trigger/waypoint", false);                     // wp flag updates wp table
+    nh.setParam("trigger/locktrig", false);                     // makes sure seq isnt set on rtl
     ros::ServiceClient wp_client = 
                 nh.serviceClient<mavros_msgs::WaypointPush>("mavros/mission/push");
     mavros_msgs::WaypointPush wp_push_srv;          // List of Waypoints
     mavros_msgs::Waypoint wp;                       // WPs object
-    waypoint_clear_client();
+    waypoint_clear_client();                        // clear prev mission
     int n = 1;                                      // wp counters
     //? create initial WP on bootup
     wp = create_waypoint(22, 0, latitude[0], longitude[0], altitude[0]);
@@ -148,7 +151,7 @@ int main(int argc, char **argv){
     wp_push_srv.request.waypoints.push_back(wp);
     wp_client.call(wp_push_srv);                    // this pushes WP list to FCU
     while (ros::ok()){
-        usleep(5e4);
+        usleep(5e4);                                // 20 Hz
         if (nh.param("trigger/sequence", seq_flag) == true){
             waypoint_clear_client();
         }
@@ -157,25 +160,24 @@ int main(int argc, char **argv){
             ROS_INFO("Updating WP table.");
             n = n + 2;
             if (n <= altitude.size() - 2){
-                //mavros_msgs::Waypoint* wp_p = &wp;
-                //delete wp_p;                          // this is dumb
-                //mavros_msgs::Waypoint wp;           // re-initialize wp so it is empty
-                wp = create_waypoint(22, 0, latitude[n], longitude[n], altitude[n]);
-                wp_push_srv.request.waypoints.push_back(wp);
-                wp = create_waypoint(115, param1[n+1], latitude[n], longitude[n], altitude[n]);
-                wp_push_srv.request.waypoints.push_back(wp);
-                wp = create_waypoint(16, 0, latitude[n], longitude[n], altitude[n]);
-                wp_push_srv.request.waypoints.push_back(wp);
+                // replace previous WPs with updated ones
+                wp_push_srv.request.waypoints[0] = 
+                                create_waypoint(22, 0, latitude[n], longitude[n], altitude[n]);
+                wp_push_srv.request.waypoints[1] = 
+                                create_waypoint(115, param1[n+1], latitude[n], longitude[n], altitude[n]);
+                wp_push_srv.request.waypoints[2] = 
+                                create_waypoint(16, 0, latitude[n], longitude[n], altitude[n]);
                 wp_client.call(wp_push_srv);
                 change_mode();
             }
             else {
                 ROS_INFO("End of WP table reached. Doing an RTL now and terminating this program.");
-                wp = create_waypoint(20, 0, 0, 0, 0);               // ! double check this in SITL
+                wp = create_waypoint(20, 0, 0, 0, 0);       // FIXME: change with service call RTL
                 wp_push_srv.request.waypoints.push_back(wp);
                 wp_client.call(wp_push_srv);
                 change_mode();
-                exit(EXIT_SUCCESS);
+                nh.setParam("trigger/locktrig", true);      // make sure seq is not triggered on RTL
+                exit(EXIT_SUCCESS);                         // exit because why not?
             }
         }
     }

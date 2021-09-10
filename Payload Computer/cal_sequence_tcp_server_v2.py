@@ -24,7 +24,7 @@ from termcolor import colored
 from datetime import datetime
 from threading import Thread, Event
 from os.path import expanduser
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 
 
 ### Define global variables
@@ -67,13 +67,13 @@ ser_timeout         = serial.Serial()
 wp_timeout          = 15
 rospy.set_param('trigger/sequence', False)
 
-GPIO.setwarnings(False) 
-GPIO.setmode(GPIO.BCM)
-GPIO_pin = 12   # 12 is circular, 16 is pol switch, 20 is Pol1 and 21 is Pol2
-GPIO.setup (12, GPIO.OUT, initial=GPIO.HIGH) # Set initial value
-GPIO.setup (16, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+#GPIO.setwarnings(False) 
+#GPIO.setmode(GPIO.BCM)
+#GPIO_pin = 12   # 12 is circular, 16 is pol switch, 20 is Pol1 and 21 is Pol2
+#GPIO.setup (12, GPIO.OUT, initial=GPIO.HIGH) # Set initial value
+#GPIO.setup (16, GPIO.OUT, initial=GPIO.LOW)
+#GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+#GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
@@ -494,14 +494,15 @@ def stream_file_no_telem():
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint/3:
-                    GPIO.output(12, GPIO.LOW)
-                    GPIO.output(16, GPIO.HIGH)
-                    GPIO.output(20, GPIO.HIGH)
+                    #GPIO.output(12, GPIO.LOW)
+                    #GPIO.output(16, GPIO.HIGH)
+                    #GPIO.output(20, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
                 if pulses == 2*togglePoint/3:
-                    GPIO.output(20, GPIO.LOW)
-                    GPIO.output(21, GPIO.HIGH)
+                    print("2/3rd point reached.")
+                    #GPIO.output(20, GPIO.LOW)
+                    #GPIO.output(21, GPIO.HIGH)
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
@@ -509,10 +510,10 @@ def stream_file_no_telem():
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True) 
-            GPIO.output(16, GPIO.LOW)
-            GPIO.output(20, GPIO.LOW)
-            GPIO.output(21, GPIO.LOW)
-            GPIO.output(12, GPIO.HIGH)
+            #GPIO.output(16, GPIO.LOW)
+            #GPIO.output(20, GPIO.LOW)
+            #GPIO.output(21, GPIO.LOW)
+            #GPIO.output(12, GPIO.HIGH)
 
 
 def main():
