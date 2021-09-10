@@ -7,7 +7,6 @@
 * author: KM
 * date: 28th Aug 2021
 */
-// #FIXME: precision of the data being written is too low
 
 #include "ros/ros.h"
 #include <iostream>
@@ -19,6 +18,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <iomanip>          // std::setprecision()
 #include "sensor_msgs/Imu.h"
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -79,7 +79,8 @@ void callback_local(const geometry_msgs::PoseStamped::ConstPtr& msg){
     std::string current_time = get_timestamp();
     local_pose_f.open(local_pose, std::ios_base::app);
     local_pose_f << current_time << "\t" << msg->pose.position.x << "\t" 
-                    << msg->pose.position.y << "\t" << msg->pose.position.z << std::endl;
+                    << msg->pose.position.y << "\t" << msg->pose.position.z 
+                    << std::setprecision(12) << std::endl;
 }
 
 //* GPS raw data
@@ -87,14 +88,16 @@ void callback_global(const sensor_msgs::NavSatFix::ConstPtr& msg){
     std::string current_time = get_timestamp();
     global_pose_f.open(global_pose, std::ios_base::app);
     global_pose_f << current_time << "\t" << msg->latitude << "\t" 
-                    << msg->longitude << "\t" << msg->altitude << std::endl; 
+                    << msg->longitude << "\t" << msg->altitude  
+                    << std::setprecision(12) << std::endl; 
 }
 
 //* SDR temperature
 void callback_SDR(const std_msgs::Float32::ConstPtr& msg){
     std::string current_time = get_timestamp();
     sdr_d_temp_f.open(sdr_d_temp, std::ios_base::app);
-    sdr_d_temp_f << current_time << "\t" << msg->data << std::endl;
+    sdr_d_temp_f << current_time << "\t" << msg->data 
+                    << std::setprecision(12) << std::endl;
 }
 
 int main(int argc, char **argv){
@@ -111,7 +114,7 @@ int main(int argc, char **argv){
     global_pose_f.open(global_pose);
     global_pose_f << "Timestamp\tLongitude\tLatitude\tAltitude\n";
     std::string &sdr_d_ptr = sdr_d_temp;
-    sdr_d_ptr = logs_path + time_now + "sdr_d_temp.log";
+    sdr_d_ptr = logs_path + time_now + "_sdr_d_temp.log";
     sdr_d_temp_f.open(sdr_d_temp);
     sdr_d_temp_f << "Timestamp\tSDR Temperature (deg C)\n";
     close_files();
@@ -127,7 +130,6 @@ int main(int argc, char **argv){
         usleep(1/refresh_rate * 1e6);                               // refresh rate in us
         if (n.param("trigger/metadata", met_flag) == true){         // check if flag set by wp_trigger
             ROS_INFO("Saving Waypoint #%i metadata in ./logs/metadata/", wp_num);
-            n.setParam("trigger/waypoint", true);                   // ! remove this later
             local_pose_f.open(local_pose, std::ios_base::app);
             global_pose_f.open(global_pose, std::ios_base::app);    // append data to previous
             sdr_d_temp_f.open(sdr_d_temp, std::ios_base::app);      //      ofstream objects
