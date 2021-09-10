@@ -5,6 +5,7 @@
 
 source ~/.bashrc
 source /opt/ros/melodic/setup.bash
+source ~/catkin_ws/devel/setup.bash
 
 ### wait for MAVROS and FCU to boot up
 sleep 30
