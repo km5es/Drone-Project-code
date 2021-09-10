@@ -9,22 +9,27 @@
 */ 
 
 #include "ros/ros.h"
-#include "sensor_msgs/Imu.h"
-#include "nav_msgs/Odometry.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "mavros_msgs/WaypointList.h"
-#include "mavros_msgs/Waypoint.h"
 #include <iostream>
 #include <math.h>
 #include <cmath>
 #include <thread>
 #include <mutex>
 #include <unistd.h>
+#include <math.h>           // M_PI (pi)
+#include "geometry_msgs/Quaternion.h"
+#include "tf/transform_datatypes.h"
+#include "sensor_msgs/Imu.h"
+#include "nav_msgs/Odometry.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "sensor_msgs/NavSatFix.h"
+#include "mavros_msgs/WaypointList.h"
+#include "mavros_msgs/Waypoint.h"
 
 double vel_threshold    = 0.35;     // linear velocity threshold for starting cal (m/s)
 double pos_error_tol    = 1.0;      // acceptable 3D radius around setpoint to start cal (m)
 double wp_wait_timeout  = 10.0;     // sleep code for this much time after flag is set (s)
+double ori_threshold    = 10.0;     // maximum roll or pitch allowed at each WP (deg)
+double roll, pitch, yaw;            // current roll, pitch and yaw (deg)
 double h, v;                        // global 2D haversince distance and linear velocity (m, m/s)
 bool loc_flag;                      // this flag is set on RTL so as to not trigger seq then
 std::vector<mavros_msgs::Waypoint> wp_list;
@@ -59,6 +64,12 @@ void get_velocity(const nav_msgs::Odometry::ConstPtr& msg){
     double y_vel = msg->twist.twist.linear.y;
     double z_vel = msg->twist.twist.linear.z;
     double v = sqrt(pow(x_vel, 2) + pow(y_vel, 2) + pow(z_vel, 2));
+    tf::Quaternion q;
+    tf::quaternionMsgToTF(msg->pose.pose.orientation, q);   // convert quaternions to
+    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);              //   euler angles (rad)
+    roll = roll * 180.0/M_PI; 
+    pitch = pitch * 180.0/M_PI;                             // convert to deg from rad
+    yaw = yaw * 180.0/M_PI;  
     //ROS_INFO("v = %f", v);
 }
 
@@ -67,7 +78,8 @@ void get_velocity(const nav_msgs::Odometry::ConstPtr& msg){
 void get_waypoints(const mavros_msgs::WaypointList& msg){
     wp_list = msg.waypoints;
     ROS_INFO("Retrieved WP list");
-    ROS_INFO("The current target WP coords are %f, %f, and %f", wp_list[1].x_lat, wp_list[1].y_long, wp_list[1].z_alt);
+    ROS_INFO("The current target WP coords are %f, %f, and %f", 
+                wp_list[1].x_lat, wp_list[1].y_long, wp_list[1].z_alt);
 }
 
 // Calculate in real-time what the 2D distance is to the current WP
@@ -89,7 +101,9 @@ void get_distance(const geometry_msgs::PoseStamped::ConstPtr& msg){
         double alt_diff = wp_list[1].z_alt - msg->pose.position.z;
         double distance = sqrt(pow(distance, 2) + pow(h, 2));
         // check to see if drone stability conditions are met
-        if (distance < pos_error_tol && v <= vel_threshold && m.param("trigger/locktrig", loc_flag) == false){
+        if (distance < pos_error_tol && v <= vel_threshold && 
+                (roll <= ori_threshold && pitch <= ori_threshold) &&
+                        m.param("trigger/locktrig", loc_flag) == false){
             ROS_INFO(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.");
             // this begins the whole sequence. will trigger/metadata next.
             ros::param::set("trigger/sequence", true);
