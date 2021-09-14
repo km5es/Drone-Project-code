@@ -490,6 +490,7 @@ def stream_file_no_telem():
             print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
             pulses = 0
+            time.sleep(2)       # ! remove this later
             for pulses in range(togglePoint):
                 conn.send(cal_signal)
                 pulses += 1

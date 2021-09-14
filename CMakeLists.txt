@@ -146,6 +146,8 @@ add_executable(get_metadata src/get_metadata.cpp)
 target_link_libraries(get_metadata ${catkin_LIBRARIES})
 add_executable(write_WPs src/write_WPs.cpp)
 target_link_libraries(write_WPs ${catkin_LIBRARIES})
+add_executable(cal_seq src/cal_sequence_tcp_server_v2.cpp)
+target_link_libraries(cal_seq ${catkin_LIBRARIES})
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
