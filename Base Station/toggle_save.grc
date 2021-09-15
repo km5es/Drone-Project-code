@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>149e6</value>
+      <value>meas_freq - wave_freq</value>
     </param>
   </block>
   <block>
@@ -194,7 +194,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>60</value>
+      <value>20</value>
     </param>
   </block>
   <block>
@@ -275,7 +275,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>3.84e6</value>
+      <value>7.5e6</value>
     </param>
   </block>
   <block>
@@ -349,7 +349,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>samp_rate/8</value>
+      <value>samp_rate/3</value>
     </param>
   </block>
   <block>

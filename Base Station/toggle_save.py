@@ -5,7 +5,7 @@
 # Title: Toggle Save
 # Author: Krishna Makhija
 # Description: This flowgraph will simply save data when the checkbox is ticked.
-# Generated: Tue Aug  3 18:24:19 2021
+# Generated: Wed Sep 15 19:04:00 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -67,13 +67,13 @@ class toggle_save(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 3.84e6
-        self.wave_freq = wave_freq = samp_rate/8
+        self.samp_rate = samp_rate = 7.5e6
+        self.wave_freq = wave_freq = samp_rate/3
+        self.meas_freq = meas_freq = 150e6
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
-        self.meas_freq = meas_freq = 150e6
         self.gain = gain = 20
-        self.freq = freq = 149e6
+        self.freq = freq = meas_freq - wave_freq
 
         ##################################################
         # Blocks
@@ -135,7 +135,7 @@ class toggle_save(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.set_wave_freq(self.samp_rate/8)
+        self.set_wave_freq(self.samp_rate/3)
         self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
 
     def get_wave_freq(self):
@@ -143,6 +143,14 @@ class toggle_save(gr.top_block, Qt.QWidget):
 
     def set_wave_freq(self, wave_freq):
         self.wave_freq = wave_freq
+        self.set_freq(self.meas_freq - self.wave_freq)
+
+    def get_meas_freq(self):
+        return self.meas_freq
+
+    def set_meas_freq(self, meas_freq):
+        self.meas_freq = meas_freq
+        self.set_freq(self.meas_freq - self.wave_freq)
 
     def get_toggle(self):
         return self.toggle
@@ -157,12 +165,6 @@ class toggle_save(gr.top_block, Qt.QWidget):
 
     def set_min_buffer(self, min_buffer):
         self.min_buffer = min_buffer
-
-    def get_meas_freq(self):
-        return self.meas_freq
-
-    def set_meas_freq(self, meas_freq):
-        self.meas_freq = meas_freq
 
     def get_gain(self):
         return self.gain
