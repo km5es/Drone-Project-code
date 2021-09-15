@@ -72,7 +72,7 @@ class toggle_save(gr.top_block, Qt.QWidget):
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
         self.meas_freq = meas_freq = 150e6
-        self.gain = gain = 30
+        self.gain = gain = 20
         self.freq = freq = 149e6
 
         ##################################################
