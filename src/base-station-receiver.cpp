@@ -1,9 +1,10 @@
 /*
-* C++ version of /Payload\ Computer/cal_sequence_tcp_server_v2.py
+* C++ version of /Base\ Station/base-station-receiver.py
 * 
 * author: KM
 * date: 13th Oct 2021
 */
+
 #include "ros/ros.h"    // for checking ROS flags
 #include <stdio.h>
 #include <string.h>
@@ -14,14 +15,12 @@
 #include <iostream>
 #include <cstring>
 #include <string>
-#include <time.h>
 
 // Define namespaces
 using namespace std;
-using namespace ros;
 
 // Global variables
-string telem_source        = "/dev/ttyUSB0";
+string telem_source        = "/dev/ttyUSB1";
 string heartbeat_check     = "hrt_beat";            // heartbeat every n secs
 string heartbeat_conf      = "OK_hrtbt";            // heartbeat confirmation
 string startup_initiate    = "pay_INIT";            // check to see if payload is running
@@ -43,7 +42,6 @@ int sample_packet          = 4096*16;               // Length of one pulse.
 int repeat_keyword         = 1;                     // how many times to repeat serial msg
 int ser_timeout            = 30;                    // serial timeout when waiting for handshake (deciseconds)
 const int buff_size        = handshake_start.length() * repeat_keyword;
-bool seq_flag;
 
 
 //? convert string to char array for serial transmit
@@ -56,12 +54,12 @@ char* get_char_array(string str_obj){
 //? take input string, repeat and concatenate it n times
 string create_msg(string str_obj, int repeat_keyword){
     string str_obj_a = str_obj;
-    for (int i = 1; i < repeat_keyword; i++){
+    for (int i = 1; i < repeat_keyword;){
         str_obj_a = str_obj_a.append(str_obj);
+        i++;
     }
     return str_obj_a;
 }
-
 
 //? returns different serial object based on timeout conditions
 //? vmin = number of bytes to wait for 
@@ -122,29 +120,21 @@ int get_serial_obj(int vtime, int vmin){
 int main(int argc, char **argv){
     int tx_ser          = get_serial_obj(1, 0);                     
     int rx_ser          = get_serial_obj(0, buff_size);    
-    int rx_ser_timeout  = get_serial_obj(ser_timeout, buff_size); 
+    int rx_ser_timeout  = get_serial_obj(ser_timeout, buff_size);
     char read_buf[8];
-    ros::init(argc, argv, "cal_sequence");
-    ros::NodeHandle n;
-    n.setParam("trigger/sequence", false);
-    while (ros::ok()){
-        usleep(10e3);
-        if (n.param("trigger/sequence", seq_flag) == true){
-            cout << "Drone has reached WP. Sending handshake to base to begin acquisition." << endl;
-            n.setParam("trigger/sequence", false);
-            write(tx_ser, get_char_array(create_msg(handshake_start, repeat_keyword)), buff_size);
-            int m = read(rx_ser_timeout, &read_buf, buff_size);
-            if (m != 0){
-                m = 0;
-                if (strstr(read_buf, "serialOK")){
-                    cout << "Handshake confirmation received from base. Beginning calibration sequence, and saving metadata." << endl;
-                    usleep(2e6);
-                    write(tx_ser, get_char_array(create_msg(toggle_OFF, repeat_keyword)), buff_size);
-                    int n = read(rx_ser, &read_buf, buff_size);
-                    if (n != 0){
-                        if (strstr(read_buf, "confSTOP")){
-                            cout << "Base has stopped acquisition. Sequence complete." << endl;
-                        }
+    while (true){
+        int m = read(rx_ser, &read_buf, buff_size);
+        if (m != 0){
+            m = 0;
+            if (strstr(read_buf, "is_comms")){
+                cout << "Drone has reached WP, sending confirmation and beginning acquisition now." << endl;
+                write(tx_ser, get_char_array(create_msg(handshake_conf, repeat_keyword)), buff_size);
+                int n = read(rx_ser, &read_buf, buff_size);
+                if (n != 0){
+                    n = 0;
+                    if (strstr(read_buf, "stop_acq")){
+                        cout << "Data acquisition toggled OFF" << endl;
+                        write(tx_ser, get_char_array(create_msg(stop_acq_conf, repeat_keyword)), buff_size);
                     }
                 }
             }
