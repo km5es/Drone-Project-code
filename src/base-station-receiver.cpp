@@ -20,7 +20,7 @@
 using namespace std;
 
 // Global variables
-string telem_source        = "/dev/ttyUSB1";
+string telem_source        = "/dev/ttyF450";
 string heartbeat_check     = "hrt_beat";            // heartbeat every n secs
 string heartbeat_conf      = "OK_hrtbt";            // heartbeat confirmation
 string startup_initiate    = "pay_INIT";            // check to see if payload is running
