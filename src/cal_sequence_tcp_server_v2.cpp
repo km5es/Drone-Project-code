@@ -119,34 +119,45 @@ int get_serial_obj(int vtime, int vmin){
     return serial_port;
 }
 
+//TODO: add else statements if comms fail
+//TODO: logging? or cout received messages at least
+//TODO: long term: multithreading
 int main(int argc, char **argv){
     int tx_ser          = get_serial_obj(1, 0);                     
     int rx_ser          = get_serial_obj(0, buff_size);    
     int rx_ser_timeout  = get_serial_obj(ser_timeout, buff_size); 
     char read_buf[8];
     ros::init(argc, argv, "cal_sequence");
-    ros::NodeHandle n;
-    n.setParam("trigger/sequence", false);
+    ros::NodeHandle node;
+    node.setParam("trigger/sequence", false);
     while (ros::ok()){
         usleep(10e3);
-        if (n.param("trigger/sequence", seq_flag) == true){
+        if (node.param("trigger/sequence", seq_flag) == true){
             cout << "Drone has reached WP. Sending handshake to base to begin acquisition." << endl;
-            n.setParam("trigger/sequence", false);
+            node.setParam("trigger/sequence", false);
             write(tx_ser, get_char_array(create_msg(handshake_start, repeat_keyword)), buff_size);
             int m = read(rx_ser_timeout, &read_buf, buff_size);
-            if (m != 0){
-                m = 0;
-                if (strstr(read_buf, "serialOK")){
-                    cout << "Handshake confirmation received from base. Beginning calibration sequence, and saving metadata." << endl;
-                    usleep(2e6);
-                    write(tx_ser, get_char_array(create_msg(toggle_OFF, repeat_keyword)), buff_size);
-                    int n = read(rx_ser, &read_buf, buff_size);
-                    if (n != 0){
-                        if (strstr(read_buf, "confSTOP")){
-                            cout << "Base has stopped acquisition. Sequence complete." << endl;
-                        }
-                    }
+            if (strstr(read_buf, "serialOK")){
+                cout << "Handshake confirmation received from base. Beginning calibration sequence, and saving metadata." << endl;
+                node.setParam("trigger/metadata", true);
+                usleep(2e6);
+                write(tx_ser, get_char_array(create_msg(toggle_OFF, repeat_keyword)), buff_size);
+                int n = read(rx_ser_timeout, &read_buf, buff_size);
+                if (strstr(read_buf, "confSTOP")){
+                    cout << "Base has stopped acquisition. Sequence complete." << endl;
+                    node.setParam("trigger/metadata", false);
+                    node.setParam("trigger/waypoint", true);
                 }
+                else{
+                    cout << "No stop acq confirmation from base. serial data: " << read_buf << endl;
+                    node.setParam("trigger/metadata", false);
+                    node.setParam("trigger/waypoint", true);
+                }
+            }
+            else{
+                cout << "No handshake confirmation from base. CAL was NOT performed. Serial data: " << read_buf << endl;
+                node.setParam("trigger/waypoint", true);
+
             }
         }
     }

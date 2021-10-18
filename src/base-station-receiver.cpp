@@ -124,19 +124,16 @@ int main(int argc, char **argv){
     char read_buf[8];
     while (true){
         int m = read(rx_ser, &read_buf, buff_size);
-        if (m != 0){
-            m = 0;
-            if (strstr(read_buf, "is_comms")){
-                cout << "Drone has reached WP, sending confirmation and beginning acquisition now." << endl;
-                write(tx_ser, get_char_array(create_msg(handshake_conf, repeat_keyword)), buff_size);
-                int n = read(rx_ser, &read_buf, buff_size);
-                if (n != 0){
-                    n = 0;
-                    if (strstr(read_buf, "stop_acq")){
-                        cout << "Data acquisition toggled OFF" << endl;
-                        write(tx_ser, get_char_array(create_msg(stop_acq_conf, repeat_keyword)), buff_size);
-                    }
-                }
+        if (strstr(read_buf, "is_comms")){
+            cout << "Drone has reached WP, sending confirmation and beginning acquisition now." << endl;
+            write(tx_ser, get_char_array(create_msg(handshake_conf, repeat_keyword)), buff_size);
+            int n = read(rx_ser_timeout, &read_buf, buff_size);
+            if (strstr(read_buf, "stop_acq")){
+                cout << "Data acquisition toggled OFF" << endl;
+                write(tx_ser, get_char_array(create_msg(stop_acq_conf, repeat_keyword)), buff_size);
+            }
+            else{
+                cout << "No stop acquisition recd from drone. Serial data: " << read_buf << endl;
             }
         }
     }
