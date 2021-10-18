@@ -2,6 +2,7 @@
 kill -9 $(fuser /dev/ttyUSB0)
 source ~/.bashrc
 source /opt/ros/melodic/setup.bash
+source ~/catkin_ws/devel/setup.bash
 
 lsof -t -i tcp:8810 | xargs kill -9
 cd ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/
