@@ -2,7 +2,11 @@
 <img src="calibration_animation.gif" width=1000 align=center>
 
 ## Description
-A high accuracy drone-based calibrator targeted towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. The following README will detail how to get the SITL simulations to run. These simulations combine the SDR code with ROS and the flight stack to make the calibration autonomous. More details inside each folder. Clone the repo into a catkin workspace:
+The Precision Radio Instrument for Antenna Measurements (PRAM) is a high accuracy drone-based calibrator targeted primarily towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. The following README will detail how to install dependencies on the base station computer and run the SITL simulations. These simulations combine the SDR code with ROS and the flight stack to make the calibration autonomous. More details inside each folder. The repo containing CAD files, PCB designs and RF simulations lives [here](https://github.com/km5es/Drone-Project-CAD.git). 
+
+> **Note**: A complete [Gitbook](app.gitbook.com) guide is in the works and will be put up here duly.
+
+Start by cloning the repo into a catkin workspace:
 ```
 mkdir /home/$USER/catkin_ws/src/ -p
 cd /home/$USER/catkin_ws/src
@@ -10,7 +14,12 @@ git clone https://github.com/km5es/Drone-Project-code.git
 ```
 
 ## Dependencies:
-As of now, everything is tested on Ubuntu 18.04. Here are (some) of the additional dependencies. Follow instructions in the links for more.
+As of now, these are the most pertinent top-level software dependencies:
+- Ubuntu 18.04
+- Python 2.7
+- [Ardupilot](https://ardupilot.org/) firmware for the flight controller.
+
+Here are (some) of the additional dependencies. Follow instructions in the links for more. Payload computer dependencies and instructions are provided [here](./Payload%20Computer).
 
 ### UHD and GNU Radio 
 Follow instructions [here](https://kb.ettus.com/Building_and_Installing_the_USRP_Open-Source_Toolchain_(UHD_and_GNU_Radio)_on_Linux). Tested with UHD 3.13.0.0 and 3.15.0.0 and GNU Radio v3.7.13.4. 
@@ -64,7 +73,7 @@ chmod +x ./QGroundControl.AppImage
 ./QGroundControl.AppImage  (or double click)
 ```
 
-#### 6. Build the ROS node:
+#### 6. Build the ROS nodes:
 ```
 cd /home/$USER/catkin_ws/
 catkin_make
