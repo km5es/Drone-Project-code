@@ -5,7 +5,7 @@
 # Title: Generate Waveform Sine
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Wed Jul 21 23:13:12 2021
+# Generated: Fri Oct 22 20:24:52 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -62,34 +62,35 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6/2
+        self.samp_rate = samp_rate = 7.68e6
         self.wave_samp_rate = wave_samp_rate = samp_rate
         self.wave_freq = wave_freq = samp_rate/8
         self.ON_cycles = ON_cycles = 512
         self.samps_per_period = samps_per_period = wave_samp_rate/wave_freq
         self.OFF_cycles = OFF_cycles = 15*ON_cycles
-        self.center_freq = center_freq = 150e6
         self.ON = ON = int(ON_cycles*samps_per_period)
         self.OFF = OFF = int(OFF_cycles*samps_per_period)
         self.stopTime = stopTime = ON/samp_rate
         self.head = head = ON+OFF
-        self.freq = freq = center_freq - wave_freq
+        self.center_freq = center_freq = 150e6
         self.t = t = np.linspace(-stopTime/2, stopTime/2, ON)
+        self.pulses = pulses = 96*2
+        self.pulse_time = pulse_time = (ON+OFF)/samp_rate
+        self.freq = freq = center_freq - wave_freq
         self.Q = Q = head*4
-        self.ON_time = ON_time = ON_cycles/freq
-        self.OFF_time = OFF_time = (OFF_cycles/freq)
         self.variable_tag_object_0 = variable_tag_object_0 = gr.tag_utils.python_to_tag((0, pmt.intern("key"), pmt.intern("value"), pmt.intern("src")))
         self.timeout = timeout = 4096/samp_rate
         self.ring_buffer_size = ring_buffer_size = 4096
-        self.pulses = pulses = 96
         self.min_buffer = min_buffer = 512*4096
         self.gauss_envelope = gauss_envelope = np.exp(-(2*np.pi*freq*t/Q)**2)
         self.gain = gain = 20
         self.duty_cycle = duty_cycle = OFF/ON
         self.WAIT = WAIT = ON+OFF
-        self.TX_time_0 = TX_time_0 = (ON_time + OFF_time)/4
+        self.TX_time_1 = TX_time_1 = pulse_time * pulses
         self.TX_time = TX_time = head/samp_rate
         self.PASS = PASS = ON+OFF
+        self.ON_time = ON_time = ON/samp_rate
+        self.OFF_time = OFF_time = OFF/samp_rate
 
         ##################################################
         # Blocks
@@ -135,8 +136,11 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         self.set_wave_freq(self.samp_rate/8)
         self.set_timeout(4096/self.samp_rate)
         self.set_stopTime(self.ON/self.samp_rate)
+        self.set_pulse_time((self.ON+self.OFF)/self.samp_rate)
         self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.set_TX_time(self.head/self.samp_rate)
+        self.set_ON_time(self.ON/self.samp_rate)
+        self.set_OFF_time(self.OFF/self.samp_rate)
 
     def get_wave_samp_rate(self):
         return self.wave_samp_rate
@@ -161,7 +165,6 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_ON_cycles(self, ON_cycles):
         self.ON_cycles = ON_cycles
         self.set_ON(int(self.ON_cycles*self.samps_per_period))
-        self.set_ON_time(self.ON_cycles/self.freq)
         self.set_OFF_cycles(15*self.ON_cycles)
 
     def get_samps_per_period(self):
@@ -178,14 +181,6 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_OFF_cycles(self, OFF_cycles):
         self.OFF_cycles = OFF_cycles
         self.set_OFF(int(self.OFF_cycles*self.samps_per_period))
-        self.set_OFF_time((self.OFF_cycles/self.freq))
-
-    def get_center_freq(self):
-        return self.center_freq
-
-    def set_center_freq(self, center_freq):
-        self.center_freq = center_freq
-        self.set_freq(self.center_freq - self.wave_freq)
 
     def get_ON(self):
         return self.ON
@@ -195,10 +190,12 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         self.set_head(self.ON+self.OFF)
         self.set_t(np.linspace(-self.stopTime/2, self.stopTime/2, self.ON))
         self.set_stopTime(self.ON/self.samp_rate)
+        self.set_pulse_time((self.ON+self.OFF)/self.samp_rate)
         self.set_duty_cycle(self.OFF/self.ON)
         self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
         self.set_WAIT(self.ON+self.OFF)
         self.set_PASS(self.ON+self.OFF)
+        self.set_ON_time(self.ON/self.samp_rate)
 
     def get_OFF(self):
         return self.OFF
@@ -206,10 +203,12 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_OFF(self, OFF):
         self.OFF = OFF
         self.set_head(self.ON+self.OFF)
+        self.set_pulse_time((self.ON+self.OFF)/self.samp_rate)
         self.set_duty_cycle(self.OFF/self.ON)
         self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
         self.set_WAIT(self.ON+self.OFF)
         self.set_PASS(self.ON+self.OFF)
+        self.set_OFF_time(self.OFF/self.samp_rate)
 
     def get_stopTime(self):
         return self.stopTime
@@ -227,14 +226,12 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         self.set_TX_time(self.head/self.samp_rate)
         self.set_Q(self.head*4)
 
-    def get_freq(self):
-        return self.freq
+    def get_center_freq(self):
+        return self.center_freq
 
-    def set_freq(self, freq):
-        self.freq = freq
-        self.set_gauss_envelope(np.exp(-(2*np.pi*self.freq*self.t/self.Q)**2))
-        self.set_ON_time(self.ON_cycles/self.freq)
-        self.set_OFF_time((self.OFF_cycles/self.freq))
+    def set_center_freq(self, center_freq):
+        self.center_freq = center_freq
+        self.set_freq(self.center_freq - self.wave_freq)
 
     def get_t(self):
         return self.t
@@ -243,26 +240,33 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         self.t = t
         self.set_gauss_envelope(np.exp(-(2*np.pi*self.freq*self.t/self.Q)**2))
 
+    def get_pulses(self):
+        return self.pulses
+
+    def set_pulses(self, pulses):
+        self.pulses = pulses
+        self.set_TX_time_1(self.pulse_time * self.pulses)
+
+    def get_pulse_time(self):
+        return self.pulse_time
+
+    def set_pulse_time(self, pulse_time):
+        self.pulse_time = pulse_time
+        self.set_TX_time_1(self.pulse_time * self.pulses)
+
+    def get_freq(self):
+        return self.freq
+
+    def set_freq(self, freq):
+        self.freq = freq
+        self.set_gauss_envelope(np.exp(-(2*np.pi*self.freq*self.t/self.Q)**2))
+
     def get_Q(self):
         return self.Q
 
     def set_Q(self, Q):
         self.Q = Q
         self.set_gauss_envelope(np.exp(-(2*np.pi*self.freq*self.t/self.Q)**2))
-
-    def get_ON_time(self):
-        return self.ON_time
-
-    def set_ON_time(self, ON_time):
-        self.ON_time = ON_time
-        self.set_TX_time_0((self.ON_time + self.OFF_time)/4)
-
-    def get_OFF_time(self):
-        return self.OFF_time
-
-    def set_OFF_time(self, OFF_time):
-        self.OFF_time = OFF_time
-        self.set_TX_time_0((self.ON_time + self.OFF_time)/4)
 
     def get_variable_tag_object_0(self):
         return self.variable_tag_object_0
@@ -281,12 +285,6 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
 
     def set_ring_buffer_size(self, ring_buffer_size):
         self.ring_buffer_size = ring_buffer_size
-
-    def get_pulses(self):
-        return self.pulses
-
-    def set_pulses(self, pulses):
-        self.pulses = pulses
 
     def get_min_buffer(self):
         return self.min_buffer
@@ -318,11 +316,11 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_WAIT(self, WAIT):
         self.WAIT = WAIT
 
-    def get_TX_time_0(self):
-        return self.TX_time_0
+    def get_TX_time_1(self):
+        return self.TX_time_1
 
-    def set_TX_time_0(self, TX_time_0):
-        self.TX_time_0 = TX_time_0
+    def set_TX_time_1(self, TX_time_1):
+        self.TX_time_1 = TX_time_1
 
     def get_TX_time(self):
         return self.TX_time
@@ -335,6 +333,18 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
 
     def set_PASS(self, PASS):
         self.PASS = PASS
+
+    def get_ON_time(self):
+        return self.ON_time
+
+    def set_ON_time(self, ON_time):
+        self.ON_time = ON_time
+
+    def get_OFF_time(self):
+        return self.OFF_time
+
+    def set_OFF_time(self, OFF_time):
+        self.OFF_time = OFF_time
 
 
 def main(top_block_cls=generate_waveform_sine, options=None):

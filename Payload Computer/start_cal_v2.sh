@@ -15,10 +15,3 @@ sleep 1
 /usr/bin/python gr_cal_tcp_loopback_client.py  
 
 Python_version
-
-
-#<<C++_version_testing
-
-rosrun beam_mapping cal_seq &
-
-#C++_version_testing

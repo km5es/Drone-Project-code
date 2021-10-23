@@ -24,12 +24,12 @@ from termcolor import colored
 from datetime import datetime
 from threading import Thread, Event
 from os.path import expanduser
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 ### Define global variables
 
-togglePoint         = 96                                    # number of pulses after which GPIO is toggled
+togglePoint         = 96                                    # number of pulses per pol
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
@@ -67,13 +67,20 @@ ser_timeout         = serial.Serial()
 wp_timeout          = 15
 rospy.set_param('trigger/sequence', False)
 
-#GPIO.setwarnings(False) 
-#GPIO.setmode(GPIO.BCM)
-#GPIO_pin = 12   # 12 is circular, 16 is pol switch, 20 is Pol1 and 21 is Pol2
-#GPIO.setup (12, GPIO.OUT, initial=GPIO.HIGH) # Set initial value
-#GPIO.setup (16, GPIO.OUT, initial=GPIO.LOW)
-#GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-#GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+### GPIO setup
+GPIO.setwarnings(False) 
+GPIO.setmode(GPIO.BCM)
+GPIO_pin = 12   # 12 is circular, 16 is pol switch, 20 is Pol1 and 21 is Pol2
+''' comment this line when using pol switch 
+GPIO.setup (12, GPIO.OUT, initial=GPIO.HIGH) # Set initial value
+GPIO.setup (16, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+''' 
+#''' comment this line when using "simple" switch
+GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+#'''
 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
@@ -476,7 +483,7 @@ def stream_file_no_telem():
     """
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read()
-    filename = 'multipath_cal'
+    filename = 'sine_waveform'
     f = open(filename,'rb')
     cal_signal = f.read()
     while True:
@@ -490,20 +497,32 @@ def stream_file_no_telem():
             print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
             pulses = 0
-            time.sleep(2)       # ! remove this later
-            for pulses in range(togglePoint):
+            #time.sleep(2)       # ! remove this later
+''' comment when using pol switch
+            for pulses in range(togglePoint * 3):
                 conn.send(cal_signal)
                 pulses += 1
-                if pulses == togglePoint/3:
-                    #GPIO.output(12, GPIO.LOW)
-                    #GPIO.output(16, GPIO.HIGH)
-                    #GPIO.output(20, GPIO.HIGH)
+                if pulses == togglePoint:
+                    GPIO.output(12, GPIO.LOW)
+                    GPIO.output(16, GPIO.HIGH)
+                    GPIO.output(20, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
-                if pulses == 2*togglePoint/3:
+                if pulses == 2*togglePoint:
                     print("2/3rd point reached.")
-                    #GPIO.output(20, GPIO.LOW)
-                    #GPIO.output(21, GPIO.HIGH)
+                    GPIO.output(20, GPIO.LOW)
+                    GPIO.output(21, GPIO.HIGH)
+'''
+#''' comment when using "simple" switch
+            for pulses in range(togglePoint * 2):
+                conn.send(cal_signal)
+                pulses += 1
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    logging.info("Switching polarization now")
+#'''
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
@@ -511,11 +530,16 @@ def stream_file_no_telem():
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True) 
-            #GPIO.output(16, GPIO.LOW)
-            #GPIO.output(20, GPIO.LOW)
-            #GPIO.output(21, GPIO.LOW)
-            #GPIO.output(12, GPIO.HIGH)
-
+''' comment when using pol switch
+            GPIO.output(16, GPIO.LOW)
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(21, GPIO.LOW)
+            GPIO.output(12, GPIO.HIGH)
+'''
+#''' comment when using "simple" switch
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+#'''
 
 def main():
     """

@@ -67,12 +67,12 @@ class toggle_save(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.5e6
-        self.wave_freq = wave_freq = samp_rate/3
+        self.samp_rate = samp_rate = 7.68e6         # ! 7.50 for multipath, 7.68 for actual cal
+        self.wave_freq = wave_freq = samp_rate/8    # ! factor of 3 for multipath, 8 for actual cal
         self.meas_freq = meas_freq = 150e6
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 30
+        self.gain = gain = 0                       # ! 30 for w/o balun, 0 for with balun
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################

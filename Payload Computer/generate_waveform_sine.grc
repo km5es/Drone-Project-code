@@ -167,7 +167,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>(OFF_cycles/freq)</value>
+      <value>OFF/samp_rate</value>
     </param>
   </block>
   <block>
@@ -248,7 +248,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>ON_cycles/freq</value>
+      <value>ON/samp_rate</value>
     </param>
   </block>
   <block>
@@ -336,7 +336,7 @@
     <key>variable</key>
     <param>
       <key>comment</key>
-      <value></value>
+      <value>Time to calibrate per WP.</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -344,7 +344,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1136, 72)</value>
+      <value>(1120, 76)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -352,11 +352,11 @@
     </param>
     <param>
       <key>id</key>
-      <value>TX_time_0</value>
+      <value>TX_time_1</value>
     </param>
     <param>
       <key>value</key>
-      <value>(ON_time + OFF_time)/4</value>
+      <value>pulse_time * pulses</value>
     </param>
   </block>
   <block>
@@ -587,6 +587,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(1216, 76)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>pulse_time</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>(ON+OFF)/samp_rate</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(1012, 12)</value>
     </param>
     <param>
@@ -599,7 +626,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>96</value>
+      <value>96*2</value>
     </param>
   </block>
   <block>
@@ -653,7 +680,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>7.68e6/2</value>
+      <value>7.68e6</value>
     </param>
   </block>
   <block>
