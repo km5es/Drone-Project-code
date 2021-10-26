@@ -5,7 +5,7 @@
 # Title: Toggle Save
 # Author: Krishna Makhija
 # Description: This flowgraph will simply save data when the checkbox is ticked.
-# Generated: Wed Sep 15 19:04:00 2021
+# Generated: Mon Oct 25 20:58:54 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -67,12 +67,12 @@ class toggle_save(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6         # ! 7.50 for multipath, 7.68 for actual cal
-        self.wave_freq = wave_freq = samp_rate/8    # ! factor of 3 for multipath, 8 for actual cal
+        self.samp_rate = samp_rate = 7.68e6             # ! 7.68 for acual cal, 7.5 for multipath
+        self.wave_freq = wave_freq = samp_rate/8        # ! factor of 8 for actual cal, 8 for multipath
         self.meas_freq = meas_freq = 150e6
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 0                       # ! 30 for w/o balun, 0 for with balun
+        self.gain = gain = 0                            # ! 0 for with balun, 30 without
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
@@ -90,18 +90,30 @@ class toggle_save(gr.top_block, Qt.QWidget):
         	uhd.stream_args(
         		cpu_format="fc32",
         		otw_format='sc16',
-        		channels=range(1),
+        		channels=range(2),
         	),
         )
         self.uhd_usrp_source_0.set_clock_source('external', 0)
-        self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
+        self.uhd_usrp_source_0.set_subdev_spec('A:A, A:B', 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_center_freq(freq, 0)
         self.uhd_usrp_source_0.set_gain(gain, 0)
+        self.uhd_usrp_source_0.set_center_freq(freq, 1)
+        self.uhd_usrp_source_0.set_gain(0, 1)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
+        self.blocks_null_sink_0_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
         self.blocks_null_sink_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data', True)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data2', True)
+        self.blocks_file_sink_0_0.set_unbuffered(False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data1', True)
         self.blocks_file_sink_0.set_unbuffered(False)
+        self.blks2_selector_0_0_0_0 = grc_blks2.selector(
+        	item_size=gr.sizeof_gr_complex*1,
+        	num_inputs=1,
+        	num_outputs=2,
+        	input_index=0,
+        	output_index=toggle,
+        )
         self.blks2_selector_0_0_0 = grc_blks2.selector(
         	item_size=gr.sizeof_gr_complex*1,
         	num_inputs=1,
@@ -117,7 +129,10 @@ class toggle_save(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.blks2_selector_0_0_0, 1), (self.blocks_file_sink_0, 0))
         self.connect((self.blks2_selector_0_0_0, 0), (self.blocks_null_sink_0_0, 0))
+        self.connect((self.blks2_selector_0_0_0_0, 1), (self.blocks_file_sink_0_0, 0))
+        self.connect((self.blks2_selector_0_0_0_0, 0), (self.blocks_null_sink_0_0_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.blks2_selector_0_0_0, 0))
+        self.connect((self.uhd_usrp_source_0, 1), (self.blks2_selector_0_0_0_0, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "toggle_save")
@@ -135,7 +150,7 @@ class toggle_save(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.set_wave_freq(self.samp_rate/3)
+        self.set_wave_freq(self.samp_rate/8)
         self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
 
     def get_wave_freq(self):
@@ -158,6 +173,7 @@ class toggle_save(gr.top_block, Qt.QWidget):
     def set_toggle(self, toggle):
         self.toggle = toggle
         self._toggle_callback(self.toggle)
+        self.blks2_selector_0_0_0_0.set_output_index(int(self.toggle))
         self.blks2_selector_0_0_0.set_output_index(int(self.toggle))
 
     def get_min_buffer(self):
