@@ -498,7 +498,7 @@ def stream_file_no_telem():
             logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
             pulses = 0
             #time.sleep(2)       # ! remove this later
-''' comment when using pol switch
+            ''' comment when using pol switch
             for pulses in range(togglePoint * 3):
                 conn.send(cal_signal)
                 pulses += 1
@@ -512,8 +512,8 @@ def stream_file_no_telem():
                     print("2/3rd point reached.")
                     GPIO.output(20, GPIO.LOW)
                     GPIO.output(21, GPIO.HIGH)
-'''
-#''' comment when using "simple" switch
+            '''
+            #''' comment when using "simple" switch
             for pulses in range(togglePoint * 2):
                 conn.send(cal_signal)
                 pulses += 1
@@ -522,7 +522,7 @@ def stream_file_no_telem():
                     GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
-#'''
+            #'''
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
@@ -530,16 +530,16 @@ def stream_file_no_telem():
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True) 
-''' comment when using pol switch
+            ''' comment when using pol switch
             GPIO.output(16, GPIO.LOW)
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
             GPIO.output(12, GPIO.HIGH)
-'''
-#''' comment when using "simple" switch
+            '''
+            #''' comment when using "simple" switch
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-#'''
+            #'''
 
 def main():
     """
