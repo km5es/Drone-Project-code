@@ -36,7 +36,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         self.samp_rate = samp_rate = 7.68e6         # ! change to 7.68e6 for actual meas
         self.wave_freq = wave_freq = samp_rate/8    # ! change to factor of 8 for actual meas
-        self.meas_freq = meas_freq = 150e6
+        self.meas_freq = meas_freq = 137.5e6        # ! 137.5e6 for Orbcomm, 150e6 is fiducial
         self.min_buffer = min_buffer = 4096*16
         self.gain = gain = 70                       # ! 70 for simple switch, 90 for pol?
         self.freq = freq = meas_freq - wave_freq

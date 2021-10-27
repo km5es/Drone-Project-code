@@ -5,7 +5,7 @@
 # Title: Toggle Save
 # Author: Krishna Makhija
 # Description: This flowgraph will simply save data when the checkbox is ticked.
-# Generated: Tue Oct 26 21:00:39 2021
+# Generated: Wed Oct 27 19:21:24 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -69,7 +69,7 @@ class toggle_save(gr.top_block, Qt.QWidget):
         ##################################################
         self.samp_rate = samp_rate = 7.68e6
         self.wave_freq = wave_freq = samp_rate/8
-        self.meas_freq = meas_freq = 150e6
+        self.meas_freq = meas_freq = 137.5e6
         self.toggle = toggle = 0
         self.min_buffer = min_buffer = 512*8200*2
         self.gain = gain = 0
