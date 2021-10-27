@@ -5,7 +5,7 @@
 # Title: Toggle Save
 # Author: Krishna Makhija
 # Description: This flowgraph will simply save data when the checkbox is ticked.
-# Generated: Mon Oct 25 22:20:53 2021
+# Generated: Tue Oct 26 21:00:39 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -101,19 +101,11 @@ class toggle_save(gr.top_block, Qt.QWidget):
         self.uhd_usrp_source_0.set_center_freq(freq, 1)
         self.uhd_usrp_source_0.set_gain(0, 1)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
-        self.blocks_null_sink_0_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
         self.blocks_null_sink_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
-        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data2', True)
-        self.blocks_file_sink_0_0.set_unbuffered(False)
+        self.blocks_interleave_0 = blocks.interleave(gr.sizeof_gr_complex*1, 1)
+        #self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/data1', True)
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data1', True)
         self.blocks_file_sink_0.set_unbuffered(False)
-        self.blks2_selector_0_0_0_0 = grc_blks2.selector(
-        	item_size=gr.sizeof_gr_complex*1,
-        	num_inputs=1,
-        	num_outputs=2,
-        	input_index=0,
-        	output_index=toggle,
-        )
         self.blks2_selector_0_0_0 = grc_blks2.selector(
         	item_size=gr.sizeof_gr_complex*1,
         	num_inputs=1,
@@ -129,10 +121,9 @@ class toggle_save(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.blks2_selector_0_0_0, 1), (self.blocks_file_sink_0, 0))
         self.connect((self.blks2_selector_0_0_0, 0), (self.blocks_null_sink_0_0, 0))
-        self.connect((self.blks2_selector_0_0_0_0, 1), (self.blocks_file_sink_0_0, 0))
-        self.connect((self.blks2_selector_0_0_0_0, 0), (self.blocks_null_sink_0_0_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.blks2_selector_0_0_0, 0))
-        self.connect((self.uhd_usrp_source_0, 1), (self.blks2_selector_0_0_0_0, 0))
+        self.connect((self.blocks_interleave_0, 0), (self.blks2_selector_0_0_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_interleave_0, 0))
+        self.connect((self.uhd_usrp_source_0, 1), (self.blocks_interleave_0, 1))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "toggle_save")
@@ -173,7 +164,6 @@ class toggle_save(gr.top_block, Qt.QWidget):
     def set_toggle(self, toggle):
         self.toggle = toggle
         self._toggle_callback(self.toggle)
-        self.blks2_selector_0_0_0_0.set_output_index(int(self.toggle))
         self.blks2_selector_0_0_0.set_output_index(int(self.toggle))
 
     def get_min_buffer(self):
