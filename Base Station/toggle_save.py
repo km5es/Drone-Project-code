@@ -5,7 +5,7 @@
 # Title: Toggle Save
 # Author: Krishna Makhija
 # Description: This flowgraph will simply save data when the checkbox is ticked.
-# Generated: Tue Oct 26 21:00:39 2021
+# Generated: Sun Oct 31 21:00:31 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -22,11 +22,13 @@ from PyQt4 import Qt
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
+from gnuradio import qtgui
 from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
+import sip
 import sys
 import time
 from gnuradio import qtgui
@@ -101,10 +103,103 @@ class toggle_save(gr.top_block, Qt.QWidget):
         self.uhd_usrp_source_0.set_center_freq(freq, 1)
         self.uhd_usrp_source_0.set_gain(0, 1)
         (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
+        self.qtgui_time_sink_x_1 = qtgui.time_sink_c(
+        	1024, #size
+        	samp_rate, #samp_rate
+        	"", #name
+        	2 #number of inputs
+        )
+        self.qtgui_time_sink_x_1.set_update_time(0.10)
+        self.qtgui_time_sink_x_1.set_y_axis(-1, 1)
+
+        self.qtgui_time_sink_x_1.set_y_label('Amplitude', "")
+
+        self.qtgui_time_sink_x_1.enable_tags(-1, True)
+        self.qtgui_time_sink_x_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
+        self.qtgui_time_sink_x_1.enable_autoscale(False)
+        self.qtgui_time_sink_x_1.enable_grid(True)
+        self.qtgui_time_sink_x_1.enable_axis_labels(True)
+        self.qtgui_time_sink_x_1.enable_control_panel(True)
+        self.qtgui_time_sink_x_1.enable_stem_plot(False)
+
+        if not True:
+          self.qtgui_time_sink_x_1.disable_legend()
+
+        labels = ['', '', '', '', '',
+                  '', '', '', '', '']
+        widths = [1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+                  "magenta", "yellow", "dark red", "dark green", "blue"]
+        styles = [1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1]
+        markers = [-1, -1, -1, -1, -1,
+                   -1, -1, -1, -1, -1]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+                  1.0, 1.0, 1.0, 1.0, 1.0]
+
+        for i in xrange(4):
+            if len(labels[i]) == 0:
+                if(i % 2 == 0):
+                    self.qtgui_time_sink_x_1.set_line_label(i, "Re{{Data {0}}}".format(i/2))
+                else:
+                    self.qtgui_time_sink_x_1.set_line_label(i, "Im{{Data {0}}}".format(i/2))
+            else:
+                self.qtgui_time_sink_x_1.set_line_label(i, labels[i])
+            self.qtgui_time_sink_x_1.set_line_width(i, widths[i])
+            self.qtgui_time_sink_x_1.set_line_color(i, colors[i])
+            self.qtgui_time_sink_x_1.set_line_style(i, styles[i])
+            self.qtgui_time_sink_x_1.set_line_marker(i, markers[i])
+            self.qtgui_time_sink_x_1.set_line_alpha(i, alphas[i])
+
+        self._qtgui_time_sink_x_1_win = sip.wrapinstance(self.qtgui_time_sink_x_1.pyqwidget(), Qt.QWidget)
+        self.top_grid_layout.addWidget(self._qtgui_time_sink_x_1_win)
+        self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
+        	4096, #size
+        	firdes.WIN_BLACKMAN_hARRIS, #wintype
+        	freq, #fc
+        	samp_rate, #bw
+        	"", #name
+        	2 #number of inputs
+        )
+        self.qtgui_freq_sink_x_0.set_update_time(0.10)
+        self.qtgui_freq_sink_x_0.set_y_axis(-140, 10)
+        self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
+        self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_NORM, -90.0, 0, "")
+        self.qtgui_freq_sink_x_0.enable_autoscale(False)
+        self.qtgui_freq_sink_x_0.enable_grid(False)
+        self.qtgui_freq_sink_x_0.set_fft_average(1.0)
+        self.qtgui_freq_sink_x_0.enable_axis_labels(True)
+        self.qtgui_freq_sink_x_0.enable_control_panel(True)
+
+        if not True:
+          self.qtgui_freq_sink_x_0.disable_legend()
+
+        if "complex" == "float" or "complex" == "msg_float":
+          self.qtgui_freq_sink_x_0.set_plot_pos_half(not True)
+
+        labels = ['', '', '', '', '',
+                  '', '', '', '', '']
+        widths = [1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+                  "magenta", "yellow", "dark red", "dark green", "dark blue"]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+                  1.0, 1.0, 1.0, 1.0, 1.0]
+        for i in xrange(2):
+            if len(labels[i]) == 0:
+                self.qtgui_freq_sink_x_0.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_freq_sink_x_0.set_line_label(i, labels[i])
+            self.qtgui_freq_sink_x_0.set_line_width(i, widths[i])
+            self.qtgui_freq_sink_x_0.set_line_color(i, colors[i])
+            self.qtgui_freq_sink_x_0.set_line_alpha(i, alphas[i])
+
+        self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.pyqwidget(), Qt.QWidget)
+        self.top_grid_layout.addWidget(self._qtgui_freq_sink_x_0_win)
         self.blocks_null_sink_0_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
         self.blocks_interleave_0 = blocks.interleave(gr.sizeof_gr_complex*1, 1)
-        #self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/data1', True)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_data1', True)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/mnt/78ACE633ACE5EB96/milton_raw_data/' +str(timestamp) + '_rx_data.dat', True)
         self.blocks_file_sink_0.set_unbuffered(False)
         self.blks2_selector_0_0_0 = grc_blks2.selector(
         	item_size=gr.sizeof_gr_complex*1,
@@ -124,6 +219,10 @@ class toggle_save(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_interleave_0, 0), (self.blks2_selector_0_0_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.blocks_interleave_0, 0))
         self.connect((self.uhd_usrp_source_0, 1), (self.blocks_interleave_0, 1))
+        self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.uhd_usrp_source_0, 1), (self.qtgui_freq_sink_x_0, 1))
+        self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_time_sink_x_1, 0))
+        self.connect((self.uhd_usrp_source_0, 1), (self.qtgui_time_sink_x_1, 1))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "toggle_save")
@@ -143,6 +242,8 @@ class toggle_save(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate
         self.set_wave_freq(self.samp_rate/8)
         self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
+        self.qtgui_time_sink_x_1.set_samp_rate(self.samp_rate)
+        self.qtgui_freq_sink_x_0.set_frequency_range(self.freq, self.samp_rate)
 
     def get_wave_freq(self):
         return self.wave_freq
@@ -187,6 +288,7 @@ class toggle_save(gr.top_block, Qt.QWidget):
         self.freq = freq
         self.uhd_usrp_source_0.set_center_freq(self.freq, 0)
         self.uhd_usrp_source_0.set_center_freq(self.freq, 1)
+        self.qtgui_freq_sink_x_0.set_frequency_range(self.freq, self.samp_rate)
 
 
 def argument_parser():
@@ -194,7 +296,7 @@ def argument_parser():
     parser = OptionParser(usage="%prog: [options]", option_class=eng_option, description=description)
     parser.add_option(
         "", "--timestamp", dest="timestamp", type="string", default=time.strftime("%H%M%S-%d%m%Y"),
-        help="Set timestamp [default=%default]")
+        help="Set 210030-31102021 [default=%default]")
     return parser
 
 
