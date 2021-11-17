@@ -77,11 +77,6 @@ GPIO.setup (16, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
 ''' 
-#''' comment this line when using "simple" switch
-GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-#'''
-
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -497,7 +492,10 @@ def stream_file_no_telem():
             print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
             logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
             pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
             for pulses in range(togglePoint * 2):
+                print(pulses)
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
@@ -512,7 +510,7 @@ def stream_file_no_telem():
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True) 
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
 
 
