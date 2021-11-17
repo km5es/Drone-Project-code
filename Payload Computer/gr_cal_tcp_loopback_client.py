@@ -38,7 +38,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.wave_freq = wave_freq = samp_rate/8    # ! change to factor of 8 for actual meas
         self.meas_freq = meas_freq = 150e6
         self.min_buffer = min_buffer = 4096*16
-        self.gain = gain = 0                       # ! 70 for simple switch, 90 for pol?
+        self.gain = gain = 60                       # ! 70 for simple switch, 90 for pol?
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
