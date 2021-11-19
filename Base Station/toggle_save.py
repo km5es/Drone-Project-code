@@ -32,8 +32,8 @@ class toggle_save(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6
-        self.wave_freq = wave_freq = samp_rate/8
+        self.samp_rate = samp_rate = 7.5e6
+        self.wave_freq = wave_freq = samp_rate/3
         self.meas_freq = meas_freq = 150e6
         self.min_buffer = min_buffer = 512*8200*2
         self.gain = gain = 0
