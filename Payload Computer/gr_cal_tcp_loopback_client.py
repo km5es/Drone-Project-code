@@ -34,8 +34,8 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6         # ! change to 7.68e6 for actual meas
-        self.wave_freq = wave_freq = samp_rate/8    # ! change to factor of 8 for actual meas
+        self.samp_rate = samp_rate = 7.68e6         # ! change to 7.68e6 for beam cal, 7.5 for multipath
+        self.wave_freq = wave_freq = samp_rate/8    # ! change to factor of 8 for beam cal, 3 for multipath
         self.meas_freq = meas_freq = 150e6
         self.min_buffer = min_buffer = 4096*16
         self.gain = gain = 60                       # ! 70 for simple switch, 90 for pol?

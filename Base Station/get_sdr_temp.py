@@ -15,7 +15,7 @@ from std_msgs.msg import Float32
 
 
 path            = expanduser("~")             # data files save path
-logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/metadata/'             
+logs_path       = path + '/catkin_ws/src/Drone-Project-code/logs/base/'             
 sdr_ground_temp = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_sdr_ground_temp.log")
 refresh_rate    = 10.0
 
@@ -37,6 +37,7 @@ def callback_SDR(data):
     try:
         current_time = get_timestamp()
         sdr_ground_temp_f_a.write("%s\t%s\n" %(current_time, data.data))
+        print(data)
         rospy.sleep(1/refresh_rate)
     except ValueError, NameError:
         pass
@@ -73,5 +74,20 @@ def main():
                     break
 
 
+def main_simple():
+    '''
+    main function for simply writing sdr temp continuously
+    '''
+    global sdr_ground_temp_f_a
+
+    sdr_ground_temp_f_a = open(sdr_ground_temp, "w+")
+    sdr_ground_temp_f_a.write("Timestamp\tSDR Temperature (deg C)\n")
+
+    rospy.init_node('get_sdr_temp', anonymous=True)
+    print(colored('ROS metadata node intialized. SDR temperature is being recorded...', 'green'))
+    rospy.Subscriber('sdr_temperature', Float32, callback_SDR)
+    rospy.spin()
+
+
 if __name__ == '__main__':
-    main()
+    main_simple()
