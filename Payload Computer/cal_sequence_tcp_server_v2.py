@@ -476,7 +476,7 @@ def stream_file_no_telem():
     """
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read()
-    filename = 'sine_waveform'
+    filename = 'multipath_cal'
     f = open(filename,'rb')
     cal_signal = f.read()
     while True:
@@ -518,7 +518,7 @@ def stream_file_no_telem_pol_switch():
     """
     zeros = open('zeros', 'rb')
     condition_LO = zeros.read()
-    filename = 'sine_waveform'
+    filename = 'multipath_cal'
     f = open(filename,'rb')
     cal_signal = f.read()
     while True:
