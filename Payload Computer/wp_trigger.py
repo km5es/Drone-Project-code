@@ -154,6 +154,7 @@ def get_distance(data):
             if distance <= error_tolerance and v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
                 print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
                 #rospy.set_param('trigger/waypoint', True)
+                time.sleep(2)
                 rospy.set_param('trigger/sequence', True)
                 #FIXME: this is another open loop. what do? can't seem to avoid them
                 time.sleep(wp_wait_timeout)
