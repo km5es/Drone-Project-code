@@ -31,7 +31,7 @@ wp_num          = 1
 #rospy.set_param('trigger/waypoint', False)
 rospy.set_param('trigger/sequence', False)
 seq_timeout     = 30
-error_tolerance = 0.5       ## distance in m from where to begin sequence
+error_tolerance = 1.0       ## distance in m from where to begin sequence
 orien_tolerance = 10.0      ## how much pitch and roll per wp is allowed (deg)
 wp_wait_timeout = 10
 
