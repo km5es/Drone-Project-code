@@ -5,7 +5,7 @@
 # Title: Generate Waveform Sine
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Fri Nov 19 22:00:31 2021
+# Generated: Fri Nov 19 22:17:31 2021
 ##################################################
 
 if __name__ == '__main__':
@@ -65,13 +65,13 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate = 7.68e6
         self.wave_samp_rate = wave_samp_rate = samp_rate
         self.wave_freq = wave_freq = samp_rate/8
-        self.ON_cycles = ON_cycles = 128
+        self.ON_cycles = ON_cycles = 512
         self.samps_per_period = samps_per_period = wave_samp_rate/wave_freq
-        self.OFF_cycles = OFF_cycles = 3*ON_cycles
+        self.OFF_cycles = OFF_cycles = 15*ON_cycles
         self.ON = ON = int(ON_cycles*samps_per_period)
         self.OFF = OFF = int(OFF_cycles*samps_per_period)
         self.stopTime = stopTime = ON/samp_rate
-        self.head = head = (ON+OFF)*16
+        self.head = head = (ON+OFF)
         self.center_freq = center_freq = 150e6
         self.t = t = np.linspace(-stopTime/2, stopTime/2, ON)
         self.pulses = pulses = 96*2
@@ -165,7 +165,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_ON_cycles(self, ON_cycles):
         self.ON_cycles = ON_cycles
         self.set_ON(int(self.ON_cycles*self.samps_per_period))
-        self.set_OFF_cycles(3*self.ON_cycles)
+        self.set_OFF_cycles(15*self.ON_cycles)
 
     def get_samps_per_period(self):
         return self.samps_per_period
@@ -187,7 +187,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
 
     def set_ON(self, ON):
         self.ON = ON
-        self.set_head((self.ON+self.OFF)*16)
+        self.set_head((self.ON+self.OFF))
         self.set_t(np.linspace(-self.stopTime/2, self.stopTime/2, self.ON))
         self.set_stopTime(self.ON/self.samp_rate)
         self.set_pulse_time((self.ON+self.OFF)/self.samp_rate)
@@ -202,7 +202,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
 
     def set_OFF(self, OFF):
         self.OFF = OFF
-        self.set_head((self.ON+self.OFF)*16)
+        self.set_head((self.ON+self.OFF))
         self.set_pulse_time((self.ON+self.OFF)/self.samp_rate)
         self.set_duty_cycle(self.OFF/self.ON)
         self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
