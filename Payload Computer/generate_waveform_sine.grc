@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>15*ON_cycles</value>
+      <value>3*ON_cycles</value>
     </param>
   </block>
   <block>
@@ -221,7 +221,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>512</value>
+      <value>128</value>
     </param>
   </block>
   <block>
@@ -545,7 +545,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>(ON+OFF)</value>
+      <value>(ON+OFF)*16</value>
     </param>
   </block>
   <block>
