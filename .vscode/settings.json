@@ -58,5 +58,15 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "list": "cpp"
-    }
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/kmakhija/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/usr/local/lib/python2.7/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/kmakhija/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/usr/local/lib/python2.7/dist-packages"
+    ]
 }
