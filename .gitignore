@@ -6,6 +6,8 @@
 /logs/pose_logs.csv
 /mission/waypoints.csv
 /mission/waypoints_copy.csv
+/mission/*
+/mission/mission.waypoints
 
 # exception to the rule
 !logs/.gitkeep 

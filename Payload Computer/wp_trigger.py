@@ -11,12 +11,9 @@ author: Krishna Makhija
 rev: 25th April 2021
 """
 
-import rospy, time, re
+import rospy, time
 import numpy as np
-from termcolor import colored
-from threading import Event, Thread
-from os.path import expanduser
-from std_msgs.msg import String
+from threading import Event
 from mavros_msgs.msg import *
 from mavros_msgs.srv import *
 from std_msgs.msg import Float32
@@ -24,19 +21,18 @@ from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import WaypointReached, WaypointList, PositionTarget
 from sensor_msgs.msg import Imu, NavSatFix
 from nav_msgs.msg import Odometry
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 
 n               = 1
 event           = Event()
-vel_threshold   = 0.35      # linear vel threshold below which drone is considered "stationary" (m/s)
+vel_threshold   = 0.2      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
 #rospy.set_param('trigger/waypoint', False)
 rospy.set_param('trigger/sequence', False)
 seq_timeout     = 30
-timeout_event   = Event()
-start           = time.time()
 error_tolerance = 1.0       ## distance in m from where to begin sequence
-GPS_refresh     = 10
+orien_tolerance = 10.0      ## how much pitch and roll per wp is allowed (deg)
 wp_wait_timeout = 10
 
 
@@ -45,11 +41,16 @@ def get_velocity(data):
     Get the current magnitude of linear velocity of the drone.
     """
     global v
-
+    global roll, pitch
     x_vel = data.twist.twist.linear.x
     y_vel = data.twist.twist.linear.y
     z_vel = data.twist.twist.linear.z
-    v = (x_vel**2 + y_vel**2 + z_vel**2)**0.5
+    v = (x_vel**2 + y_vel**2 + z_vel**2)**0.5       # magnitude of linear velocity
+    q = [data.pose.pose.orientation.x, data.pose.pose.orientation.y,    # angular orientation
+                data.pose.pose.orientation.z, data.pose.pose.orientation.w] # in quarternion form
+    euler_angs = np.rad2deg(euler_from_quaternion(q, axes='sxyz'))
+    roll = euler_angs[0]
+    pitch = euler_angs[1]
 
 
 def wp_reached(data):
@@ -139,7 +140,8 @@ def get_haversine(data):
 
 def get_distance(data):
     """
-    Calculate 3D haversine distance to target
+    Calculate 3D haversine distance to target.
+    This will also begin the entire sequence.
     """
     global distance
     if event.is_set():
@@ -148,7 +150,8 @@ def get_distance(data):
             distance = (h**2 + alt_diff**2)**0.5
             #print('The closest WP is: %s m away.' %(distance))
             event.clear()
-            if distance <= error_tolerance and v <= vel_threshold and rospy.get_param('trigger/waypoint') == False:
+            ## * check to see if drone is stable enough to start calibration
+            if distance <= error_tolerance and v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
                 print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)
