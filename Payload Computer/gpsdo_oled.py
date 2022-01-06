@@ -23,7 +23,7 @@ def callback(data):
     # Box and text rendered in portrait mode
     with canvas(device) as draw:
         draw.rectangle(device.bounding_box, outline="white", fill="black")
-        draw.text((10, 20), "I heard %s", data.data, fill="white")
+        draw.text((10, 20), data.data, fill="white")
 
 
 def main():
