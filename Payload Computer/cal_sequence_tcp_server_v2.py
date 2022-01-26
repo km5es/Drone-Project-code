@@ -183,45 +183,6 @@ def reset_buffer():
         pass
 
 
-def stream_file():
-    '''
-    Stream zeros unless a trigger is set. When triggered transmit cal sequence.
-    '''
-    zeros = open('zeros', 'rb')
-    condition_LO = zeros.read()
-    filename = 'noise'
-    f = open(filename,'rb')
-    cal_signal = f.read()
-    while trigger_event.is_set() == False:
-        conn.send(condition_LO)
-
-        if trigger_event.is_set():
-            start = time.time()
-            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
-            logging.info("Trigger from base recd. CAL ON")
-            pulses = 0
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-            for pulses in range(togglePoint * 2):
-                conn.send(cal_signal)
-                pulses += 1
-                if pulses == togglePoint:
-                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-                    logging.info("Switching polarization now")
-            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            end = time.time()
-            total_time = end - start
-            stop_acq_event.set()
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
-            logging.info("Cal sequence complete. CAL OFF")
-            GPIO.output(20, GPIO.LOW)
-            GPIO.output(21, GPIO.LOW)
-            trigger_event.clear()
-
-
 def heartbeat_udp():
     """
     Send heartbeat over UDP to ensure base connection is okay.
@@ -464,49 +425,6 @@ def main_telem():
     t2.join()
     #t3.join()
 
-
-def stream_file_wp():
-    """
-    Stream file to GRC code. Begin calibration when /trigger/sequence is set.
-    This function is used when there is to be no telemetry sync with base.
-    """
-    zeros = open('zeros', 'rb')
-    condition_LO = zeros.read()
-    filename = 'sine_waveform'
-    f = open(filename,'rb')
-    cal_signal = f.read()
-    while True:
-        conn.send(condition_LO)
-
-        if rospy.get_param('trigger/sequence') == True:
-            rospy.set_param('trigger/sequence', False)
-            rospy.set_param('trigger/metadata', True)
-            start = time.time()
-            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
-            logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
-            pulses = 0
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-            for pulses in range(togglePoint * 2):
-                conn.send(cal_signal)
-                pulses += 1
-                if pulses == togglePoint:
-                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-                    logging.info("Switching polarization now")
-            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            end = time.time()
-            total_time = end - start
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
-            logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
-            rospy.set_param('trigger/metadata', False)
-            rospy.set_param('trigger/waypoint', True) 
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-
-
 def stream_file_no_telem_pol_switch():
     """
     Stream file to GRC code. Begin calibration when /trigger/sequence is set.
@@ -555,6 +473,87 @@ def stream_file_no_telem_pol_switch():
             GPIO.output(12, GPIO.LOW)
 
 
+def stream_file_wp():
+    """
+    Stream file to GRC code. Begin calibration when /trigger/sequence is set.
+    This function is used when there is to be no telemetry sync with base.
+    """
+    zeros = open('zeros', 'rb')
+    condition_LO = zeros.read()
+    filename = 'sine_waveform'
+    f = open(filename,'rb')
+    cal_signal = f.read()
+    while True:
+        conn.send(condition_LO)
+
+        if rospy.get_param('trigger/sequence') == True:
+            rospy.set_param('trigger/sequence', False)
+            rospy.set_param('trigger/metadata', True)
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
+            pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+            for pulses in range(togglePoint * 2):
+                conn.send(cal_signal)
+                pulses += 1
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    logging.info("Switching polarization now")
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
+            rospy.set_param('trigger/metadata', False)
+            rospy.set_param('trigger/waypoint', True) 
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+
+
+def stream_file():
+    '''
+    Stream zeros unless a trigger is set. When triggered transmit cal sequence.
+    '''
+    zeros = open('zeros', 'rb')
+    condition_LO = zeros.read()
+    filename = 'noise'
+    f = open(filename,'rb')
+    cal_signal = f.read()
+    while trigger_event.is_set() == False:
+        conn.send(condition_LO)
+
+        if trigger_event.is_set():
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            logging.info("Trigger from base recd. CAL ON")
+            pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+            for pulses in range(togglePoint * 2):
+                conn.send(cal_signal)
+                pulses += 1
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    logging.info("Switching polarization now")
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            stop_acq_event.set()
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            logging.info("Cal sequence complete. CAL OFF")
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(21, GPIO.LOW)
+            trigger_event.clear()
+
+
 def serial_comms_phase():
     """
     When manual trigger from base is received this will start phase cal.
@@ -600,7 +599,7 @@ def serial_comms_phase():
                 logging.info("Manual kill command from base recd. Shutting down SDR code")
                 break
             reset_buffer()
-        except (serial.SerialException, e):
+        except (serial.SerialException):
             print('%s: ' %(get_timestamp()) + colored("No serial telemetry connection found.", 'red'))
             logging.debug("No serial telemetry connection found.")
             pass
