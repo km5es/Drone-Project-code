@@ -214,6 +214,65 @@ def heartbeat_udp():
                 pass
 
 
+def get_trigger_from_drone():
+    """
+    This will start saving data when the drone has informed the base that it has reached 
+    a WP. Moving forward, it will also save trigger the saving of SDR metadata.
+    """
+    #TODO: if send_telem has msg then stop recv_telem() briefly. implement while loop.
+    global tel_flag
+    while True:
+#        if send_telem.event().clear():
+        sleep(1e-6)
+        try:
+            get_handshake = recv_telem(msg_len, ser, repeat_keyword)
+            if handshake_start in get_handshake:
+                print('%s: ' %(get_timestamp()) + colored("Drone has reached WP, sending confirmation and beginning acquisition now.", "green"))
+                logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
+                logging.debug("serial data: %s" %get_handshake)
+                send_telem(handshake_conf, ser, repeat_keyword)
+                reset_buffer()
+                acq_event.set()
+                rospy.set_param('trigger/metadata', True)
+                # ! is the serial really timing out?
+                get_stop_acq_trigger = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
+                logging.debug('serial data: ' +str(get_stop_acq_trigger))
+                reset_buffer()
+                if toggle_OFF in get_stop_acq_trigger:
+                    print('%s: ' %(get_timestamp()) + 'Data acquisition togled OFF')
+                    logging.info('Data acquisition toggled OFF')
+                    acq_event.clear()
+                    rospy.set_param('trigger/metadata', False)
+                    send_telem(stop_acq_conf, ser, repeat_keyword)
+                #TODO: add elif call for special stop_acq msg
+                elif no_data_tx in get_stop_acq_trigger:
+                    print('%s: ' %(get_timestamp()) + 'Handshaking failed on drone side. CAL was NOT performed. Discard WP data.')
+                    logging.warning('Handshaking failed on drone side. CAL was NOT performed. Discard WP data.')
+                    acq_event.clear()
+                    rospy.set_param('trigger/metadata', False)
+                    #send_telem(stop_acq_conf, ser, repeat_keyword)
+            #TODO: add another elif call for special stop_acq msg for handshake start
+            elif no_data_tx in get_handshake:
+                print('%s: ' %(get_timestamp()) + 'Sequence error. CAL was not performed.')
+                logging.debug('Sequence error. CAL was not performed.')
+                reset_buffer()
+
+            elif startup_initiate in get_handshake:
+                print('%s: ' %(get_timestamp()) + colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
+                logging.info("The payload is UP and RUNNING.")
+                reset_buffer()
+            
+            elif pingtest in get_handshake:
+                recvtime = time.time()
+                RTT = (recvtime - sendtime)*1000.0		# in ms
+                RTT = round(RTT, 2)
+                print('%s: ' %(get_timestamp()) + colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
+                logging.info('Ping reply recd from payload in {} ms.'.format(RTT))
+        except:
+            pass
+
+
 def recv_data():
     '''
     Wait for acq_event to begin and stop saving data.
@@ -346,65 +405,6 @@ def serial_comms():
                             colored("rswpnode:  ", 'cyan') + "Restart ROS nodes on payload (do this when WP table is to be updated).\n" +
                             colored("shutdown:  ", 'cyan') + "Send telemetry message to kill all GR programs on base and payload.\n" +
                             colored("pingtest:  ", 'cyan') + "Ping test to payload to verify comms.\n")
-
-
-def get_trigger_from_drone():
-    """
-    This will start saving data when the drone has informed the base that it has reached 
-    a WP. Moving forward, it will also save trigger the saving of SDR metadata.
-    """
-    #TODO: if send_telem has msg then stop recv_telem() briefly. implement while loop.
-    global tel_flag
-    while True:
-#        if send_telem.event().clear():
-        sleep(1e-6)
-        try:
-            get_handshake = recv_telem(msg_len, ser, repeat_keyword)
-            if handshake_start in get_handshake:
-                print('%s: ' %(get_timestamp()) + colored("Drone has reached WP, sending confirmation and beginning acquisition now.", "green"))
-                logging.info("Drone has reached WP, sending confirmation and beginning acquisition now.")
-                logging.debug("serial data: %s" %get_handshake)
-                send_telem(handshake_conf, ser, repeat_keyword)
-                reset_buffer()
-                acq_event.set()
-                rospy.set_param('trigger/metadata', True)
-                # ! is the serial really timing out?
-                get_stop_acq_trigger = recv_telem(msg_len, ser_timeout, repeat_keyword)
-                print('%s: ' %(get_timestamp()) + str(get_stop_acq_trigger))
-                logging.debug('serial data: ' +str(get_stop_acq_trigger))
-                reset_buffer()
-                if toggle_OFF in get_stop_acq_trigger:
-                    print('%s: ' %(get_timestamp()) + 'Data acquisition togled OFF')
-                    logging.info('Data acquisition toggled OFF')
-                    acq_event.clear()
-                    rospy.set_param('trigger/metadata', False)
-                    send_telem(stop_acq_conf, ser, repeat_keyword)
-                #TODO: add elif call for special stop_acq msg
-                elif no_data_tx in get_stop_acq_trigger:
-                    print('%s: ' %(get_timestamp()) + 'Handshaking failed on drone side. CAL was NOT performed. Discard WP data.')
-                    logging.warning('Handshaking failed on drone side. CAL was NOT performed. Discard WP data.')
-                    acq_event.clear()
-                    rospy.set_param('trigger/metadata', False)
-                    #send_telem(stop_acq_conf, ser, repeat_keyword)
-            #TODO: add another elif call for special stop_acq msg for handshake start
-            elif no_data_tx in get_handshake:
-                print('%s: ' %(get_timestamp()) + 'Sequence error. CAL was not performed.')
-                logging.debug('Sequence error. CAL was not performed.')
-                reset_buffer()
-
-            elif startup_initiate in get_handshake:
-                print('%s: ' %(get_timestamp()) + colored("The payload is UP and RUNNING.", 'grey', 'on_green'))
-                logging.info("The payload is UP and RUNNING.")
-                reset_buffer()
-            
-            elif pingtest in get_handshake:
-                recvtime = time.time()
-                RTT = (recvtime - sendtime)*1000.0		# in ms
-                RTT = round(RTT, 2)
-                print('%s: ' %(get_timestamp()) + colored('Ping reply recd from payload in {} ms.'.format(RTT), 'green'))
-                logging.info('Ping reply recd from payload in {} ms.'.format(RTT))
-        except:
-            pass
 
 
 def main():
