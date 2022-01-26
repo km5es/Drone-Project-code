@@ -547,12 +547,11 @@ def stream_file():
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
-            #stop_acq_event.set()
+            stop_acq_event.set()
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
-            trigger_event.clear()
 
 
 def serial_comms_phase():
@@ -575,13 +574,14 @@ def serial_comms_phase():
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
                     logging.info("Starting phase cal now.")
                     trigger_event.set()
-                    while True:
+                    while trigger_event.is_set():
                         time.sleep(0.05)
-                        if trigger_event.is_set() == False:
+                        if stop_acq_event.is_set():
                             print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
                             logging.info("Stopping phase cal now.")
                             send_telem(toggle_OFF, ser, repeat_keyword)
-                            #stop_acq_event.clear()
+                            trigger_event.clear()
+                            stop_acq_event.clear()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword)
