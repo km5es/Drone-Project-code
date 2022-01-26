@@ -521,30 +521,30 @@ def stream_file():
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
         #? transmit phase cal signal (noise)
-        #if trigger_event.is_set():
-        #    start = time.time()
-        #    timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-        #    print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' +str(phase_cal_wf), 'green'))
-        #    logging.info("Trigger from base recd. CAL ON")
-        #    pulses = 0
-        #    GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-        #    GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-        #    for pulses in range(togglePoint * 2):
-        #        conn.send(phase_cal_signal)
-        #        pulses += 1
-        #        if pulses == togglePoint:
-        #            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-        #            GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-        #            print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-        #            logging.info("Switching polarization now")
-        #    timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-        #    end = time.time()
-        #    total_time = end - start
-        #    stop_acq_event.set()
-        #    print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
-        #    logging.info("Cal sequence complete. CAL OFF")
-        #    GPIO.output(20, GPIO.LOW)
-        #    GPIO.output(21, GPIO.LOW)
+        if trigger_event.is_set():
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' +str(phase_cal_wf), 'green'))
+            logging.info("Trigger from base recd. CAL ON")
+            pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+            for pulses in range(togglePoint * 2):
+                conn.send(phase_cal_signal)
+                pulses += 1
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    logging.info("Switching polarization now")
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            stop_acq_event.set()
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
+            logging.info("Cal sequence complete. CAL OFF")
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(21, GPIO.LOW)
 
 
 def serial_comms_phase():
