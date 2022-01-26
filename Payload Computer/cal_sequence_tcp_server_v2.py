@@ -570,7 +570,7 @@ def serial_comms_phase():
                 print('%s: ' %(get_timestamp()) + "Handshake start for phase cal received from base.")
                 logging.info("Handshake start for phase cal received from base.")
                 send_telem(handshake_conf, ser, repeat_keyword)
-                get_start_acq = recv_telem(msg_len, ser, repeat_keyword)
+                get_start_acq = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 if toggle_ON in get_start_acq:
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
                     logging.info("Starting phase cal now.")
