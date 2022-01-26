@@ -474,26 +474,32 @@ def stream_file_no_telem_pol_switch():
             GPIO.output(12, GPIO.LOW)
 
 
-def stream_file_wp():
+def stream_file():
     """
-    Stream file to GRC code. Begin calibration when /trigger/sequence is set.
-    This function is used when there is to be no telemetry sync with base.
+    Stream file to GRC code. Begin calibration when /trigger/sequence is set
+    OR
+    when there is a manual trigger from the base for phase cal.
     """
-    zeros = open('zeros', 'rb')
-    condition_LO = zeros.read()
-    filename = 'sine_waveform'
-    f = open(filename,'rb')
-    cal_signal = f.read()
+    zeros_wf         = 'zeros'
+    cal_wf           = 'sine_waveform'
+    phase_cal_wf     = 'noise'
+    zeros            = open(zeros_wf, 'rb')
+    cal              = open(cal_wf,'rb')
+    phase_cal        = open(phase_cal_wf, 'rb')
+    condition_LO     = zeros.read()
+    cal_signal       = cal.read()
+    phase_cal_signal = phase_cal.read()
+
     while True:
         conn.send(condition_LO)
-
+        #? transmit cal signal when WP is reached (pulsed sine)
         if rospy.get_param('trigger/sequence') == True:
             rospy.set_param('trigger/sequence', False)
             rospy.set_param('trigger/metadata', True)
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
-            logging.info("Drone has reached WP. Beginning cal sequence using %s" %filename)
+            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(cal_wf), 'green'))
+            logging.info("Drone has reached WP. Beginning cal sequence using %s" %cal_wf)
             pulses = 0
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
@@ -508,36 +514,23 @@ def stream_file_wp():
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True) 
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-
-
-def stream_file():
-    '''
-    Stream zeros unless a trigger is set. When triggered transmit cal sequence.
-    '''
-    zeros = open('zeros', 'rb')
-    condition_LO = zeros.read()
-    filename = 'noise'
-    f = open(filename,'rb')
-    cal_signal = f.read()
-    while trigger_event.is_set() == False:
-        conn.send(condition_LO)
-
+        #? transmit phase cal signal (noise)
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Trigger from base received at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(filename), 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' +str(phase_cal_wf), 'green'))
             logging.info("Trigger from base recd. CAL ON")
             pulses = 0
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
             for pulses in range(togglePoint * 2):
-                conn.send(cal_signal)
+                conn.send(phase_cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
                     GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
@@ -548,7 +541,7 @@ def stream_file():
             end = time.time()
             total_time = end - start
             stop_acq_event.set()
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
@@ -617,14 +610,14 @@ def main():
     """
     rospy.init_node('cal_sequence', anonymous = True)
     t1 = Thread(target = serial_comms_phase)
-    t2 = Thread(target = stream_file_wp)
-    t3 = Thread(target = stream_file)
+    t2 = Thread(target = stream_file)
+    #t3 = Thread(target = stream_file)
     t1.start()
     t2.start()
-    t3.start()
+    #t3.start()
     t1.join()
     t2.join()
-    t3.join()
+    #t3.join()
 
 
 if __name__ == '__main__':
