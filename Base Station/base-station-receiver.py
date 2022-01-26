@@ -318,7 +318,7 @@ def serial_comms():
                 print('%s: ' %(get_timestamp()) + colored('No serial connection. No action taken on the payload.', 'red'))
                 pass
         #? ping test
-        elif msg == str(heartbeat_check):
+        elif msg == str(pingtest):
             try:
                 send_telem(msg, ser, repeat_keyword)
                 get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
@@ -344,7 +344,8 @@ def serial_comms():
                             colored("beam_acq:  ", 'cyan') + "Start raw data acquisition (for beam measurements).\n" +
                             colored("stop_acq:  ", 'cyan') + "Stop acquiring raw data. This will still keep the script and SDR running.\n" +
                             colored("rswpnode:  ", 'cyan') + "Restart ROS nodes on payload (do this when WP table is to be updated).\n" +
-                            colored("shutdown:  ", 'cyan') + "Send telemetry message to kill all GR programs on base and payload.\n")
+                            colored("shutdown:  ", 'cyan') + "Send telemetry message to kill all GR programs on base and payload.\n" +
+                            colored("pingtest:  ", 'cyan') + "Ping test to payload to verify comms.\n")
 
 
 def get_trigger_from_drone():

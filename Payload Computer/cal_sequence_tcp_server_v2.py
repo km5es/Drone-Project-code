@@ -547,7 +547,7 @@ def stream_file():
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
-            stop_acq_event.set()
+            #stop_acq_event.set()
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             GPIO.output(20, GPIO.LOW)
@@ -577,11 +577,11 @@ def serial_comms_phase():
                     trigger_event.set()
                     while True:
                         time.sleep(0.05)
-                        if stop_acq_event.is_set():
+                        if trigger_event.is_set() == False:
                             print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
                             logging.info("Stopping phase cal now.")
                             send_telem(toggle_OFF, ser, repeat_keyword)
-                            stop_acq_event.clear()
+                            #stop_acq_event.clear()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword)
@@ -594,13 +594,13 @@ def serial_comms_phase():
             #? shutdown GR codes
             elif shutdown in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword)
-                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
-                os.system('lsof -t -i tcp:8810 | xargs kill -9')
                 print('%s: ' %(get_timestamp()) + colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
                 logging.info("Manual kill command from base recd. Shutting down SDR code")
+                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                os.system('lsof -t -i tcp:8810 | xargs kill -9')
                 break
             #? ping test
-            elif heartbeat_check in get_handshake_from_base:
+            elif pingtest in get_handshake_from_base:
                 print('%s: ' %(get_timestamp()) + "Ping received from base. Sending reply...")
                 logging.info("Ping received from base. Sending reply...")
                 send_telem(heartbeat_conf, ser, repeat_keyword)
