@@ -194,7 +194,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>60</value>
+      <value>0</value>
     </param>
   </block>
   <block>
@@ -329,7 +329,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(544, 228)</value>
+      <value>(664, 276)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -350,6 +350,61 @@
     <param>
       <key>port</key>
       <value>8800</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_interleave</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>blocksize</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(480, 280)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_interleave_0</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>complex</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>num_streams</key>
+      <value>2</value>
     </param>
     <param>
       <key>vlen</key>
@@ -1516,7 +1571,7 @@
     </param>
     <param>
       <key>clock_rate</key>
-      <value>0.0</value>
+      <value>30.72e6</value>
     </param>
     <param>
       <key>comment</key>
@@ -1540,7 +1595,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(216, 196)</value>
+      <value>(152, 220)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1560,7 +1615,7 @@
     </param>
     <param>
       <key>sd_spec0</key>
-      <value>A:A</value>
+      <value>A:A A:B</value>
     </param>
     <param>
       <key>time_source0</key>
@@ -1656,7 +1711,7 @@
     </param>
     <param>
       <key>nchan</key>
-      <value>1</value>
+      <value>2</value>
     </param>
     <param>
       <key>num_mboards</key>
@@ -1696,9 +1751,21 @@
     </param>
   </block>
   <connection>
-    <source_block_id>uhd_usrp_source_0</source_block_id>
+    <source_block_id>blocks_interleave_0</source_block_id>
     <sink_block_id>blks2_tcp_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>uhd_usrp_source_0</source_block_id>
+    <sink_block_id>blocks_interleave_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>uhd_usrp_source_0</source_block_id>
+    <sink_block_id>blocks_interleave_0</sink_block_id>
+    <source_key>1</source_key>
+    <sink_key>1</sink_key>
   </connection>
 </flow_graph>
