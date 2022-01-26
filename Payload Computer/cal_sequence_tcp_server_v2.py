@@ -151,7 +151,7 @@ def create_server():
     base_conn.bind((udp_ip, udp_port))
 
 
-def send_telem(keyword, serial_object, repeat_keyword, addr):
+def send_telem(keyword, serial_object, repeat_keyword):
     """
     Send keyword over telemetry radio or wireless connection for a total of repeat_keyword times.
     """
@@ -160,8 +160,9 @@ def send_telem(keyword, serial_object, repeat_keyword, addr):
     if network == 'telemetry':
         serial_object.write(new_keyword)
     if network == 'wifi':
+        print('Wi-Fi is currently disabled.')
 #        base_conn.send(new_keyword)
-        base_conn.sendto(new_keyword, addr)
+        #base_conn.sendto(new_keyword, addr)
 
 
 def recv_telem(msg_len, serial_object, repeat_keyword):
@@ -582,7 +583,7 @@ def serial_comms_phase():
                             send_telem(toggle_OFF, ser, repeat_keyword)
                             stop_acq_event.clear()
             #? reset ROS nodes
-            if restart_wp_node in get_handshake_from_base:
+            elif restart_wp_node in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword)
                 print('%s: ' %(get_timestamp()) + "Base has initiated manual reset of ROS nodes.")
                 logging.info("Base has initiated manual reset of ROS nodes.")
@@ -598,6 +599,11 @@ def serial_comms_phase():
                 print('%s: ' %(get_timestamp()) + colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
                 logging.info("Manual kill command from base recd. Shutting down SDR code")
                 break
+            #? ping test
+            elif heartbeat_check in get_handshake_from_base:
+                print('%s: ' %(get_timestamp()) + "Ping received from base. Sending reply...")
+                logging.info("Ping received from base. Sending reply...")
+                send_telem(heartbeat_conf, ser, repeat_keyword)
             reset_buffer()
         except (serial.SerialException):
             print('%s: ' %(get_timestamp()) + colored("No serial telemetry connection found.", 'red'))

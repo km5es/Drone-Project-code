@@ -265,6 +265,7 @@ def recv_data():
 def serial_comms():
     '''
     Manually trigger payload and initiate saving data on base station.
+    #TODO: refactor this bit so I am not repeating steps
     '''
     global sendtime
     while True:                                     
@@ -316,10 +317,23 @@ def serial_comms():
             except (serial.SerialException):
                 print('%s: ' %(get_timestamp()) + colored('No serial connection. No action taken on the payload.', 'red'))
                 pass
+        #? ping test
+        elif msg == str(heartbeat_check):
+            try:
+                send_telem(msg, ser, repeat_keyword)
+                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                if heartbeat_conf in get_handshake_conf:
+                    print('%s: ' %(get_timestamp()) + colored("Ping reply received from payload.", 'green'))
+                    logging.debug("Ping reply received from payload.")
+                else:
+                    print('%s: ' %(get_timestamp()) + colored("No ping reply received from payload. Check serial connection.", 'red'))
+                    logging.debug("No ping reply received from payload. Check serial connection.")
+            except (serial.SerialException):
+                print('%s: ' %(get_timestamp()) + colored('No serial connection. No action taken on the payload.', 'red'))
+                pass
         #? begin long-term data acquisition 
         elif msg == str(begin_raw_beam):
             acq_event.set()
-            pass
         #? stop long-term data acquisition
         elif msg == str(toggle_OFF):
             acq_event.clear()
