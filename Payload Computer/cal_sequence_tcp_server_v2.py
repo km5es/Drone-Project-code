@@ -103,8 +103,8 @@ try:
     ser                 = serial.Serial('/dev/ttyTELEM', 4800)  
     ser_timeout         = serial.Serial('/dev/ttyTELEM', 4800, timeout=4)
 except:
-    print("No telemetry found. Check for Wi-Fi link...")
-    logging.warning("No serial telemetry found")
+    print("No telemetry found.")
+    logging.warning("No serial telemetry found.")
     pass
 
 ## connect to GRC flowgraph
@@ -599,8 +599,6 @@ def serial_comms_phase():
                 send_telem(heartbeat_conf, ser, repeat_keyword)
             reset_buffer()
         except (serial.SerialException):
-            print('%s: ' %(get_timestamp()) + colored("No serial telemetry connection found.", 'red'))
-            logging.debug("No serial telemetry connection found.")
             pass
 
 
