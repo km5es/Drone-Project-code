@@ -483,12 +483,12 @@ def stream_file():
     zeros_wf         = 'zeros'
     zeros            = open(zeros_wf, 'rb')
     condition_LO     = zeros.read()
-    #cal_wf           = 'sine_waveform'
-    #cal              = open(cal_wf,'rb')
-    #cal_signal       = cal.read()
-    #phase_cal_wf     = 'noise'
-    #phase_cal        = open(phase_cal_wf, 'rb')
-    #phase_cal_signal = phase_cal.read()
+    cal_wf           = 'sine_waveform'
+    cal              = open(cal_wf,'rb')
+    cal_signal       = cal.read()
+    phase_cal_wf     = 'noise'
+    phase_cal        = open(phase_cal_wf, 'rb')
+    phase_cal_signal = phase_cal.read()
 
     while True:
         conn.send(condition_LO)
