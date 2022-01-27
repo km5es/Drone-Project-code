@@ -481,13 +481,13 @@ def stream_file():
     when there is a manual trigger from the base for phase cal.
     """
     zeros_wf         = 'zeros'
-    cal_wf           = 'sine_waveform'
-    phase_cal_wf     = 'noise'
     zeros            = open(zeros_wf, 'rb')
-    cal              = open(cal_wf,'rb')
-    phase_cal        = open(phase_cal_wf, 'rb')
     condition_LO     = zeros.read()
+    cal_wf           = 'sine_waveform'
+    cal              = open(cal_wf,'rb')
     cal_signal       = cal.read()
+    phase_cal_wf     = 'noise'
+    phase_cal        = open(phase_cal_wf, 'rb')
     phase_cal_signal = phase_cal.read()
 
     while True:
