@@ -521,30 +521,30 @@ def stream_file():
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
         ##? transmit phase cal signal (noise)
-        #if trigger_event.is_set():
-        #    start = time.time()
-        #    timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-        #    print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' +str(phase_cal_wf), 'green'))
-        #    logging.info("Trigger from base recd. CAL ON")
-        #    pulses = 0
-        #    GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-        #    GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-        #    for pulses in range(togglePoint * 2):
-        #        conn.send(phase_cal_signal)
-        #        pulses += 1
-        #        if pulses == togglePoint:
-        #            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-        #            GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-        #            print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
-        #            logging.info("Switching polarization now")
-        #    timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-        #    end = time.time()
-        #    total_time = end - start
-        #    stop_acq_event.set()
-        #    print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
-        #    logging.info("Cal sequence complete. CAL OFF")
-        #    GPIO.output(20, GPIO.LOW)
-        #    GPIO.output(21, GPIO.LOW)
+        if trigger_event.is_set():
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' +str(phase_cal_wf), 'green'))
+            logging.info("Trigger from base recd. CAL ON")
+            pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+            for pulses in range(togglePoint * 2):
+                conn.send(phase_cal_signal)
+                pulses += 1
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    logging.info("Switching polarization now")
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            stop_acq_event.set()
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
+            logging.info("Cal sequence complete. CAL OFF")
+            GPIO.output(20, GPIO.LOW)
+            GPIO.output(21, GPIO.LOW)
 
 
 def serial_comms_phase():
@@ -575,6 +575,7 @@ def serial_comms_phase():
                             send_telem(toggle_OFF, ser, repeat_keyword)
                             trigger_event.clear()
                             stop_acq_event.clear()
+                            reset_buffer()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword)
@@ -584,11 +585,13 @@ def serial_comms_phase():
                 os.system('pkill -f wp_trigger.py')
                 os.system('rosrun beam_mapping write_WPs.py &')
                 os.system('rosrun beam_mapping wp_trigger.py &')
+                reset_buffer()
             #? shutdown GR codes
             elif shutdown in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword)
                 print('%s: ' %(get_timestamp()) + colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
                 logging.info("Manual kill command from base recd. Shutting down SDR code")
+                reset_buffer()
                 os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
                 os.system('lsof -t -i tcp:8810 | xargs kill -9')
                 break
@@ -597,7 +600,7 @@ def serial_comms_phase():
                 print('%s: ' %(get_timestamp()) + "Ping received from base. Sending reply...")
                 logging.info("Ping received from base. Sending reply...")
                 send_telem(heartbeat_conf, ser, repeat_keyword)
-            reset_buffer()
+                reset_buffer()
         except (serial.SerialException):
             pass
 
