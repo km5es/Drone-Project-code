@@ -64,6 +64,7 @@ log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_event
 network             = 'wifi'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
+timeout             = 4
 wp_timeout          = 15
 rospy.set_param('trigger/sequence', False)
 
@@ -101,7 +102,7 @@ elif network == 'telemetry':
 
 try:
     ser                 = serial.Serial('/dev/ttyTELEM', 4800)  
-    ser_timeout         = serial.Serial('/dev/ttyTELEM', 4800, timeout=4)
+    ser_timeout         = serial.Serial('/dev/ttyTELEM', 4800, timeout=timeout)
 except:
     print("No telemetry found.")
     logging.warning("No serial telemetry found.")
@@ -169,8 +170,17 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     """
     Receive messages from the payload via telemetry or TCP.
     """
-    message = serial_object.read(msg_len*repeat_keyword)
-    return message
+    if network == 'telemetry':
+        message = serial_object.read(msg_len*repeat_keyword)
+        return message
+    if network == 'wifi':
+        try:
+            message, addr = base_conn.recvfrom(msg_len*repeat_keyword)
+            return message
+        except (socket.timeout, TypeError):
+            print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
+            logging.debug('Socket recv timed out in ' +str(timeout) + '  seconds. Is the payload operatinal?')
+            pass
 
 
 def reset_buffer():
