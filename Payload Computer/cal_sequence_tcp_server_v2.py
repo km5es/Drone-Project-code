@@ -61,7 +61,7 @@ metadata_acq_time   = 2
 path                = expanduser("~") + "/"         # define home path
 logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/payload/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_payload_events.log")
-network             = 'telemetry'
+network             = 'wifi'
 ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
 wp_timeout          = 15
@@ -151,7 +151,7 @@ def create_server():
     base_conn.bind((udp_ip, udp_port))
 
 
-def send_telem(keyword, serial_object, repeat_keyword):
+def send_telem(keyword, serial_object, repeat_keyword, addr):
     """
     Send keyword over telemetry radio or wireless connection for a total of repeat_keyword times.
     """
@@ -160,9 +160,9 @@ def send_telem(keyword, serial_object, repeat_keyword):
     if network == 'telemetry':
         serial_object.write(new_keyword)
     if network == 'wifi':
-        print('Wi-Fi is currently disabled.')
-#        base_conn.send(new_keyword)
-        #base_conn.sendto(new_keyword, addr)
+        #print('Wi-Fi is currently disabled.')
+        base_conn.send(new_keyword)
+        base_conn.sendto(new_keyword, addr)
 
 
 def recv_telem(msg_len, serial_object, repeat_keyword):
@@ -553,6 +553,8 @@ def serial_comms_phase():
     Phase cal will consist of a noise signal which is different from the 
     beam calibration signal.
     """
+    create_server()
+    addr = "127.0.0.1"
     while True:
         time.sleep(0.05)
         try:
@@ -561,7 +563,7 @@ def serial_comms_phase():
             if handshake_start in get_handshake_from_base:
                 print('%s: ' %(get_timestamp()) + "Handshake start for phase cal received from base.")
                 logging.info("Handshake start for phase cal received from base.")
-                send_telem(handshake_conf, ser, repeat_keyword)
+                send_telem(handshake_conf, ser, repeat_keyword, addr)
                 get_start_acq = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 if toggle_ON in get_start_acq:
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
@@ -572,13 +574,13 @@ def serial_comms_phase():
                         if stop_acq_event.is_set():
                             print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
                             logging.info("Stopping phase cal now.")
-                            send_telem(toggle_OFF, ser, repeat_keyword)
+                            send_telem(toggle_OFF, ser, repeat_keyword, addr)
                             trigger_event.clear()
                             stop_acq_event.clear()
                             reset_buffer()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
-                send_telem(handshake_conf, ser, repeat_keyword)
+                send_telem(handshake_conf, ser, repeat_keyword, addr)
                 print('%s: ' %(get_timestamp()) + "Base has initiated manual reset of ROS nodes.")
                 logging.info("Base has initiated manual reset of ROS nodes.")
                 os.system('pkill -f write_WPs.py')
@@ -588,7 +590,7 @@ def serial_comms_phase():
                 reset_buffer()
             #? shutdown GR codes
             elif shutdown in get_handshake_from_base:
-                send_telem(handshake_conf, ser, repeat_keyword)
+                send_telem(handshake_conf, ser, repeat_keyword, addr)
                 print('%s: ' %(get_timestamp()) + colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
                 logging.info("Manual kill command from base recd. Shutting down SDR code")
                 reset_buffer()
@@ -599,7 +601,7 @@ def serial_comms_phase():
             elif pingtest in get_handshake_from_base:
                 print('%s: ' %(get_timestamp()) + "Ping received from base. Sending reply...")
                 logging.info("Ping received from base. Sending reply...")
-                send_telem(heartbeat_conf, ser, repeat_keyword)
+                send_telem(heartbeat_conf, ser, repeat_keyword, addr)
                 reset_buffer()
         except (serial.SerialException):
             pass

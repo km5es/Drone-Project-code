@@ -26,7 +26,7 @@ ip                  = socket.gethostbyname("127.0.0.1")
 port                = 8800
 address             = (ip,port)
 #pi                  = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-pi_addr             = "10.42.0.102"                 # default TCP address of payload
+pi_addr             = "10.42.1.102"                 # default TCP address of payload
 seq_port            = 6789
 #xu4                 = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 xu4_addr            = "10.42.0.47"
@@ -62,7 +62,7 @@ timeout             = 4                             # time after which saving da
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
-network             = 'telemetry'                        # options: wifi or telemtry 
+network             = 'wifi'                        # options: wifi or telemtry 
 
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -126,8 +126,8 @@ elif network == 'telemetry':
 if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
     msg_len = len(toggle_ON)
 else:
-    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
     logging.warning("Custom msgs through serial not equal length. Sync might not work.")
+    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
 
 
 # Connect to GRC flowgraph
