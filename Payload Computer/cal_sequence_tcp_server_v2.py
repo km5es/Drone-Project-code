@@ -85,40 +85,43 @@ if args.network:
 if args.port:
     base_station_port = args.port
 
-if network == 'wifi':
-    print(colored('Connecting to the drone via ' + str(network),  'green'))
 
-elif network == 'telemetry':
-    print(colored('Connecting to the drone via ' + str(network), 'green'))
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    time_now = time.time()
+    mlsec = repr(time_now).split('.')[1][:3]
+    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
+    return time_now
 
 
 ### Make TCP and serial connections
+print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via ' + str(network),  'green'))
+logging.info('Connecting to the drone via ' + str(network)')
 # Serial
 try:
     ser                 = serial.Serial('/dev/ttyTELEM', 4800)  
     ser_timeout         = serial.Serial('/dev/ttyTELEM', 4800, timeout=timeout)
 except:
-    print("No serial telemetry found.")
+    print('%s: ' %(get_timestamp()) + colored("No serial telemetry found.", 'magenta'))
     logging.warning("No serial telemetry found.")
     pass
 if ser.isOpen() == True:
     ser.reset_input_buffer()
     ser.reset_output_buffer()
-    print(colored('Serial connection to payload is UP. Waiting for trigger.', 'green'))
+    print('%s: ' %(get_timestamp()) + colored('Serial connection to payload is UP. Waiting for trigger.', 'green'))
     logging.info('Payload serial is UP')
     print(ser)
-else:
-    print(colored('No serial connection', 'magenta'))
-    logging.warning('Payload serial is DOWN')
 ## connect to GRC flowgraph
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((host, port))                                        # Bind to the port
 s.listen(5)                                                 # Now wait for client connection.
 conn, address = s.accept()
-print(colored('TCP server listening for connection from GRC flowgraph.', 'green'))
+print('%s: ' %(get_timestamp()) + colored('TCP server listening for connection from GRC flowgraph.', 'green'))
 logging.info("TCP server waiting for connection with GRC client flowgraph")
-print(colored('Connection to GRC flowgraph established on ' + str(address), 'green'))
+print('%s: ' %(get_timestamp()) + colored('Connection to GRC flowgraph established on ' + str(address), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(address))
 
 
@@ -173,16 +176,6 @@ def reset_buffer():
         ser.reset_output_buffer()
     except serial.SerialException:
         pass
-
-
-def get_timestamp():
-    """
-    Returns current time for data logging.
-    """
-    time_now = time.time()
-    mlsec = repr(time_now).split('.')[1][:3]
-    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
-    return time_now
 
 
 def heartbeat_udp():
@@ -562,8 +555,9 @@ def serial_comms_phase():
                 send_telem(handshake_conf, ser, repeat_keyword, addr)
                 print('%s: ' %(get_timestamp()) + "Base has initiated manual reset of ROS nodes.")
                 logging.info("Base has initiated manual reset of ROS nodes.")
-                os.system('pkill -f write_WPs.py')
-                os.system('pkill -f wp_trigger.py')
+                os.system('rosnode kill $(rosnode list | grep /write_WP)')
+                os.system('rosnode kill $(rosnode list | grep /wp_trigger)')
+                #os.system("rosnode kill $(rosnode list | grep '/write_WP\|/wp_trigger')")
                 os.system('rosrun beam_mapping write_WPs.py &')
                 os.system('rosrun beam_mapping wp_trigger.py &')
                 reset_buffer()

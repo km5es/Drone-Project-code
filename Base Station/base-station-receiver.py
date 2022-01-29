@@ -434,11 +434,11 @@ def serial_comms():
                         print('%s: ' %(get_timestamp()) + "Payload has restarted ROS nodes.")
                         logging.info("Payload has restarted ROS nodes.")
                 #? ping test
-                    elif msg == str(pingtest) and heartbeat_conf in get_handshake_conf:
-                        print('%s: ' %(get_timestamp()) + colored("Ping reply received from payload.", 'green'))
-                        logging.debug("Ping reply received from payload.")
+                elif msg == str(pingtest) and (heartbeat_conf in get_handshake_conf):
+                    print('%s: ' %(get_timestamp()) + colored("Ping reply received from payload.", 'green'))
+                    logging.debug("Ping reply received from payload.")
                 else:
-                    print('%s: ' %(get_timestamp()) + colored("No reply from payload on initial message.", 'magenta'))
+                    print('%s: ' %(get_timestamp()) + colored("No reply from payload on initial message: %s" %get_handshake_conf, 'magenta'))
                     logging.debug("No reply from payload on initial message.")
                     reset_buffer()
             except (serial.SerialException, TypeError):
