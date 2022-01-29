@@ -1,25 +1,20 @@
 #!/usr/bin/env python2.7
 # server
 '''
-This script will combine with gr_cal_tcp_loopback_client.py to generate a cal signal from the drone. It reads from serial radio for
-a trigger to begin the sequence. Once that is received, a TCP connection is established with the aforementioned GRC script, and a file
-containing a predefined waveform is streamed over the TCP link. Once a certain number of pulses are reached, the RF switch is toggled
-using GPIO. That number is defined as togglePoint and 2x togglePoint causes the sequence to finish.
-In addition, some "magic" commands can be used to manually trigger calibration and shut down the codes. There is also a system reboot 
-command. Logs are saved in the /logs directory of the repo.
+Control how and when the payload will transmit a calibration signal. When the drone 
+reaches a WP, this script will trigger transmission of a pre-defined waveform. After 
+a certain number of times that has happened (defined by togglePoint), this code will 
+toggle the GPIO which controls the RF switch.
 
-v2.0 now will transmit zeros while the trigger is not set. This will ensure an integer number of cycles on the LO to complete before the
-cal signal is transmitted. This ensures each transmission is phase consistent with the previous one.
-
-UPDATE: several telemetry failures later, I am choosing to forego any synchronization with the base with regards to saving data. The 
-new code will simply trigger when the drone reaches a WP and sets the trigger/sequence flag.
+There is a separate mode wherein phase cal can be manually triggered from the base 
+using either serial radios or a UDP connection.
 
 Author: Krishna Makhija
 date: 21st July 2020
-last modified: Jul 21st 2021
+last modified: Jan 28th 2022
 '''
 
-import socket, serial, os, sys, time, rospy, logging, argparse
+import socket, serial, os, time, rospy, logging, argparse
 from termcolor import colored
 from datetime import datetime
 from threading import Thread, Event
@@ -79,9 +74,9 @@ GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
 ### argparse
-parser = argparse.ArgumentParser(description="Activate payload calibration when drone reaches WP. Manually trigger it by typing 'pay_INIT'")
+parser = argparse.ArgumentParser(description="Activate payload calibration when drone reaches WP. Manual trigger from base over UDP.")
 parser.add_argument('-n', '--network', type=str, help='Choose type of communications. Options are telemetry or wifi.')
-parser.add_argument('-p', '--port', type=int, help='TCP port of the payload computer.')
+parser.add_argument('-p', '--port', type=int, help='UDP port of the payload computer.')
 args = parser.parse_args()
 
 if args.network:
@@ -163,7 +158,8 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
             message, addr = server.recvfrom(msg_len*repeat_keyword)
             return message, addr
         except (socket.timeout, TypeError):
-            print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
+            print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' \
+                            +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
             logging.debug('Socket recv timed out in ' +str(timeout) + '  seconds. Is the payload operatinal?')
             pass
 
@@ -177,6 +173,16 @@ def reset_buffer():
         ser.reset_output_buffer()
     except serial.SerialException:
         pass
+
+
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    time_now = time.time()
+    mlsec = repr(time_now).split('.')[1][:3]
+    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
+    return time_now
 
 
 def heartbeat_udp():
@@ -332,16 +338,6 @@ def serial_comms():
                 pass
 
 
-def get_timestamp():
-    """
-    Returns current time for data logging.
-    """
-    time_now = time.time()
-    mlsec = repr(time_now).split('.')[1][:3]
-    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
-    return time_now
-
-
 def begin_sequence_simple():
     """
     This object will initiate the calibration sequence when a WP is reached.
@@ -478,7 +474,8 @@ def stream_file():
             rospy.set_param('trigger/metadata', True)
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' +str(timestamp_start) + '. Beginning cal sequence using ' +str(cal_wf), 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' \
+                            +str(timestamp_start) + '. Beginning cal sequence using ' +str(cal_wf), 'green'))
             logging.info("Drone has reached WP. Beginning cal sequence using %s" %cal_wf)
             pulses = 0
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
@@ -489,12 +486,13 @@ def stream_file():
                 if pulses == togglePoint:
                     GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
                     GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' \
+                            +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True) 
@@ -504,7 +502,8 @@ def stream_file():
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' +str(phase_cal_wf), 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' \
+                                                            +str(phase_cal_wf), 'green'))
             logging.info("Trigger from base recd. CAL ON")
             pulses = 0
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
@@ -515,13 +514,14 @@ def stream_file():
                 if pulses == togglePoint:
                     GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
                     GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
             stop_acq_event.set()
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' \
+                                                                + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
@@ -570,7 +570,8 @@ def serial_comms_phase():
             #? shutdown GR codes
             elif shutdown in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword, addr)
-                print('%s: ' %(get_timestamp()) + colored('Kill command from base received. Shutting down TCP server and client programs.', 'red'))
+                print('%s: ' %(get_timestamp()) + colored('Kill command from base received. '\
+                                            'Shutting down TCP server and client programs.', 'red'))
                 logging.info("Manual kill command from base recd. Shutting down SDR code")
                 reset_buffer()
                 os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
@@ -582,7 +583,7 @@ def serial_comms_phase():
                 logging.info("Ping received from base. Sending reply...")
                 send_telem(heartbeat_conf, ser, repeat_keyword, addr)
                 reset_buffer()
-        except (serial.SerialException):
+        except (serial.SerialException, TypeError):
             pass
 
 
@@ -593,13 +594,10 @@ def main():
     rospy.init_node('cal_sequence', anonymous = True)
     t1 = Thread(target = serial_comms_phase)
     t2 = Thread(target = stream_file)
-    #t3 = Thread(target = stream_file)
     t1.start()
     t2.start()
-    #t3.start()
     t1.join()
     t2.join()
-    #t3.join()
 
 
 if __name__ == '__main__':

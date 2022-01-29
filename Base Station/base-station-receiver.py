@@ -1,23 +1,23 @@
 #!/usr/bin/env python2.7
 # client
 """
-Base station code. Looks for when the drone has reached a waypoint and triggers payload to begin transmitting the
-cal signal. There is also a concurrent thread that allows for manual initialization of the cal signal and/or
-forced shutdown of the payload and base station. Logs are saved in the /logs directory of the repo.
+Base station code. Back-end SDR code for saving all raw data during beam-mapping.
+Also has a separate thread which will trigger phase cal from the payload.
 
 Author: Krishna Makhija
 date: 6th August 2020
-last modified: 28th Jan 2021
+last modified: 28th Jan 2022
 """
 
-import socket, serial, os, sys, rospy, logging, timeit, time, argparse
-#import psutil
+import socket, serial, os, rospy, logging, time, argparse
 from time import sleep
 from termcolor import colored
 from os.path import expanduser
 from serial.serialutil import SerialException
 from threading import Thread, Event
 from random import randint
+from pynput import keyboard
+
 
 ##### Define global variables
 
@@ -64,14 +64,17 @@ ser                 = serial.Serial()               # dummy assignment in case n
 ser_timeout         = serial.Serial()
 network             = 'wifi'                        # options: wifi or telemtry 
 msg_len             = len(toggle_ON)
-logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
+logging.basicConfig(filename=log_name, 
+                        format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
 ### argparse
 
-parser = argparse.ArgumentParser(description="Activate payload calibration when drone reaches WP. Manually trigger it by typing 'pay_INIT'")
+parser = argparse.ArgumentParser(description="""Back-end SDR code for data acquisition. Press Ctrl + Alt + Q to begin
+                                                saving data, and Ctrl + Alt + P to stop saving it. The SDR and LO
+                                                will continue to run until the script is terminated.""")
 parser.add_argument('-n', '--network', type=str, help='Choose type of communications. Options are telemetry or wifi.')
-parser.add_argument('-a', '--address', type=str, help='IP address of TCP server (payload computer).')
-parser.add_argument('-p', '--port', type=int, help='TCP port of the payload computer.')
+parser.add_argument('-a', '--address', type=str, help='IP address of UDP server (payload computer).')
+parser.add_argument('-p', '--port', type=int, help='UDP port of the payload computer.')
 args = parser.parse_args()
 
 if args.network:
@@ -162,7 +165,8 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
             message, addr = payload_conn.recvfrom(msg_len*repeat_keyword)
             return message
         except (socket.timeout, TypeError):
-            print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
+            print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' \
+                    +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
             logging.debug('Socket recv timed out in ' +str(timeout) + '  seconds. Is the payload operatinal?')
             pass
 
@@ -289,14 +293,16 @@ def recv_data():
                 if phase_cal_event.is_set() == False:
                     break               
                 elif time.time() > start_timeout:
-                    print('%s: ' %(get_timestamp()) + colored('No stop_acq message received from drone. Acquisition timed out in ' +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
+                    print('%s: ' %(get_timestamp()) + colored('No stop_acq message received from drone. Acquisition timed out in '\
+                                                                            +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
                     logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
                     phase_cal_event.clear()
                     rospy.set_param('trigger/metadata', False)
                     reset_buffer()
                     break
             end = time.time()
-            print('%s: ' %(get_timestamp()) + colored('\nFinished saving data in: ' +str(end - start) + ' seconds.', 'grey', 'on_green'))
+            print('%s: ' %(get_timestamp()) + colored('\nFinished saving data in: ' \
+                                                            +str(end - start) + ' seconds.', 'grey', 'on_green'))
             logging.info('Finished saving data in: ' +str(end - start) + ' seconds.')
         #? begin beam data acquisition
         elif acq_event.is_set():
@@ -314,14 +320,14 @@ def recv_data():
                     break  
 
 
-def serial_comms():
+def serial_comms_old():
     '''
     Manually trigger payload and initiate saving data on base station.
     #TODO: refactor this bit so I am not repeating steps
     '''
     global sendtime
     while True:                                     
-        msg = raw_input("Enter serial comms message here (type 'helphelp' for list of commands): ")        # send is_comms handshake request
+        msg = raw_input("Enter serial comms message here (type 'helphelp' for list of commands): ")
         sendtime = time.time()
         #? shutdown GR codes on base and payload
         if msg == str(shutdown):
@@ -332,7 +338,7 @@ def serial_comms():
                     print('%s: ' %(get_timestamp()) + colored('Shutting down payload and this code.', 'red'))
                     logging.info("Manual kill switch. Shutting down payload and base station")
                     reset_buffer()
-            except (serial.SerialException):
+            except (serial.SerialException, TypeError):
                 print('%s: ' %(get_timestamp()) + colored('No serial connection. Payload will not be shutdown.', 'red'))
                 logging.debug('No serial connection. Payload will not be shutdown.')
             os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
@@ -355,7 +361,7 @@ def serial_comms():
                     print('%s: ' %(get_timestamp()) + "No handshake confirmation from payload. NO phase cal data saved.")
                     logging.debug("No handshake confirmation from payload. NO phase cal data saved.")
                     reset_buffer()
-            except (serial.SerialException):
+            except (serial.SerialException, TypeError):
                 print('%s: ' %(get_timestamp()) + colored('No serial connection. Phase cal will not be initiated.', 'red'))
                 logging.debug('No serial connection. Phase cal will not be initiated.')
         #? reset ROS nodes
@@ -366,7 +372,7 @@ def serial_comms():
                 if handshake_conf in get_handshake_conf:
                     print('%s: ' %(get_timestamp()) + "Payload has restarted ROS nodes.")
                     logging.info("Payload has restarted ROS nodes.")
-            except (serial.SerialException):
+            except (serial.SerialException, TypeError):
                 print('%s: ' %(get_timestamp()) + colored('No serial connection. No action taken on the payload.', 'red'))
                 pass
         #? ping test
@@ -380,7 +386,7 @@ def serial_comms():
                 else:
                     print('%s: ' %(get_timestamp()) + colored("No ping reply received from payload. Check serial connection.", 'red'))
                     logging.debug("No ping reply received from payload. Check serial connection.")
-            except (serial.SerialException):
+            except (serial.SerialException, TypeError):
                 print('%s: ' %(get_timestamp()) + colored('No serial connection. No action taken on the payload.', 'red'))
                 pass
         #? begin long-term data acquisition 
@@ -392,12 +398,99 @@ def serial_comms():
         #? help message for list of commands
         elif msg == str(help_call):
             print('%s: ' %(get_timestamp()) + colored("\n\nHere are the list of available commands:\n", 'white', attrs=['underline']) + 
-                            colored("is_comms:  ", 'cyan') + "Send telemetry message to payload to begin phase cal.\n" +
-                            colored("beam_acq:  ", 'cyan') + "Start raw data acquisition (for beam measurements).\n" +
-                            colored("stop_acq:  ", 'cyan') + "Stop acquiring raw data. This will still keep the script and SDR running.\n" +
+                            colored("is_comms:  ", 'cyan') + "Begin phase cal.\n" +
                             colored("rswpnode:  ", 'cyan') + "Restart ROS nodes on payload (do this when WP table is to be updated).\n" +
-                            colored("shutdown:  ", 'cyan') + "Send telemetry message to kill all GR programs on base and payload.\n" +
-                            colored("pingtest:  ", 'cyan') + "Ping test to payload to verify comms.\n")
+                            colored("shutdown:  ", 'cyan') + "Kill all SDR codes on payload and base.\n" +
+                            colored("pingtest:  ", 'cyan') + "Ping test to payload to verify comms.\n" +
+                            colored("beam_acq:  ", 'cyan') + "Start raw data acquisition (Ctrl + Alt + Q).\n" +
+                            colored("stop_acq:  ", 'cyan') + "Stop raw data acquisition (Ctrl + Alt + P).\n")
+
+
+def serial_comms():
+    '''
+    Manually trigger payload and initiate saving data on base station.
+    '''
+    global sendtime
+    while True:                                     
+        msg = raw_input("Enter serial comms message here (type 'helphelp' for list of commands): ")
+        sendtime = time.time()
+        if msg == (handshake_start) or msg == (restart_wp_node) or msg == (pingtest):
+            try:
+                send_telem(msg, ser, repeat_keyword)
+                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                if handshake_conf in get_handshake_conf:
+                #? begin phase cal
+                    if msg == str(handshake_start):
+                        print('%s: ' %(get_timestamp()) + "Manually trigger payload for phase calibration.")
+                        logging.info("Manually trigger payload cal.")
+                        send_telem(toggle_ON, ser, repeat_keyword)
+                        phase_cal_event.set()
+                        get_stop_acq = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                        if toggle_OFF in get_stop_acq:
+                            phase_cal_event.clear()
+                            reset_buffer()
+                #? reset ROS nodes
+                    elif msg == str(restart_wp_node):
+                        print('%s: ' %(get_timestamp()) + "Payload has restarted ROS nodes.")
+                        logging.info("Payload has restarted ROS nodes.")
+                #? ping test
+                    elif msg == str(pingtest) and heartbeat_conf in get_handshake_conf:
+                        print('%s: ' %(get_timestamp()) + colored("Ping reply received from payload.", 'green'))
+                        logging.debug("Ping reply received from payload.")
+                else:
+                    print('%s: ' %(get_timestamp()) + colored("No reply from payload on initial message.", 'magenta'))
+                    logging.debug("No reply from payload on initial message.")
+                    reset_buffer()
+            except (serial.SerialException, TypeError):
+                print('%s: ' %(get_timestamp()) + colored('No serial and/or UDP connection to the payload.', 'red'))
+                logging.debug('No serial and/or UDP connection to the payload.')
+        #? shutdown GR codes on base and payload
+        elif msg == str(shutdown):
+            try:
+                send_telem(msg, ser, repeat_keyword)
+                get_handshake_conf = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                if handshake_conf in get_handshake_conf:
+                    print('%s: ' %(get_timestamp()) + colored('Shutting down payload and this code.', 'red'))
+                    logging.info("Manual kill switch. Shutting down payload and base station")
+                    reset_buffer()
+            except (serial.SerialException, TypeError):
+                print('%s: ' %(get_timestamp()) + colored('No serial connection. Payload will not be shutdown.', 'red'))
+                logging.debug('No serial connection. Payload will not be shutdown.')
+            os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+            os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
+        #? begin long-term data acquisition 
+        elif msg == str(begin_raw_beam):
+            acq_event.set()
+        #? stop long-term data acquisition
+        elif msg == str(toggle_OFF):
+            acq_event.clear()
+        #? help message for list of commands
+        elif msg == str(help_call):
+            print('%s: ' %(get_timestamp()) + colored("\n\nHere are the list of available commands:\n", 'white', attrs=['underline']) + 
+                            colored("is_comms:  ", 'cyan') + "Begin phase cal.\n" +
+                            colored("rswpnode:  ", 'cyan') + "Restart ROS nodes on payload (do this when WP table is to be updated).\n" +
+                            colored("shutdown:  ", 'cyan') + "Kill all SDR codes on payload and base.\n" +
+                            colored("pingtest:  ", 'cyan') + "Ping test to payload to verify comms.\n" +
+                            colored("beam_acq:  ", 'cyan') + "Start raw data acquisition (Ctrl + Alt + Q).\n" +
+                            colored("stop_acq:  ", 'cyan') + "Stop raw data acquisition (Ctrl + Alt + P).\n")
+
+
+def hk_begin_acq():
+    acq_event.set()
+
+def hk_cease_acq():
+    acq_event.clear()
+
+def input_hotkey():
+    '''
+    Add hotkeys for starting and stopping data acquisition.
+    Ctrl + Alt + Q: begin acquisition
+    Ctrl + Alt + P: cease acquisition
+    '''
+    with keyboard.GlobalHotKeys({
+            '<alt>+<ctrl>+q': hk_begin_acq,
+            '<alt>+<ctrl>+p': hk_cease_acq,}) as h:
+        h.join()
 
 
 def main():
@@ -407,10 +500,13 @@ def main():
     try:
         t1 = Thread(target = recv_data)
         t2 = Thread(target = serial_comms)
+        t3 = Thread(target = input_hotkey)
         t1.start()
         t2.start()
+        t3.start()
         t1.join()
         t2.join()
+        t3.join()
     except (serial.SerialException, socket.error):
         print('%s: ' %(get_timestamp()) + colored("Socket/serial device exception found. Killing processes and retrying...", 'red'))
         os.system('kill -9 $(fuser /dev/ttyUSB0)')
