@@ -98,7 +98,7 @@ def get_timestamp():
 
 ### Make TCP and serial connections
 print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via ' + str(network),  'green'))
-logging.info('Connecting to the drone via ' + str(network)')
+logging.info('Connecting to the drone via ' + str(network))
 # Serial
 try:
     ser                 = serial.Serial('/dev/ttyTELEM', 4800)  
