@@ -34,9 +34,6 @@ sample_packet       = 4096*16                               # Length of one puls
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
 port                = 8810
-#base_station        = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-#base_station_ip     = socket.gethostbyname('0.0.0.0')
-#base_station_port   = 12000
 heartbeat_check     = 'hrt_beat'                            # heartbeat every n secs
 heartbeat_conf      = 'OK_hrtbt'                            # heartbeat confirmation
 startup_initiate    = 'pay_INIT'                            # check to see if payload is running
@@ -145,11 +142,11 @@ def create_server():
     global base_conn
     global udp_ip
     global udp_port
-    udp_ip          = socket.gethostname()
+    #udp_ip          = socket.gethostname()
     udp_port        = 6789
     base_conn       = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 #    base_conn.settimeout(4)
-    base_conn.bind((udp_ip, udp_port))
+    base_conn.bind(("", udp_port))
 
 
 def send_telem(keyword, serial_object, repeat_keyword, addr):
@@ -162,13 +159,13 @@ def send_telem(keyword, serial_object, repeat_keyword, addr):
         serial_object.write(new_keyword)
     if network == 'wifi':
         #print('Wi-Fi is currently disabled.')
-        base_conn.send(new_keyword)
+        #base_conn.send(new_keyword)
         base_conn.sendto(new_keyword, addr)
 
 
 def recv_telem(msg_len, serial_object, repeat_keyword):
     """
-    Receive messages from the payload via telemetry or TCP.
+    Receive messages from the payload via telemetry or UDP.
     """
     if network == 'telemetry':
         message = serial_object.read(msg_len*repeat_keyword)
@@ -176,7 +173,7 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
     if network == 'wifi':
         try:
             message, addr = base_conn.recvfrom(msg_len*repeat_keyword)
-            return message
+            return message, addr
         except (socket.timeout, TypeError):
             print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
             logging.debug('Socket recv timed out in ' +str(timeout) + '  seconds. Is the payload operatinal?')
@@ -564,17 +561,16 @@ def serial_comms_phase():
     beam calibration signal.
     """
     create_server()
-    addr = "127.0.0.1"
     while True:
         time.sleep(0.05)
         try:
-            get_handshake_from_base = recv_telem(msg_len, ser, repeat_keyword)
+            get_handshake_from_base, addr = recv_telem(msg_len, ser, repeat_keyword)
             #? begin phase cal
             if handshake_start in get_handshake_from_base:
                 print('%s: ' %(get_timestamp()) + "Handshake start for phase cal received from base.")
                 logging.info("Handshake start for phase cal received from base.")
                 send_telem(handshake_conf, ser, repeat_keyword, addr)
-                get_start_acq = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                get_start_acq, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
                 if toggle_ON in get_start_acq:
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
                     logging.info("Starting phase cal now.")
