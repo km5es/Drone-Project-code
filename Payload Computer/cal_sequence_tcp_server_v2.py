@@ -63,6 +63,8 @@ ser                 = serial.Serial()
 ser_timeout         = serial.Serial()
 timeout             = 4
 wp_timeout          = 15
+msg_len             = len(toggle_ON)
+
 rospy.set_param('trigger/sequence', False)
 
 ### GPIO setup
@@ -77,7 +79,6 @@ GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
 ### argparse
-
 parser = argparse.ArgumentParser(description="Activate payload calibration when drone reaches WP. Manually trigger it by typing 'pay_INIT'")
 parser.add_argument('-n', '--network', type=str, help='Choose type of communications. Options are telemetry or wifi.')
 parser.add_argument('-p', '--port', type=int, help='TCP port of the payload computer.')
@@ -95,16 +96,25 @@ if network == 'wifi':
 elif network == 'telemetry':
     print(colored('Connecting to the drone via ' + str(network), 'green'))
 
-### Make TCP and serial connections
 
+### Make TCP and serial connections
+# Serial
 try:
     ser                 = serial.Serial('/dev/ttyTELEM', 4800)  
     ser_timeout         = serial.Serial('/dev/ttyTELEM', 4800, timeout=timeout)
 except:
-    print("No telemetry found.")
+    print("No serial telemetry found.")
     logging.warning("No serial telemetry found.")
     pass
-
+if ser.isOpen() == True:
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+    print(colored('Serial connection to payload is UP. Waiting for trigger.', 'green'))
+    logging.info('Payload serial is UP')
+    print(ser)
+else:
+    print(colored('No serial connection', 'magenta'))
+    logging.warning('Payload serial is DOWN')
 ## connect to GRC flowgraph
 os.system('lsof -t -i tcp:' +str(port) + ' | xargs kill -9')
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -116,22 +126,6 @@ logging.info("TCP server waiting for connection with GRC client flowgraph")
 print(colored('Connection to GRC flowgraph established on ' + str(address), 'green'))
 logging.info('Connection to GRC flowgraph established on ' + str(address))
 
-if ser.isOpen() == True:
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
-    print(colored('Serial connection to payload is UP. Waiting for trigger.', 'green'))
-    logging.info('Payload serial is UP')
-    print(ser)
-else:
-    print(colored('No serial connection', 'magenta'))
-    logging.warning('Payload serial is DOWN')
-
-if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
-    msg_len = len(toggle_ON)
-else:
-    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
-    logging.warning("Custom msgs through serial not equal length. Sync might not work.")
-
 
 ### Define objects
 
@@ -139,14 +133,10 @@ def create_server():
     """
     Create UDP server for base station to connect to.
     """
-    global base_conn
-    global udp_ip
-    global udp_port
-    #udp_ip          = socket.gethostname()
+    global server
     udp_port        = 6789
-    base_conn       = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#    base_conn.settimeout(4)
-    base_conn.bind(("", udp_port))
+    server          = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.bind(("", udp_port))
 
 
 def send_telem(keyword, serial_object, repeat_keyword, addr):
@@ -158,9 +148,7 @@ def send_telem(keyword, serial_object, repeat_keyword, addr):
     if network == 'telemetry':
         serial_object.write(new_keyword)
     if network == 'wifi':
-        #print('Wi-Fi is currently disabled.')
-        #base_conn.send(new_keyword)
-        base_conn.sendto(new_keyword, addr)
+        server.sendto(new_keyword, addr)
 
 
 def recv_telem(msg_len, serial_object, repeat_keyword):
@@ -172,7 +160,7 @@ def recv_telem(msg_len, serial_object, repeat_keyword):
         return message
     if network == 'wifi':
         try:
-            message, addr = base_conn.recvfrom(msg_len*repeat_keyword)
+            message, addr = server.recvfrom(msg_len*repeat_keyword)
             return message, addr
         except (socket.timeout, TypeError):
             print('%s: ' %(get_timestamp()) + colored('Socket recv timed out in ' +str(timeout) + ' seconds. Is the payload operatinal?', 'grey', 'on_red', attrs=['blink']))
@@ -417,21 +405,6 @@ def begin_sequence_simple():
         except serial.SerialException, e:
             pass
 
-
-def main_telem():
-    """
-    Initiate threads.
-    """
-    rospy.init_node('cal_sequence', anonymous = True)
-    t1 = Thread(target = begin_sequence_simple)
-    t2 = Thread(target = stream_file)
-    #t3 = Thread(target = get_timestamp)
-    t1.start()
-    t2.start()
-    #t3.start()
-    t1.join()
-    t2.join()
-    #t3.join()
 
 def stream_file_no_telem_pol_switch():
     """

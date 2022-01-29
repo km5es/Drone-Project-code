@@ -63,7 +63,7 @@ repeat_keyword      = 4                             # number of times to repeat 
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
 network             = 'wifi'                        # options: wifi or telemtry 
-
+msg_len             = len(toggle_ON)
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
 ### argparse
@@ -122,13 +122,6 @@ elif network == 'telemetry':
             print('%s: ' %(get_timestamp()) + colored("No serial telemetry found.", "red"))
             logging.warning("No serial telemetry found")
             pass
-
-if len(toggle_ON) == len(toggle_OFF) == len(shutdown) == len(handshake_start) == len(handshake_conf):
-    msg_len = len(toggle_ON)
-else:
-    logging.warning("Custom msgs through serial not equal length. Sync might not work.")
-    raise Exception("Check custom messages to serial radios. Are they the right lengths?")
-
 
 # Connect to GRC flowgraph
 client.connect((address))
