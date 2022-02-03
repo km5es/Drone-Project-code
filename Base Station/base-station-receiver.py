@@ -409,6 +409,7 @@ def serial_comms_old():
 def serial_comms():
     '''
     Manually trigger payload and initiate saving data on base station.
+    #FIXME: each subsequent phase cal is shorter in length. why?
     '''
     global sendtime
     while True:                                     

@@ -544,11 +544,11 @@ def serial_comms_phase():
                     while trigger_event.is_set():
                         time.sleep(0.05)
                         if stop_acq_event.is_set():
+                            trigger_event.clear()
+                            stop_acq_event.clear()
                             print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
                             logging.info("Stopping phase cal now.")
                             send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                            trigger_event.clear()
-                            stop_acq_event.clear()
                             reset_buffer()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
