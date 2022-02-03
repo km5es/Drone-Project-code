@@ -529,6 +529,7 @@ def serial_comms_phase():
     Phase cal will consist of a noise signal which is different from the 
     beam calibration signal.
     """
+    global addr
     create_server()
     while True:
         time.sleep(0.05)
