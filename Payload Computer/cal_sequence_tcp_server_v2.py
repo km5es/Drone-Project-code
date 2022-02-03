@@ -541,7 +541,7 @@ def serial_comms_phase():
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
                     logging.info("Starting phase cal now.")
                     trigger_event.set()
-                    while True:
+                    while trigger_event.is_set() == True:
                         time.sleep(0.05)
                         if stop_acq_event.is_set():
                             trigger_event.clear()
