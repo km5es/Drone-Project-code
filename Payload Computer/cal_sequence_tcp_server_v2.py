@@ -519,6 +519,8 @@ def stream_file():
             logging.info("Cal sequence complete. CAL OFF")
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
+            send_telem(toggle_OFF, ser, repeat_keyword, addr)
+            reset_buffer()
 
 
 def serial_comms_phase():
@@ -542,17 +544,15 @@ def serial_comms_phase():
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
                     logging.info("Starting phase cal now.")
                     trigger_event.set()
-                    #while trigger_event.is_set() == True:
-                    while True:
-                        time.sleep(0.05)
-                        #if stop_acq_event.is_set():
-                        if trigger_event.is_set() == False:
-                            #trigger_event.clear()
-                            #stop_acq_event.clear()
-                            print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
-                            logging.info("Stopping phase cal now.")
-                            send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                            reset_buffer()
+                #    #while trigger_event.is_set() == True:
+                #        time.sleep(0.05)
+                #        #if stop_acq_event.is_set():
+                #            #trigger_event.clear()
+                #            #stop_acq_event.clear()
+                #            print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
+                #            logging.info("Stopping phase cal now.")
+                #            send_telem(toggle_OFF, ser, repeat_keyword, addr)
+                #            reset_buffer()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword, addr)
