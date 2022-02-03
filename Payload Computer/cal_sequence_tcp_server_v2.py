@@ -194,7 +194,7 @@ def heartbeat_udp():
                 base_conn2.sendto(data, addr)
                 data = ""
 
-
+'''
 def begin_sequence():
     """
     This object will initiate the calibration sequence when a WP is reached.
@@ -441,7 +441,7 @@ def stream_file_no_telem_pol_switch():
             GPIO.output(20, GPIO.LOW)
             GPIO.output(21, GPIO.LOW)
             GPIO.output(12, GPIO.LOW)
-
+'''
 
 def stream_file():
     """
