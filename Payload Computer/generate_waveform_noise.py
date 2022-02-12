@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 ##################################################
 # GNU Radio Python Flow Graph
-# Title: Top Block
-# Generated: Sat Feb 12 13:45:56 2022
+# Title: Generate Waveform Noise
+# Generated: Sat Feb 12 15:47:56 2022
 ##################################################
 
 if __name__ == '__main__':
@@ -29,12 +29,12 @@ import sys
 from gnuradio import qtgui
 
 
-class top_block(gr.top_block, Qt.QWidget):
+class generate_waveform_noise(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Top Block")
+        gr.top_block.__init__(self, "Generate Waveform Noise")
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Top Block")
+        self.setWindowTitle("Generate Waveform Noise")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -52,7 +52,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "top_block")
+        self.settings = Qt.QSettings("GNU Radio", "generate_waveform_noise")
         self.restoreGeometry(self.settings.value("geometry").toByteArray())
 
 
@@ -95,7 +95,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_multiply_xx_0, 1))
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "top_block")
+        self.settings = Qt.QSettings("GNU Radio", "generate_waveform_noise")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
 
@@ -159,7 +159,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.OFF_time = OFF_time
 
 
-def main(top_block_cls=top_block, options=None):
+def main(top_block_cls=generate_waveform_noise, options=None):
 
     from distutils.version import StrictVersion
     if StrictVersion(Qt.qVersion()) >= StrictVersion("4.5.0"):

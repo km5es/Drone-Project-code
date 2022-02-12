@@ -412,7 +412,8 @@ def serial_comms():
     #FIXME: each subsequent phase cal is shorter in length. why?
     '''
     global sendtime
-    while True:                                     
+    while True:
+        sleep(0.5)                                     
         msg = raw_input("Enter serial comms message here (type 'helphelp' for list of commands): ")
         sendtime = time.time()
         if msg == (handshake_start) or msg == (restart_wp_node) or msg == (pingtest):

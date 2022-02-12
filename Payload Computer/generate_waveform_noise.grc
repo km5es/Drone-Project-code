@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>top_block</value>
+      <value>generate_waveform_noise</value>
     </param>
     <param>
       <key>max_nouts</key>
