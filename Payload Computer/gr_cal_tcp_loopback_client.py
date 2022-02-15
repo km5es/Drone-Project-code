@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Tue Feb 15 18:10:55 2022
+# Generated: Tue Feb 15 18:22:15 2022
 ##################################################
 
 from gnuradio import blocks
@@ -17,6 +17,8 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
+import rospy
+from std_msgs.msg import Float32
 
 
 class gr_cal_tcp_loopback_client(gr.top_block):
@@ -32,8 +34,8 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6/2
-        self.wave_freq = wave_freq = samp_rate/8
+        self.samp_rate = samp_rate = 7.68e6         # ! 7.68e6 for beam meas, 7.5 for multipath
+        self.wave_freq = wave_freq = samp_rate/8    # ! factor of 8 for beam meas, 3 for multipath
         self.meas_freq = meas_freq = 150e6
         self.min_buffer = min_buffer = 4096*16*32
         self.gain = gain = 60
@@ -120,6 +122,9 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.freq = freq
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
+    def get_temp(self):
+        return self.uhd_usrp_sink_0.get_sensor('temp').to_real()
+
 
 def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
@@ -135,9 +140,18 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
         options, _ = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
+    
+    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
+    rospy.init_node('SDR_temperature_node', anonymous=True)
+    rate = rospy.Rate(5) # 5 Hz
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
+    while not rospy.is_shutdown():
+        temp = tb.get_temp()
+#        rospy.loginfo(temp)
+        pub.publish(temp)
+        rate.sleep()
     tb.wait()
 
 
