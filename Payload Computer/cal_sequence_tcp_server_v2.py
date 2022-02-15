@@ -525,8 +525,10 @@ def stream_file():
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' \
                                                                 + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
-            GPIO.output(20, GPIO.LOW)
-            GPIO.output(21, GPIO.LOW)
+            #GPIO.output(20, GPIO.LOW)
+            #GPIO.output(21, GPIO.LOW)
+            GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
             send_telem(toggle_OFF, ser, repeat_keyword, addr)
             reset_buffer()
 
