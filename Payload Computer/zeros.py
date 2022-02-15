@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Zeros
-# Generated: Fri Jul 31 20:50:22 2020
+# Generated: Tue Feb 15 17:55:51 2022
 ##################################################
 
 if __name__ == '__main__':
@@ -58,15 +58,16 @@ class zeros(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 15.36e6
-        self.head = head = 4096*16
+        self.samp_rate = samp_rate = 15.36e6/2
+        self.head = head = 4096*16*32
 
         ##################################################
         # Blocks
         ##################################################
         self.blocks_vector_source_x_0 = blocks.vector_source_c(np.hstack(np.zeros(head)), True, 1, [])
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_head_0_0_0 = blocks.head(gr.sizeof_gr_complex*1, head)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/Drone-Project/Payload Computer/zeros', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/zeros', False)
         self.blocks_file_sink_0.set_unbuffered(False)
 
 
@@ -74,7 +75,8 @@ class zeros(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_head_0_0_0, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.blocks_head_0_0_0, 0), (self.blocks_throttle_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_head_0_0_0, 0))
 
     def closeEvent(self, event):
@@ -87,6 +89,7 @@ class zeros(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
+        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
 
     def get_head(self):
         return self.head
