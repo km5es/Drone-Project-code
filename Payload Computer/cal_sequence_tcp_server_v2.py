@@ -528,6 +528,7 @@ def stream_file():
             #GPIO.output(21, GPIO.LOW)
             GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
+            time.sleep(0.4)                             # buffer time for the receiver to empty its buffers?
             send_telem(toggle_OFF, ser, repeat_keyword, addr)
             reset_buffer()
 
