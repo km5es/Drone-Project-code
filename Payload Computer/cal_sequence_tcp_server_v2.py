@@ -24,7 +24,7 @@ import RPi.GPIO as GPIO
 
 ### Define global variables
 
-togglePoint         = 3                                     # number of pulses per pol
+togglePoint         = 96                                    # number of pulses per pol
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
@@ -511,8 +511,8 @@ def stream_file():
                 conn.send(phase_cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
-                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
                     #GPIO.output(20, GPIO.LOW)
                     #GPIO.output(21, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
