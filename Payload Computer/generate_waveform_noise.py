@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Generate Waveform Noise
-# Generated: Sat Feb 12 15:47:56 2022
+# Generated: Tue Feb 15 18:38:50 2022
 ##################################################
 
 if __name__ == '__main__':
@@ -17,7 +17,6 @@ if __name__ == '__main__':
             print "Warning: failed to XInitThreads()"
 
 from PyQt4 import Qt
-from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
@@ -25,6 +24,7 @@ from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
 import numpy as np
+import pmt
 import sys
 from gnuradio import qtgui
 
@@ -71,28 +71,21 @@ class generate_waveform_noise(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.blocks_vector_source_x_0 = blocks.vector_source_c(np.hstack((np.zeros(OFF), np.ones(ON))), True, 1, [])
-        (self.blocks_vector_source_x_0).set_min_output_buffer(4096)
-        (self.blocks_vector_source_x_0).set_max_output_buffer(4096)
-        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
-        (self.blocks_multiply_xx_0).set_min_output_buffer(4096)
-        (self.blocks_multiply_xx_0).set_max_output_buffer(4096)
-        self.blocks_head_0 = blocks.head(gr.sizeof_gr_complex*1, head)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise', False)
-        self.blocks_file_sink_0.set_unbuffered(False)
-        self.analog_noise_source_x_0 = analog.noise_source_c(analog.GR_GAUSSIAN, 0.5, 42)
+        self.blocks_throttle_0_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
+        self.blocks_head_0_0 = blocks.head(gr.sizeof_gr_complex*1, head*32)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise', True)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+        self.blocks_file_sink_1 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise', False)
+        self.blocks_file_sink_1.set_unbuffered(False)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_noise_source_x_0, 0), (self.blocks_multiply_xx_0, 0))
-        self.connect((self.blocks_head_0, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.blocks_multiply_xx_0, 0), (self.blocks_throttle_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.blocks_head_0, 0))
-        self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_multiply_xx_0, 1))
+        self.connect((self.blocks_file_source_0, 0), (self.blocks_throttle_0_0, 0))
+        self.connect((self.blocks_head_0_0, 0), (self.blocks_file_sink_1, 0))
+        self.connect((self.blocks_throttle_0_0, 0), (self.blocks_head_0_0, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "generate_waveform_noise")
@@ -104,17 +97,16 @@ class generate_waveform_noise(gr.top_block, Qt.QWidget):
 
     def set_ON(self, ON):
         self.ON = ON
-        self.set_OFF(15*self.ON)
         self.set_duty_cycle(self.OFF/self.ON)
-        self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
         self.set_ON_time(self.ON/self.samp_rate)
+        self.set_OFF(15*self.ON)
 
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
+        self.blocks_throttle_0_0.set_sample_rate(self.samp_rate)
         self.set_ON_time(self.ON/self.samp_rate)
         self.set_OFF_time(self.OFF/self.samp_rate)
 
@@ -124,7 +116,6 @@ class generate_waveform_noise(gr.top_block, Qt.QWidget):
     def set_OFF(self, OFF):
         self.OFF = OFF
         self.set_duty_cycle(self.OFF/self.ON)
-        self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
         self.set_OFF_time(self.OFF/self.samp_rate)
 
     def get_ring_buffer_size(self):
@@ -138,7 +129,7 @@ class generate_waveform_noise(gr.top_block, Qt.QWidget):
 
     def set_head(self, head):
         self.head = head
-        self.blocks_head_0.set_length(self.head)
+        self.blocks_head_0_0.set_length(self.head*32)
 
     def get_duty_cycle(self):
         return self.duty_cycle
