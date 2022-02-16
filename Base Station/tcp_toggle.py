@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Mon Jan 24 16:54:01 2022
+# Generated: Tue Feb 15 19:48:20 2022
 ##################################################
 
 from gnuradio import blocks
@@ -29,7 +29,7 @@ class tcp_toggle(gr.top_block):
         self.samp_rate = samp_rate = 30.72e6/4
         self.wave_freq = wave_freq = samp_rate/8
         self.meas_freq = meas_freq = 150e6
-        self.min_buffer = min_buffer = 512*8200*2
+        self.min_buffer = min_buffer = 8192*256
         self.gain = gain = 0
         self.freq = freq = meas_freq - wave_freq
 
@@ -37,7 +37,7 @@ class tcp_toggle(gr.top_block):
         # Blocks
         ##################################################
         self.uhd_usrp_source_0 = uhd.usrp_source(
-        	",".join(("num_recv_frames=512, recv_frame_size=8200", "")),
+        	",".join(("num_recv_frames=256, recv_frame_size=8192", "")),
         	uhd.stream_args(
         		cpu_format="fc32",
         		otw_format='sc16',
@@ -52,7 +52,7 @@ class tcp_toggle(gr.top_block):
         self.uhd_usrp_source_0.set_gain(gain, 0)
         self.uhd_usrp_source_0.set_center_freq(freq, 1)
         self.uhd_usrp_source_0.set_gain(0, 1)
-        (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
+        (self.uhd_usrp_source_0).set_min_output_buffer(2097152)
         self.blocks_interleave_0 = blocks.interleave(gr.sizeof_gr_complex*1, 1)
         self.blks2_tcp_sink_0 = grc_blks2.tcp_sink(
         	itemsize=gr.sizeof_gr_complex*1,

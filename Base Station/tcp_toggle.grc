@@ -248,7 +248,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>512*8200*2</value>
+      <value>8192*256</value>
     </param>
   </block>
   <block>
@@ -329,7 +329,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 276)</value>
+      <value>(664, 262)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -380,7 +380,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(480, 280)</value>
+      <value>(436, 280)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1583,7 +1583,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"num_recv_frames=512, recv_frame_size=8200"</value>
+      <value>"num_recv_frames=256, recv_frame_size=8192"</value>
     </param>
     <param>
       <key>dev_args</key>

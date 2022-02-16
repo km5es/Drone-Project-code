@@ -64,6 +64,7 @@ ser                 = serial.Serial()               # dummy assignment in case n
 ser_timeout         = serial.Serial()
 network             = 'wifi'                        # options: wifi or telemtry 
 msg_len             = len(toggle_ON)
+buff_size           = 4096*16*8*32                  # to match the device transport parameters on the TX SDR
 logging.basicConfig(filename=log_name, 
                         format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -288,7 +289,7 @@ def recv_data():
             start           = time.time()
             start_timeout   = start + timeout            
             while True:
-                SDRdata     = client.recv(4096*8*16, socket.MSG_WAITALL)
+                SDRdata     = client.recv(buff_size, socket.MSG_WAITALL)
                 f.write(SDRdata)
                 if phase_cal_event.is_set() == False:
                     break               
@@ -312,7 +313,7 @@ def recv_data():
             print('%s: ' %(get_timestamp()) + colored('Saving raw beam mapping data now in ' + str(filename), 'cyan'))
             logging.info('Saving raw beam mapping data in ' +str(filename))
             while True:
-                SDRdata     = client.recv(4096*8*16, socket.MSG_WAITALL)
+                SDRdata     = client.recv(buff_size, socket.MSG_WAITALL)
                 f.write(SDRdata)
                 if acq_event.is_set() == False:
                     print('%s: ' %(get_timestamp()) + colored('Raw beam data acquisition stopped.', 'red'))

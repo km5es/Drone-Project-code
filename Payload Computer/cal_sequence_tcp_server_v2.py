@@ -24,7 +24,7 @@ import RPi.GPIO as GPIO
 
 ### Define global variables
 
-togglePoint         = 96                                    # number of pulses per pol
+togglePoint         = 3                                     # number of pulses per pol
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
@@ -510,25 +510,24 @@ def stream_file():
             for pulses in range(togglePoint * 2):
                 conn.send(phase_cal_signal)
                 pulses += 1
-                #if pulses == togglePoint:
-                #    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                #    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                #    #GPIO.output(20, GPIO.LOW)
-                #    #GPIO.output(21, GPIO.HIGH)
-                #    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
-                #    logging.info("Switching polarization now")
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    #GPIO.output(20, GPIO.LOW)
+                    #GPIO.output(21, GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
+                    logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
-            #stop_acq_event.set()
             trigger_event.clear()
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' \
                                                                 + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
             #GPIO.output(20, GPIO.LOW)
             #GPIO.output(21, GPIO.LOW)
-            #GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
-            #GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
             send_telem(toggle_OFF, ser, repeat_keyword, addr)
             reset_buffer()
 
@@ -555,15 +554,6 @@ def serial_comms_phase():
                     print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
                     logging.info("Starting phase cal now.")
                     trigger_event.set()
-                #    #while trigger_event.is_set() == True:
-                #        time.sleep(0.05)
-                #        #if stop_acq_event.is_set():
-                #            #trigger_event.clear()
-                #            #stop_acq_event.clear()
-                #            print('%s: ' %(get_timestamp()) + "Stopping phase cal now.")
-                #            logging.info("Stopping phase cal now.")
-                #            send_telem(toggle_OFF, ser, repeat_keyword, addr)
-                #            reset_buffer()
             #? reset ROS nodes
             elif restart_wp_node in get_handshake_from_base:
                 send_telem(handshake_conf, ser, repeat_keyword, addr)
@@ -571,7 +561,6 @@ def serial_comms_phase():
                 logging.info("Base has initiated manual reset of ROS nodes.")
                 os.system('rosnode kill $(rosnode list | grep /write_WP)')
                 os.system('rosnode kill $(rosnode list | grep /wp_trigger)')
-                #os.system("rosnode kill $(rosnode list | grep '/write_WP\|/wp_trigger')")
                 os.system('rosrun beam_mapping write_WPs.py &')
                 os.system('rosrun beam_mapping wp_trigger.py &')
                 reset_buffer()
