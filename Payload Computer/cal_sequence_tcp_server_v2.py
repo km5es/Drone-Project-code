@@ -511,8 +511,8 @@ def stream_file():
                 conn.send(phase_cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
-                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
                     #GPIO.output(20, GPIO.LOW)
                     #GPIO.output(21, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
