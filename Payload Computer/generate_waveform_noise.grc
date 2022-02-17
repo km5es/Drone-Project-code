@@ -384,7 +384,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise_kernel</value>
+      <value>/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise</value>
     </param>
     <param>
       <key>_coordinate</key>

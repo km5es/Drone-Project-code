@@ -64,7 +64,7 @@ ser                 = serial.Serial()               # dummy assignment in case n
 ser_timeout         = serial.Serial()
 network             = 'wifi'                        # options: wifi or telemtry 
 msg_len             = len(toggle_ON)
-buff_size           = 8200 * 512                    # to match the device transport parameters on the TX SDR
+buff_size           = 4096 * 16 * 8                 # to match the device transport parameters on the TX SDR
 logging.basicConfig(filename=log_name, 
                         format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
