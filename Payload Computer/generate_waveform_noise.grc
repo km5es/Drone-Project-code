@@ -384,7 +384,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise</value>
+      <value>/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise_kernel</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -612,7 +612,7 @@
     </param>
     <param>
       <key>num_items</key>
-      <value>head*32</value>
+      <value>8200*512</value>
     </param>
     <param>
       <key>type</key>

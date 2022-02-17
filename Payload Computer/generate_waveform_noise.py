@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Generate Waveform Noise
-# Generated: Wed Feb 16 15:50:24 2022
+# Generated: Wed Feb 16 21:15:57 2022
 ##################################################
 
 from gnuradio import analog
@@ -44,7 +44,7 @@ class generate_waveform_noise(gr.top_block):
         (self.blocks_multiply_xx_0).set_min_output_buffer(4096)
         (self.blocks_multiply_xx_0).set_max_output_buffer(4096)
         self.blocks_head_0 = blocks.head(gr.sizeof_gr_complex*1, head)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, '/home/kmakhija/catkin_ws/src/Drone-Project-code/Payload Computer/noise_kernel', False)
         self.blocks_file_sink_0.set_unbuffered(False)
         self.analog_noise_source_x_0 = analog.noise_source_c(analog.GR_GAUSSIAN, 0.5, 42)
 
