@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Wed Feb 16 22:02:29 2022
+# Generated: Wed Feb 16 22:19:14 2022
 ##################################################
 
 from gnuradio import blocks
@@ -22,7 +22,7 @@ from std_msgs.msg import Float32
 
 class gr_cal_tcp_loopback_client(gr.top_block):
 
-    def __init__(self, device_transport='send_frame_size=8200, num_send_frames=512'):
+    def __init__(self, device_transport='send_frame_size=8192,  num_send_frames=512'):
         gr.top_block.__init__(self, "gr_cal_tcp_loopback_client")
 
         ##################################################
@@ -36,7 +36,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.samp_rate = samp_rate = 7.68e6
         self.wave_freq = wave_freq = samp_rate/8
         self.meas_freq = meas_freq = 150e6
-        self.min_buffer = min_buffer = 65536
+        self.min_buffer = min_buffer = 8192 * 512
         self.gain = gain = 40
         self.freq = freq = meas_freq - wave_freq
 
@@ -55,14 +55,14 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_center_freq(freq, 0)
         self.uhd_usrp_sink_0.set_gain(gain, 0)
         self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
-        (self.blocks_vector_to_stream_0).set_min_output_buffer(65536)
+        (self.blocks_vector_to_stream_0).set_min_output_buffer(4194304)
         self.blks2_tcp_source_0 = grc_blks2.tcp_source(
         	itemsize=gr.sizeof_gr_complex*min_buffer,
         	addr='127.0.0.1',
         	port=8810,
         	server=False,
         )
-        (self.blks2_tcp_source_0).set_min_output_buffer(65536)
+        (self.blks2_tcp_source_0).set_min_output_buffer(4194304)
 
 
 

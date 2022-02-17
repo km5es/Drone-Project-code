@@ -194,7 +194,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>65536</value>
+      <value>8192 * 512</value>
     </param>
   </block>
   <block>
@@ -452,7 +452,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>send_frame_size=8200, num_send_frames=512</value>
+      <value>send_frame_size=8192,  num_send_frames=512</value>
     </param>
   </block>
   <block>
