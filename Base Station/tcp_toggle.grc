@@ -248,7 +248,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>8192*256</value>
+      <value>8200*512</value>
     </param>
   </block>
   <block>
@@ -1583,7 +1583,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"num_recv_frames=256, recv_frame_size=8192"</value>
+      <value>"num_recv_frames=512, recv_frame_size=8200"</value>
     </param>
     <param>
       <key>dev_args</key>
