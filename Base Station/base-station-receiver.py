@@ -430,6 +430,7 @@ def serial_comms():
                         phase_cal_event.set()
                         get_stop_acq = recv_telem(msg_len, ser_timeout, repeat_keyword)
                         if toggle_OFF in get_stop_acq:
+                            time.sleep(0.4)
                             phase_cal_event.clear()
                             reset_buffer()
                 #? reset ROS nodes
