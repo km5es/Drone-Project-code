@@ -510,13 +510,13 @@ def stream_file():
             for pulses in range(togglePoint * 2):
                 conn.send(phase_cal_signal)
                 pulses += 1
-                #if pulses == togglePoint:
-                #    #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                #    #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                if pulses == togglePoint:
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
                 #    #GPIO.output(20, GPIO.LOW)
                 #    #GPIO.output(21, GPIO.HIGH)
-                #    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
-                #    logging.info("Switching polarization now")
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
+                    logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
             end = time.time()
             total_time = end - start
@@ -526,9 +526,8 @@ def stream_file():
             logging.info("Cal sequence complete. CAL OFF")
             #GPIO.output(20, GPIO.LOW)
             #GPIO.output(21, GPIO.LOW)
-            #GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
-            #GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
-            #time.sleep(0.4)                             # buffer time for the receiver to empty its buffers?
+            GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
             send_telem(toggle_OFF, ser, repeat_keyword, addr)
             reset_buffer()
 

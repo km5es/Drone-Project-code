@@ -276,8 +276,11 @@ def recv_data():
     Wait for acq_event to begin and stop saving data.
     '''
     global tel_flag
+    dev_null = open(os.devnull, "w")
     while True:
-        sleep(1e-3)
+        #sleep(1e-3)
+        SDRdata     = client.recv(buff_size, socket.MSG_WAITALL)
+        dev_null.write(SDRdata)
         #? begin phase cal data acquisition
         if phase_cal_event.is_set():
             print('%s: ' %(get_timestamp()) + 'Trigger from payload recd. Saving data now.')
@@ -430,7 +433,7 @@ def serial_comms():
                         phase_cal_event.set()
                         get_stop_acq = recv_telem(msg_len, ser_timeout, repeat_keyword)
                         if toggle_OFF in get_stop_acq:
-                            time.sleep(0.4)
+                            #time.sleep(0.4)
                             phase_cal_event.clear()
                             reset_buffer()
                 #? reset ROS nodes
