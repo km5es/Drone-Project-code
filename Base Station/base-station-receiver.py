@@ -58,7 +58,7 @@ begin_raw_beam      = 'beam_acq'                    # begin raw beam data acquis
 help_call           = 'helphelp'                    # help message for checking list of commands    
 acq_event           = Event()                       # save radio data (long-term)
 phase_cal_event     = Event()                       # save phase cal data
-timeout             = 4                             # time after which saving data will stop if no trigger
+timeout             = 200                             # time after which saving data will stop if no trigger
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
@@ -290,7 +290,8 @@ def recv_data():
             print('%s: ' %(get_timestamp()) + colored('Saving data now in ' + str(filename), 'cyan'))
             logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
             start           = time.time()
-            start_timeout   = start + timeout            
+            start_timeout   = start + timeout
+            rospy.set_param('trigger/metadata', True)            
             while True:
                 SDRdata     = client.recv(buff_size, socket.MSG_WAITALL)
                 f.write(SDRdata)
@@ -301,10 +302,10 @@ def recv_data():
                                                                             +str(timeout) + ' seconds.', 'grey', 'on_magenta'))
                     logging.debug('No stop_acq recd. Acquisition time out in ' +str(timeout) + ' seconds.')
                     phase_cal_event.clear()
-                    rospy.set_param('trigger/metadata', False)
                     reset_buffer()
                     break
             end = time.time()
+            rospy.set_param('trigger/metadata', False)
             print('%s: ' %(get_timestamp()) + colored('\nFinished saving data in: ' \
                                                             +str(end - start) + ' seconds.', 'grey', 'on_green'))
             logging.info('Finished saving data in: ' +str(end - start) + ' seconds.')
