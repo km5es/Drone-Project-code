@@ -27,7 +27,7 @@ class tcp_toggle(gr.top_block):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 30.72e6/4
-        self.wave_freq = wave_freq = samp_rate/8
+        self.wave_freq = wave_freq = samp_rate*10/8
         self.meas_freq = meas_freq = 1500e6
         self.min_buffer = min_buffer = 8200*512
         self.gain = gain = 0
