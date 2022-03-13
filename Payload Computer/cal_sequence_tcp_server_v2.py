@@ -473,16 +473,12 @@ def stream_file():
             pulses = 0
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-            #GPIO.output(20, GPIO.HIGH)
-            #GPIO.output(21, GPIO.LOW)
             for pulses in range(togglePoint * 2):
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
                     GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
                     GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                    #GPIO.output(20, GPIO.LOW)
-                    #GPIO.output(21, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
@@ -505,16 +501,12 @@ def stream_file():
             pulses = 0
             GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-            #GPIO.output(20, GPIO.HIGH)
-            #GPIO.output(21, GPIO.LOW)
             for pulses in range(togglePoint * 2):
-                conn.send(phase_cal_signal)
+                conn.send(cal_signal)                   # should this be noise or just a sine wave?
                 pulses += 1
                 if pulses == togglePoint:
                     #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
                     #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                #    #GPIO.output(20, GPIO.LOW)
-                #    #GPIO.output(21, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
@@ -524,8 +516,6 @@ def stream_file():
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' \
                                                                 + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete. CAL OFF")
-            #GPIO.output(20, GPIO.LOW)
-            #GPIO.output(21, GPIO.LOW)
             GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
             send_telem(toggle_OFF, ser, repeat_keyword, addr)
