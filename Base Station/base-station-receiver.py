@@ -276,7 +276,7 @@ def recv_data():
     Wait for acq_event to begin and stop saving data.
     '''
     global tel_flag
-    dev_null = open(os.devnull, "w")
+    dev_null = open(os.devnull, "wb")
     while True:
         #sleep(1e-3)
         SDRdata     = client.recv(buff_size, socket.MSG_WAITALL)
@@ -332,7 +332,7 @@ def serial_comms_old():
     '''
     global sendtime
     while True:                                     
-        msg = raw_input("Enter serial comms message here (type 'helphelp' for list of commands): ")
+        msg = input("Enter serial comms message here (type 'helphelp' for list of commands): ")
         sendtime = time.time()
         #? shutdown GR codes on base and payload
         if msg == str(shutdown):
@@ -419,7 +419,7 @@ def serial_comms():
     global sendtime
     while True:
         sleep(0.5)                                     
-        msg = raw_input("Enter serial comms message here (type 'helphelp' for list of commands): ")
+        msg = input("Enter serial comms message here (type 'helphelp' for list of commands): ")
         sendtime = time.time()
         if msg == (handshake_start) or msg == (restart_wp_node) or msg == (pingtest):
             try:
