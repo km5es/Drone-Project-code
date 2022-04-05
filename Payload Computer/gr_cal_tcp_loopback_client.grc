@@ -170,9 +170,9 @@ blocks:
     alias: ''
     comment: ''
     hide: none
-    label: ''
+    label: send_frame_size=8192,  num_send_frames=512
     short_id: ''
-    type: ''
+    type: str
     value: send_frame_size=8192,  num_send_frames=512
   states:
     bus_sink: false

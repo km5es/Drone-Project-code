@@ -23,7 +23,7 @@ import time
 
 class gr_cal_tcp_loopback_client(gr.top_block):
 
-    def __init__(self, device_transport=send_frame_size=8192,  num_send_frames=512):
+    def __init__(self, device_transport='send_frame_size=8192,  num_send_frames=512'):
         gr.top_block.__init__(self, "gr_cal_tcp_loopback_client")
 
         ##################################################
@@ -119,6 +119,9 @@ class gr_cal_tcp_loopback_client(gr.top_block):
 def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
     parser = ArgumentParser(description=description)
+    parser.add_argument(
+        "--device-transport", dest="device_transport", type=str, default='send_frame_size=8192,  num_send_frames=512',
+        help="Set send_frame_size=8192,  num_send_frames=512 [default=%(default)r]")
     return parser
 
 
@@ -127,7 +130,7 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
         options = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print("Error: failed to enable real-time scheduling.")
-    tb = top_block_cls()
+    tb = top_block_cls(device_transport=options.device_transport)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()
