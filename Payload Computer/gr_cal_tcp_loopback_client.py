@@ -35,7 +35,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         self.samp_rate = samp_rate = 7.68e6
         self.wave_freq = wave_freq = samp_rate/8
-        self.meas_freq = meas_freq = 150e6
+        self.meas_freq = meas_freq = 1500e6
         self.min_buffer = min_buffer = 65536
         self.gain = gain = 40
         self.freq = freq = meas_freq - wave_freq
