@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>15*ON_cycles</value>
+      <value>0*ON_cycles</value>
     </param>
   </block>
   <block>
@@ -221,7 +221,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>512</value>
+      <value>25e3</value>
     </param>
   </block>
   <block>
@@ -680,7 +680,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>7.68e6</value>
+      <value>1e6</value>
     </param>
   </block>
   <block>
@@ -854,7 +854,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>samp_rate/8</value>
+      <value>samp_rate/4</value>
     </param>
   </block>
   <block>

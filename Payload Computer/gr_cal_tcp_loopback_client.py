@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Wed Feb 16 22:24:03 2022
+# Generated: Wed Apr 27 21:56:36 2022
 ##################################################
 
 from gnuradio import blocks
@@ -17,8 +17,7 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
-import rospy
-from std_msgs.msg import Float32
+
 
 class gr_cal_tcp_loopback_client(gr.top_block):
 
@@ -33,11 +32,11 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6
-        self.wave_freq = wave_freq = samp_rate/8
+        self.samp_rate = samp_rate = 1e6
+        self.wave_freq = wave_freq = samp_rate/4
         self.meas_freq = meas_freq = 150e6
-        self.min_buffer = min_buffer = 65536
-        self.gain = gain = 40
+        self.min_buffer = min_buffer = int(100e3)
+        self.gain = gain = 60
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
@@ -55,14 +54,14 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.uhd_usrp_sink_0.set_center_freq(freq, 0)
         self.uhd_usrp_sink_0.set_gain(gain, 0)
         self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
-        (self.blocks_vector_to_stream_0).set_min_output_buffer(65536)
+        (self.blocks_vector_to_stream_0).set_min_output_buffer(100000)
         self.blks2_tcp_source_0 = grc_blks2.tcp_source(
         	itemsize=gr.sizeof_gr_complex*min_buffer,
         	addr='127.0.0.1',
         	port=8810,
         	server=False,
         )
-        (self.blks2_tcp_source_0).set_min_output_buffer(65536)
+        (self.blks2_tcp_source_0).set_min_output_buffer(100000)
 
 
 
@@ -83,7 +82,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.set_wave_freq(self.samp_rate/8)
+        self.set_wave_freq(self.samp_rate/4)
         self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
 
     def get_wave_freq(self):
@@ -121,15 +120,12 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.freq = freq
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
-    def get_temp(self):
-        return self.uhd_usrp_sink_0.get_sensor('temp').to_real()
-
 
 def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
     parser = OptionParser(usage="%prog: [options]", option_class=eng_option, description=description)
     parser.add_option(
-        "", "--device-transport", dest="device_transport", type="string", default='send_frame_size=4096, num_send_frames=512',
+        "", "--device-transport", dest="device_transport", type="string", default='send_frame_size=8192,  num_send_frames=512',
         help="Set device_transport [default=%default]")
     return parser
 
@@ -139,18 +135,9 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
         options, _ = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
-    
-    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
-    rospy.init_node('SDR_temperature_node', anonymous=True)
-    rate = rospy.Rate(5) # 5 Hz
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
-    while not rospy.is_shutdown():
-        temp = tb.get_temp()
-#        rospy.loginfo(temp)
-        pub.publish(temp)
-        rate.sleep()
     tb.wait()
 
 

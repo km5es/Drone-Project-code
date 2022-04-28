@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Generate Waveform Noise
-# Generated: Wed Feb 16 21:53:36 2022
+# Generated: Wed Apr 27 21:57:28 2022
 ##################################################
 
 from gnuradio import analog
@@ -25,10 +25,10 @@ class generate_waveform_noise(gr.top_block):
         # Variables
         ##################################################
         self.ON = ON = 4096
-        self.samp_rate = samp_rate = 7.68e6
+        self.samp_rate = samp_rate = 1e6
         self.OFF = OFF = 15*ON
         self.ring_buffer_size = ring_buffer_size = 4096
-        self.head = head = 4096*16
+        self.head = head = int(100e3)
         self.duty_cycle = duty_cycle = OFF/ON
         self.ON_time = ON_time = ON/samp_rate
         self.OFF_time = OFF_time = OFF/samp_rate
