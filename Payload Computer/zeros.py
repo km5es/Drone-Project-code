@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Zeros
-# Generated: Wed Feb 16 21:53:11 2022
+# Generated: Wed Apr 27 22:34:52 2022
 ##################################################
 
 from gnuradio import blocks
@@ -23,8 +23,8 @@ class zeros(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 15.36e6/2
-        self.head = head = 4096*16
+        self.samp_rate = samp_rate = 1e6
+        self.head = head = int(100e3)
 
         ##################################################
         # Blocks
