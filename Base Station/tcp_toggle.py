@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Wed Apr 27 21:58:39 2022
+# Generated: Wed Apr 27 22:44:22 2022
 ##################################################
 
 from gnuradio import eng_notation
@@ -42,7 +42,6 @@ class tcp_toggle(gr.top_block):
         		channels=range(1),
         	),
         )
-        self.uhd_usrp_source_0.set_clock_rate(30.72e6, uhd.ALL_MBOARDS)
         self.uhd_usrp_source_0.set_clock_source('external', 0)
         self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
