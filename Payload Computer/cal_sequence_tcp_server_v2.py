@@ -496,9 +496,9 @@ def stream_file_no_telem():
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
-                    time.sleep(0.5)
                     GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
                     GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    time.sleep(0.4)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
