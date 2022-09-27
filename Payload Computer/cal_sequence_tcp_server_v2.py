@@ -496,6 +496,7 @@ def stream_file_no_telem():
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
+                    time.sleep(0.5)
                     GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
                     GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
@@ -505,7 +506,6 @@ def stream_file_no_telem():
             total_time = end - start
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
-            time.sleep(0.5)
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
             rospy.set_param('trigger/metadata', False)
