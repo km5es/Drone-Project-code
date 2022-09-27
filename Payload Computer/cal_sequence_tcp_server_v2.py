@@ -507,7 +507,6 @@ def stream_file_no_telem():
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-            time.sleep(0.4)
             rospy.set_param('trigger/metadata', False)
             rospy.set_param('trigger/waypoint', True)
 
