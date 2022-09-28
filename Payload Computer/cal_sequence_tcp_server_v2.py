@@ -29,7 +29,7 @@ import RPi.GPIO as GPIO
 
 ### Define global variables
 
-togglePoint         = 24                                    # number of pulses per pol
+togglePoint         = 96                                    # number of pulses per pol
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
@@ -505,10 +505,10 @@ def stream_file_no_telem():
             total_time = end - start
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds. Sending trigger to base and awaiting next trigger.', 'green'))
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
-            rospy.set_param('trigger/metadata', False)
-            rospy.set_param('trigger/waypoint', True) 
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+            rospy.set_param('trigger/metadata', False)
+            rospy.set_param('trigger/waypoint', True) 
 
 
 def stream_file_no_telem_pol_switch():
