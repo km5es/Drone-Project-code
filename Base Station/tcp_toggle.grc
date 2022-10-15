@@ -376,11 +376,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(436, 280)</value>
+      <value>(400, 160)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1615,7 +1615,7 @@
     </param>
     <param>
       <key>sd_spec0</key>
-      <value>A:A A:B</value>
+      <value>A:A</value>
     </param>
     <param>
       <key>time_source0</key>
@@ -1711,7 +1711,7 @@
     </param>
     <param>
       <key>nchan</key>
-      <value>2</value>
+      <value>1</value>
     </param>
     <param>
       <key>num_mboards</key>
@@ -1751,21 +1751,9 @@
     </param>
   </block>
   <connection>
-    <source_block_id>blocks_interleave_0</source_block_id>
+    <source_block_id>uhd_usrp_source_0</source_block_id>
     <sink_block_id>blks2_tcp_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>uhd_usrp_source_0</source_block_id>
-    <sink_block_id>blocks_interleave_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>uhd_usrp_source_0</source_block_id>
-    <sink_block_id>blocks_interleave_0</sink_block_id>
-    <source_key>1</source_key>
-    <sink_key>1</sink_key>
   </connection>
 </flow_graph>

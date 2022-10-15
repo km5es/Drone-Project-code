@@ -3,10 +3,9 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Generated: Wed Feb 16 20:42:31 2022
+# Generated: Sat Oct 15 14:52:40 2022
 ##################################################
 
-from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
 from gnuradio import uhd
@@ -15,8 +14,7 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
-import rospy
-from std_msgs.msg import Float32
+
 
 class tcp_toggle(gr.top_block):
 
@@ -41,19 +39,16 @@ class tcp_toggle(gr.top_block):
         	uhd.stream_args(
         		cpu_format="fc32",
         		otw_format='sc16',
-        		channels=range(2),
+        		channels=range(1),
         	),
         )
         self.uhd_usrp_source_0.set_clock_rate(30.72e6, uhd.ALL_MBOARDS)
         self.uhd_usrp_source_0.set_clock_source('external', 0)
-        self.uhd_usrp_source_0.set_subdev_spec('A:A A:B', 0)
+        self.uhd_usrp_source_0.set_subdev_spec('A:A', 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_center_freq(freq, 0)
         self.uhd_usrp_source_0.set_gain(gain, 0)
-        self.uhd_usrp_source_0.set_center_freq(freq, 1)
-        self.uhd_usrp_source_0.set_gain(0, 1)
         (self.uhd_usrp_source_0).set_min_output_buffer(4198400)
-        self.blocks_interleave_0 = blocks.interleave(gr.sizeof_gr_complex*1, 1)
         self.blks2_tcp_sink_0 = grc_blks2.tcp_sink(
         	itemsize=gr.sizeof_gr_complex*1,
         	addr='127.0.0.1',
@@ -66,9 +61,7 @@ class tcp_toggle(gr.top_block):
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_interleave_0, 0), (self.blks2_tcp_sink_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_interleave_0, 0))
-        self.connect((self.uhd_usrp_source_0, 1), (self.blocks_interleave_0, 1))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blks2_tcp_sink_0, 0))
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -114,30 +107,20 @@ class tcp_toggle(gr.top_block):
         self.uhd_usrp_source_0.set_center_freq(self.freq, 0)
         self.uhd_usrp_source_0.set_center_freq(self.freq, 1)
 
-    def get_temp(self):
-        return self.uhd_usrp_source_0.get_sensor('temp').to_real()
-
 
 def main(top_block_cls=tcp_toggle, options=None):
     if gr.enable_realtime_scheduling() != gr.RT_OK:
         print "Error: failed to enable real-time scheduling."
-    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
-    rospy.init_node('SDR_temperature_node', anonymous=True)
-    rate = rospy.Rate(5) # 5 Hz
-    
+
     tb = top_block_cls()
     tb.start()
-
-    while not rospy.is_shutdown():
-        temp = tb.get_temp()
-#        rospy.loginfo(temp)
-        pub.publish(temp)
-        rate.sleep()
-
+    try:
+        raw_input('Press Enter to quit: ')
+    except EOFError:
+        pass
     tb.stop()
     tb.wait()
 
 
 if __name__ == '__main__':
     main()
-
