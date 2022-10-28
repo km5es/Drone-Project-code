@@ -4,6 +4,7 @@
 ###### date: Mar 5th 2021
 source ~/.bashrc
 source /opt/ros/melodic/setup.bash
+source ~/catkin_ws/devel/setup.bash
 
 ### wait for FC to boot up
 sleep 10;
@@ -43,6 +44,6 @@ fi
 sleep 8;
 
 rosrun mavros mavsys rate --all 10 &
-rosservice call /mavros/set_message_interval 32 40 &
-rosservice call /mavros/set_message_interval 33 40 &
+rosservice call /mavros/set_message_interval 32 40 
+rosservice call /mavros/set_message_interval 33 40 
 
