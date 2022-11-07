@@ -197,18 +197,20 @@ def get_distance_log(data):
             #print('The closest WP is: %s m away.' %(distance))
             event.clear()
             ## * check to see if drone is stable enough to start calibration
-            if distance <= 2*error_tolerance:
-                print("Drone is close to WP. Waiting for it to stabilize.")
-                current_time = get_timestamp()
-                log_data_f_a = open(log_name, "a+")
-                log_data_f_a.write("%s\t%s\t%s\t%s\t%s\n" %(current_time, distance, v, roll, pitch))
+            #if distance <= 2*error_tolerance:
+                #print("Drone is close to WP. Waiting for it to stabilize.")
+            current_time = get_timestamp()
+            log_data_f_a = open(log_name, "a+")
+            log_data_f_a.write("%s\t%s\t%s\t%s\t%s\n" %(current_time, distance, v, roll, pitch))
                 #log_data_f_a.close()
-                if v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
-                    print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
-                    #rospy.set_param('trigger/waypoint', True)
-                    rospy.set_param('trigger/sequence', True)
-                    #FIXME: this is another open loop. what do? can't seem to avoid them
-                    time.sleep(wp_wait_timeout)
+            if distance <= error_tolerance and v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
+
+#                if v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
+                print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
+                #rospy.set_param('trigger/waypoint', True)
+                rospy.set_param('trigger/sequence', True)
+                #FIXME: this is another open loop. what do? can't seem to avoid them
+                time.sleep(wp_wait_timeout)
         except IndexError:
             print("index error")
             pass
