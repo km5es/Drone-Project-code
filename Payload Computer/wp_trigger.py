@@ -27,7 +27,7 @@ from os.path import expanduser
 
 n               = 1
 event           = Event()
-vel_threshold   = 0.2      # linear vel threshold below which drone is considered "stationary" (m/s)
+vel_threshold   = 0.4      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
 #rospy.set_param('trigger/waypoint', False)
 rospy.set_param('trigger/sequence', False)
@@ -186,8 +186,8 @@ def get_timestamp():
 
 def get_distance_log(data):
     """
-    Calculate 3D haversine distance to target.
-    This will also begin the entire sequence.
+    Do some continuous logging of WP conditions to ensure 
+    things are working fine. Remove later. 
     """
     global distance
     if event.is_set():
@@ -195,17 +195,12 @@ def get_distance_log(data):
             alt_diff = wp_z_alt - data.pose.position.z
             distance = (h**2 + alt_diff**2)**0.5
             #print('The closest WP is: %s m away.' %(distance))
-            event.clear()
-            ## * check to see if drone is stable enough to start calibration
-            #if distance <= 2*error_tolerance:
-                #print("Drone is close to WP. Waiting for it to stabilize.")
             current_time = get_timestamp()
             log_data_f_a = open(log_name, "a+")
             log_data_f_a.write("%s\t%s\t%s\t%s\t%s\n" %(current_time, distance, v, roll, pitch))
-                #log_data_f_a.close()
+            event.clear()
+            ## * check to see if drone is stable enough to start calibration
             if distance <= error_tolerance and v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
-
-#                if v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
                 print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
                 #rospy.set_param('trigger/waypoint', True)
                 rospy.set_param('trigger/sequence', True)
