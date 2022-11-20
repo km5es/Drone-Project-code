@@ -214,7 +214,7 @@ def main():
     push_wp()
     while True:
         time.sleep(0.1)
-
+        print("pw={}".format(f, int(pulse_width+0.5)))
         #* wait for ROS flag from autonomy pipeline and update WP table 
         #* clear waypoint table before ending sequence so that it does not re-trigger.
         if rospy.get_param('trigger/sequence') == True:
