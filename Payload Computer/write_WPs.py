@@ -11,8 +11,9 @@ author  : Krishna Makhija
 last rev: 19th Nov 2022
 """
 #TODO: add logging for all events. Create a separate log file for this node.
+    #FIXME: does not work once ROS init_node has been called. what do? ROS logging sucks
 
-import rospy, time, logging
+import rospy, time, logging, imp
 import csv
 import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 from os.path import expanduser
@@ -33,8 +34,8 @@ lock_timeout    = 5                             # time to unlock trigger/sequenc
 pwm_threshold   = 1600                          # pulse width (us) above which trigger is set from RC
 
 #* log all events for troubleshooting
-path                = expanduser("~") + "/"         # define home path
-logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/payload/'             
+home_path           = expanduser("~") + "/"         # define home path
+logs_path           = home_path + '/catkin_ws/src/Drone-Project-code/logs/payload/'             
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_write_WPs.log")
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
@@ -210,6 +211,8 @@ def main():
     #* set up WP table parameters and push first WP
     n = 2
     rospy.init_node('write_WP', anonymous = True)
+    imp.reload(logging)     #? reload because ROS breaks other methods of logging
+    logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
     logging.info("ROS node write_WPs.py has been initiated.")
     with open(filename, 'r') as f:
         reader = csv.reader(f, dialect='excel', delimiter='\t')
