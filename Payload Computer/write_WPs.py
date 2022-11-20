@@ -69,10 +69,10 @@ class pwm_reader:
         if level == 1:
             if self._high_tick is not None:
                 t = pigpio.tickDiff(self._high_tick, tick)
-            if self._period is not None:
-                self._period = (self._old * self._period) + (self._new * t)
-            else:
-                self._period = t
+                if self._period is not None:
+                    self._period = (self._old * self._period) + (self._new * t)
+                else:
+                    self._period = t
             self._high_tick = tick
         elif level == 0:
             if self._high_tick is not None:
