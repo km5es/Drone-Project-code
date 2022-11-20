@@ -12,7 +12,7 @@ last rev: 19th Nov 2022
 """
 #TODO: add logging for all events. Create a separate log file for this node.
 
-import rospy, time
+import rospy, time, logging
 import csv
 import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 from os.path import expanduser
@@ -31,6 +31,12 @@ rospy.set_param('trigger/lock', False)          # block wp_trigger at each WP
 timeout         = 12                            # timeout before updating new WP
 lock_timeout    = 5                             # time to unlock trigger/sequence
 pwm_threshold   = 1600                          # pulse width (us) above which trigger is set from RC
+
+#* log all events for troubleshooting
+path                = expanduser("~") + "/"         # define home path
+logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/payload/'             
+log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_write_WPs.log")
+logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
 
 class pwm_reader:
@@ -124,7 +130,8 @@ def waypoint_clear_client():
         response = rospy.ServiceProxy('mavros/mission/clear', WaypointClear)
         return response.call().success
     except rospy.ServiceException, e:
-        print "Service call failed: %s" % e
+        print "Service call for mission clear failed: %s" % e
+        logging.debug('Service call for mission clear failed.')
         return False
 
 
@@ -137,10 +144,13 @@ def push_wp():
         service(start_index=0, waypoints=wl)
         if service.call(start_index=0, waypoints=wl).success:
             print("WP table updated %s" %wl)
+            logging.info("WP table updated %s" %wl)
         else:
-            print("Write mission error")
+            print("Write mission error.")
+            logging.debug("Write mission error.")
     except rospy.ServiceException, e:
-        print("Service call failed: %s" % e)
+        print("Service call for WP push failed: %s" %e)
+        logging.debug("Service call for WP push failed %s" %e)
 
 
 def change_mode():
@@ -155,6 +165,7 @@ def change_mode():
         service(custom_mode="AUTO")
     except rospy.ServiceException, e:
         print("Set current WP failed: %s" % e)
+        logging.debug("Set current WP failed %s" %e)
 
 
 def create_waypoint(command, param1, latitude ,longitude, altitude):
@@ -195,11 +206,11 @@ def main():
     PWM_GPIO    = 18
     pi          = pigpio.pi()
     p           = pwm_reader(pi, PWM_GPIO)
-    pulse_width = p.pulse_width()
 
-    #* set up WP table parameters
+    #* set up WP table parameters and push first WP
     n = 2
     rospy.init_node('write_WP', anonymous = True)
+    logging.info("ROS node write_WPs.py has been initiated.")
     with open(filename, 'r') as f:
         reader = csv.reader(f, dialect='excel', delimiter='\t')
         reader = list(reader)
@@ -212,17 +223,20 @@ def main():
     wp = create_waypoint(16, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
     wl.append(wp)
     push_wp()
+
     while True:
         time.sleep(0.1)
-        print("pw={}".format(f, int(pulse_width+0.5)))
+
         #* wait for ROS flag from autonomy pipeline and update WP table 
         #* clear waypoint table before ending sequence so that it does not re-trigger.
         if rospy.get_param('trigger/sequence') == True:
             waypoint_clear_client()
+            logging.info("trigger/sequence flag from wp_trigger recd.")
         if rospy.get_param('trigger/waypoint') == True:
             rospy.set_param('trigger/waypoint', False)
             try:
                 print("Updating WP table.")
+                logging.info("trigger/waypoint flag from cal_seq recd. Updating WP table.")
                 n = n + 2
 #                waypoint_clear_client()
                 wl = []
@@ -236,6 +250,7 @@ def main():
                 change_mode()
             except IndexError:
                 print("End of WP table reached. Doing an RTL now.")
+                logging.info("trigger/waypoint flag from cal_seq recd. Doing an RTL now.")
                 try:
                     #FIXME: the coords here should be different because this is triggering the sequence
                     wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
@@ -246,9 +261,14 @@ def main():
                     pass
 
         #* read RC input and update WP table
+        pulse_width = p.pulse_width()
         if pulse_width > pwm_threshold:
+            waypoint_clear_client()
+            rospy.set_param('trigger/sequence', False)
+            rospy.set_param('trigger/waypoint', False)
             try:
                 print("Manual trigger from RC received. Updating WP table.")
+                logging.info("Manual trigger (pw=%s) from RC recd. Updating WP table." %pulse_width)
                 n = n + 2
 #                waypoint_clear_client()
                 wl = []
@@ -261,9 +281,9 @@ def main():
                 push_wp()
                 change_mode()
             except IndexError:
-                print("Manual trigger from RC received. End of WP table reached. Doing an RTL now.")
+                print("Manual trigger from RC received. End of WP table reached. Doing an RTL now." %pulse_width)
+                logging.info("Manual trigger from (pw=%s) RC recd. Doing and RTL now. ")
                 try:
-                    #FIXME: the coords here should be different because this is triggering the sequence
                     wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
                     wl.append(wp)
                     push_wp()
