@@ -234,11 +234,10 @@ def main():
         #* clear waypoint table before ending sequence so that it does not re-trigger.
         if rospy.get_param('trigger/sequence') == True:
             waypoint_clear_client()
-            logging.info("trigger/sequence flag from wp_trigger recd.")
         if rospy.get_param('trigger/waypoint') == True:
             rospy.set_param('trigger/waypoint', False)
             try:
-                print("Updating WP table.")
+                print("trigger/waypoint flag from cal_seq recd. Updating WP table.")
                 logging.info("trigger/waypoint flag from cal_seq recd. Updating WP table.")
                 n = n + 2
 #                waypoint_clear_client()
@@ -266,33 +265,10 @@ def main():
         #* read RC input and update WP table
         pulse_width = p.pulse_width()
         if pulse_width > pwm_threshold:
-            waypoint_clear_client()
-            rospy.set_param('trigger/sequence', False)
-            rospy.set_param('trigger/waypoint', False)
-            try:
-                print("Manual trigger from RC received. Updating WP table.")
-                logging.info("Manual trigger (pw=%s) from RC recd. Updating WP table." %pulse_width)
-                n = n + 2
-#                waypoint_clear_client()
-                wl = []
-                wp = create_waypoint(22, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                wl.append(wp)
-                wp = create_waypoint(115, float(reader[n+1][4]), float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                wl.append(wp)
-                wp = create_waypoint(16, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                wl.append(wp)
-                push_wp()
-                change_mode()
-            except IndexError:
-                print("Manual trigger from RC received. End of WP table reached. Doing an RTL now." %pulse_width)
-                logging.info("Manual trigger from (pw=%s) RC recd. Doing and RTL now. ")
-                try:
-                    wp = create_waypoint(20, 0, float(reader[n][8]), float(reader[n][9]), float(reader[n][10]))
-                    wl.append(wp)
-                    push_wp()
-                    change_mode()
-                except IndexError:
-                    pass
+            print('Manual RC input (pw=%s) for calibration recd.' %pulse_width)
+            logging.info('Manual RC input (pw=%s) for calibration recd.' %pulse_width)
+            rospy.set_param('trigger/sequence', True)
+            time.sleep(3.5)     # avoid multiple pushes to FC
 
 
 if __name__ == '__main__':
