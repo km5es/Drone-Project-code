@@ -499,8 +499,8 @@ def stream_file():
                                                             +str(phase_cal_wf), 'green'))
             logging.info("Trigger from base recd. CAL ON")
             pulses = 0
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
             for pulses in range(togglePoint * 2):
                 conn.send(cal_signal)                   # should this be noise or just a sine wave?
                 pulses += 1
