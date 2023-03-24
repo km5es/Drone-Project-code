@@ -22,11 +22,12 @@ from mavros_msgs.msg import WaypointReached, WaypointList, PositionTarget
 from sensor_msgs.msg import Imu, NavSatFix
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from os.path import expanduser
 
 
 n               = 1
 event           = Event()
-vel_threshold   = 0.2      # linear vel threshold below which drone is considered "stationary" (m/s)
+vel_threshold   = 0.4      # linear vel threshold below which drone is considered "stationary" (m/s)
 wp_num          = 1
 #rospy.set_param('trigger/waypoint', False)
 rospy.set_param('trigger/sequence', False)
@@ -34,6 +35,14 @@ seq_timeout     = 30
 error_tolerance = 1.0       ## distance in m from where to begin sequence
 orien_tolerance = 10.0      ## how much pitch and roll per wp is allowed (deg)
 wp_wait_timeout = 10
+
+### * logging stuff for troubleshooting
+path                = expanduser("~") + "/"         # define home path
+logs_path           = path + '/catkin_ws/src/Drone-Project-code/logs/payload/'             
+log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_wp_trigger.log")
+log_data_f = open(log_name, "w+")
+log_data_f.write("Timestamp\tDistance (m)\tLinear velocity mag (m/s)\tRoll (deg)\tPitch (deg)\n")
+log_data_f.close()
 
 
 def get_velocity(data):
@@ -165,13 +174,53 @@ def get_distance(data):
             pass
 
 
+def get_timestamp():
+    """
+    Returns current time for data logging.
+    """
+    time_now = time.time()
+    mlsec = repr(time_now).split('.')[1][:3]
+    time_now = time.strftime("%H:%M:%S.{}-%d/%m/%Y".format(mlsec))
+    return time_now
+
+
+def get_distance_log(data):
+    """
+    Do some continuous logging of WP conditions to ensure 
+    things are working fine. Remove later. 
+    """
+    global distance
+    if event.is_set():
+        try:
+            alt_diff = wp_z_alt - data.pose.position.z
+            distance = (h**2 + alt_diff**2)**0.5
+            #print('The closest WP is: %s m away.' %(distance))
+            current_time = get_timestamp()
+            log_data_f_a = open(log_name, "a+")
+            log_data_f_a.write("%s\t%s\t%s\t%s\t%s\n" %(current_time, distance, v, roll, pitch))
+            event.clear()
+            ## * check to see if drone is stable enough to start calibration
+            if distance <= error_tolerance and v <= vel_threshold and (roll <= orien_tolerance and pitch <= orien_tolerance):
+                print(">>>>WP reached<<< ||| Drone is stable and (almost) not moving.")
+                #rospy.set_param('trigger/waypoint', True)
+                rospy.set_param('trigger/sequence', True)
+                #FIXME: this is another open loop. what do? can't seem to avoid them
+                time.sleep(wp_wait_timeout)
+        except IndexError:
+            print("index error")
+            pass
+        except NameError:
+            print("Waypoints not received from FCU.")
+            pass
+
+
 def main():
     global get_mission
     try:
         rospy.init_node('wp_trigger', anonymous = True)
         rospy.Subscriber('/mavros/mission/waypoints', WaypointList, get_waypoints)
         rospy.Subscriber('/mavros/global_position/global', NavSatFix, get_haversine)
-        rospy.Subscriber('/mavros/local_position/pose', PoseStamped, get_distance)
+        rospy.Subscriber('/mavros/local_position/pose', PoseStamped, get_distance_log)
         rospy.Subscriber('/mavros/local_position/odom', Odometry, get_velocity)
         rospy.spin()
     except (rospy.ROSInterruptException):

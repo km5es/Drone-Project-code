@@ -140,34 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>15*ON_cycles</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(820, 60)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>OFF_time</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>OFF/samp_rate</value>
+      <value>duty_cycle*ON_cycles</value>
     </param>
   </block>
   <block>
@@ -236,60 +209,6 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(644, 60)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>ON_time</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>ON/samp_rate</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(1372, 12)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>PASS</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>ON+OFF</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
       <value>(408, 180)</value>
     </param>
     <param>
@@ -303,60 +222,6 @@
     <param>
       <key>value</key>
       <value>head*4</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(1012, 60)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>TX_time</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>head/samp_rate</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>comment</key>
-      <value>Time to calibrate per WP.</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(1120, 76)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>TX_time_1</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>pulse_time * pulses</value>
     </param>
   </block>
   <block>
@@ -437,7 +302,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>OFF/ON</value>
+      <value>3</value>
     </param>
   </block>
   <block>
@@ -545,7 +410,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>(ON+OFF)</value>
+      <value>(ON+OFF)*4</value>
     </param>
   </block>
   <block>
@@ -579,6 +444,33 @@
     <key>variable</key>
     <param>
       <key>comment</key>
+      <value>Time to calibrate per WP.</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1120, 76)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>per_WP_time</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>pulse_TX_time * pulses</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
       <value></value>
     </param>
     <param>
@@ -587,7 +479,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1216, 76)</value>
+      <value>(820, 60)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -595,7 +487,61 @@
     </param>
     <param>
       <key>id</key>
-      <value>pulse_time</value>
+      <value>pulse_OFF_time</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>OFF/samp_rate</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(644, 60)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>pulse_ON_time</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>ON/samp_rate</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1012, 60)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>pulse_TX_time</value>
     </param>
     <param>
       <key>value</key>
@@ -626,7 +572,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>96*2</value>
+      <value>96*2*4</value>
     </param>
   </block>
   <block>
