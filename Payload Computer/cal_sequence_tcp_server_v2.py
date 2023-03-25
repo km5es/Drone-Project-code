@@ -24,7 +24,7 @@ import RPi.GPIO as GPIO
 
 ### Define global variables
 
-togglePoint         = 763                                  # number of pulses per pol
+togglePoint         = 763                                  # number of pulses per pol, each pulse is 0.065536s
 sample_packet       = 4096*16                               # Length of one pulse.
 s                   = socket.socket()                       # Create a socket object
 host                = socket.gethostbyname('127.0.0.1')     # Get local machine name
@@ -459,39 +459,42 @@ def stream_file():
     phase_cal        = open(phase_cal_wf, 'rb')
     phase_cal_signal = phase_cal.read()
 
+    n = 0
     while True:
         conn.send(condition_LO)
         #? transmit cal signal when WP is reached (pulsed sine)
         if rospy.get_param('trigger/sequence') == True:
             rospy.set_param('trigger/sequence', False)
-            rospy.set_param('trigger/metadata', True)
-            start = time.time()
-            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' \
-                            +str(timestamp_start) + '. Beginning cal sequence using ' +str(cal_wf), 'green'))
-            logging.info("Drone has reached WP. Beginning cal sequence using %s" %cal_wf)
-            pulses = 0
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-            for pulses in range(togglePoint * 2):
-                conn.send(cal_signal)
-                pulses += 1
-                if pulses == togglePoint:
-                    GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                    GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
-                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
-                    logging.info("Switching polarization now")
-            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
-            end = time.time()
-            total_time = end - start
-            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' \
-                            +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
-            logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
-            rospy.set_param('trigger/metadata', False)
-            rospy.set_param('trigger/waypoint', True) 
-            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
-        ##? transmit phase cal signal (noise)
+            n = n + 1
+            if n > 1:       # ignore first WP
+                rospy.set_param('trigger/metadata', True)
+                start = time.time()
+                timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+                print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' \
+                                +str(timestamp_start) + '. Beginning cal sequence using ' +str(cal_wf), 'green'))
+                logging.info("Drone has reached WP. Beginning cal sequence using %s" %cal_wf)
+                pulses = 0
+                GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+                GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+                for pulses in range(togglePoint * 2):
+                    conn.send(cal_signal)
+                    pulses += 1
+                    if pulses == togglePoint:
+                        #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                        #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                        print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
+                        logging.info("Switching polarization now")
+                timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+                end = time.time()
+                total_time = end - start
+                print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' \
+                                +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
+                logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
+                rospy.set_param('trigger/metadata', False)
+                rospy.set_param('trigger/waypoint', True) 
+                GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+        ##? manually begin phase cal using SSH telemetry
         if trigger_event.is_set():
             start = time.time()
             timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
