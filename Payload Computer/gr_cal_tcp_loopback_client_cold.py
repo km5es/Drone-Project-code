@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Wed Sep  8 16:57:40 2021
+# Generated: Mon Apr  3 22:33:06 2023
 ##################################################
 
 from gnuradio import blocks
@@ -30,7 +30,7 @@ class gr_cal_tcp_loopback_client_cold(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6/2
+        self.samp_rate = samp_rate = 7.68e6
         self.wave_freq = wave_freq = samp_rate/8
         self.meas_freq = meas_freq = 150e6
         self.min_buffer = min_buffer = 4096*16
@@ -42,6 +42,7 @@ class gr_cal_tcp_loopback_client_cold(gr.top_block):
         ##################################################
         self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, min_buffer)
         (self.blocks_vector_to_stream_0).set_min_output_buffer(65536)
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_null_sink_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
         self.blks2_tcp_source_0 = grc_blks2.tcp_source(
         	itemsize=gr.sizeof_gr_complex*min_buffer,
@@ -57,7 +58,8 @@ class gr_cal_tcp_loopback_client_cold(gr.top_block):
         # Connections
         ##################################################
         self.connect((self.blks2_tcp_source_0, 0), (self.blocks_vector_to_stream_0, 0))
-        self.connect((self.blocks_vector_to_stream_0, 0), (self.blocks_null_sink_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blocks_null_sink_0, 0))
+        self.connect((self.blocks_vector_to_stream_0, 0), (self.blocks_throttle_0, 0))
 
     def get_device_transport(self):
         return self.device_transport
@@ -71,6 +73,7 @@ class gr_cal_tcp_loopback_client_cold(gr.top_block):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_wave_freq(self.samp_rate/8)
+        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
 
     def get_wave_freq(self):
         return self.wave_freq

@@ -15,7 +15,7 @@ last rev: 19th Nov 2022
 
 import rospy, time, logging, imp
 import csv
-import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
+#import pigpio  ## remove for odroid
 from os.path import expanduser
 from std_msgs.msg import String
 from sensor_msgs.msg import NavSatFix
@@ -39,7 +39,7 @@ logs_path           = home_path + '/catkin_ws/src/Drone-Project-code/logs/payloa
 log_name            = logs_path + time.strftime("%d-%m-%Y_%H-%M-%S_write_WPs.log")
 logging.basicConfig(filename=log_name, format='%(asctime)s\t%(levelname)s\t{%(module)s}\t%(message)s', level=logging.DEBUG)
 
-
+'''
 class pwm_reader:
     """
     A class to read PWM pulses and calculate their frequency
@@ -122,6 +122,7 @@ class pwm_reader:
         """
         self._cb.cancel()
 
+'''
 
 def waypoint_clear_client():
     """
@@ -203,10 +204,10 @@ def main():
     """
     global wl
 
-    #* set up PWM monitoring variables
-    PWM_GPIO    = 18
-    pi          = pigpio.pi()
-    p           = pwm_reader(pi, PWM_GPIO)
+#    #* set up PWM monitoring variables
+#    PWM_GPIO    = 18
+#    pi          = pigpio.pi()
+#    p           = pwm_reader(pi, PWM_GPIO)
 
     #* set up WP table parameters and push first WP
     n = 2
@@ -261,7 +262,7 @@ def main():
                     change_mode()
                 except IndexError:
                     pass
-
+'''
         #* read RC input and update WP table
         pulse_width = p.pulse_width()
         if pulse_width > pwm_threshold:
@@ -269,7 +270,7 @@ def main():
             logging.info('Manual RC input (pw=%s) for calibration recd.' %pulse_width)
             rospy.set_param('trigger/sequence', True)
             time.sleep(3.5)     # avoid multiple pushes to FC
-
+'''
 
 if __name__ == '__main__':
     main()
