@@ -210,7 +210,7 @@ def stream_file():
                     #GPIO.output(20, GPIO.HIGH)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan')) ### replace with GPIO command
                     logging.info("Switching polarization now")
-                if pulses == 2*togglePoint/3:
+                #if pulses == 2*togglePoint/3:
                     #GPIO.output(20, GPIO.LOW)
                     #GPIO.output(21, GPIO.HIGH)
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
