@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>gr_cal_tcp_loopback_client_cold</value>
+      <value>gr_cal_tcp_loopback_client</value>
     </param>
     <param>
       <key>max_nouts</key>

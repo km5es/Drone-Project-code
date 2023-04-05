@@ -24,7 +24,7 @@ from termcolor import colored
 from datetime import datetime
 from threading import Thread, Event
 from os.path import expanduser
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO        # disabled on odroid
 
 
 ### Define global variables
