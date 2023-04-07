@@ -8,7 +8,7 @@ source /opt/ros/melodic/setup.bash
 source ~/catkin_ws/devel/setup.bash
 
 ### wait for MAVROS and FCU to boot up
-sleep 30
+sleep 35
 
 #<<python_version
 cd ~/catkin_ws/src/Drone-Project-code/Payload\ Computer/

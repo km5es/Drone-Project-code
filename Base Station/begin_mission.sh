@@ -28,7 +28,7 @@ base_station_receiver.py
 
 sleep 2;
 
-### run continuous data acquisition
+### run continuous data acquisition with SDR temp
 gnome-terminal -e "bash -c 'python ~/catkin_ws/src/Drone-Project-code/Base\ Station/toggle_save.py;'"
 
 sleep 6;
