@@ -575,7 +575,7 @@ def stream_file():
     zeros_wf         = 'zeros'
     zeros            = open(zeros_wf, 'rb')
     condition_LO     = zeros.read()
-    cal_wf           = 'sine_waveform_pulsed'
+    cal_wf           = 'sine_waveform'
     cal              = open(cal_wf,'rb')
     cal_signal       = cal.read()
     phase_cal_wf     = 'noise'
