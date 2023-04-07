@@ -559,12 +559,156 @@ def stream_file_no_telem_pol_switch():
             GPIO.output(12, GPIO.LOW)
 
 
-def main():
+def main_():
     """
     Use this when no telemetry sync with base.
     """
     stream_file_no_telem()
 
+
+def stream_file():
+    """
+    Stream file to GRC code. Begin calibration when /trigger/sequence is set
+    OR
+    when there is a manual trigger from the base for phase cal.
+    """
+    zeros_wf         = 'zeros'
+    zeros            = open(zeros_wf, 'rb')
+    condition_LO     = zeros.read()
+    cal_wf           = 'sine_waveform_pulsed'
+    cal              = open(cal_wf,'rb')
+    cal_signal       = cal.read()
+    phase_cal_wf     = 'noise'
+    phase_cal        = open(phase_cal_wf, 'rb')
+    phase_cal_signal = phase_cal.read()
+
+    n = 0
+    while True:
+        conn.send(condition_LO)
+        #? transmit cal signal when WP is reached (pulsed sine)
+        if rospy.get_param('trigger/sequence') == True:
+            rospy.set_param('trigger/sequence', False)
+            rospy.set_param('trigger/metadata', True)
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Drone has reached WP at GPS time: ' \
+                            +str(timestamp_start) + '. Beginning cal sequence using ' +str(cal_wf), 'green'))
+            logging.info("Drone has reached WP. Beginning cal sequence using %s" %cal_wf)
+            pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+            for pulses in range(togglePoint * 2):
+                conn.send(cal_signal)
+                pulses += 1
+                if pulses == togglePoint:
+                    #GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+                    #GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
+                    logging.info("Switching polarization now")
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' \
+                            +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
+            logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
+            rospy.set_param('trigger/metadata', False)
+            rospy.set_param('trigger/waypoint', True) 
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+        ##? manually begin phase cal using SSH telemetry
+        if trigger_event.is_set():
+            start = time.time()
+            timestamp_start = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            print('%s: ' %(get_timestamp()) + colored('Trigger from base received. Beginning phase cal sequence using ' \
+                                                            +str(phase_cal_wf), 'green'))
+            logging.info("Trigger from base recd. CAL ON")
+            pulses = 0
+            GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+            for pulses in range(togglePoint * 2):
+                conn.send(cal_signal)                   # should this be noise or just a sine wave?
+                pulses += 1
+                if pulses == togglePoint:
+                    #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
+                    #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
+                    logging.info("Switching polarization now")
+            timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
+            end = time.time()
+            total_time = end - start
+            trigger_event.clear()
+            print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete. Total time taken was: ' \
+                                                                + str(total_time) + ' seconds.', 'green'))
+            logging.info("Cal sequence complete. CAL OFF")
+            GPIO.setup(20, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(21, GPIO.OUT, initial=GPIO.LOW)
+            send_telem(toggle_OFF, ser, repeat_keyword, addr)
+            reset_buffer()
+
+
+def serial_comms_phase():
+    """
+    When manual trigger from base is received this will start phase cal.
+    Phase cal will consist of a noise signal which is different from the 
+    beam calibration signal.
+    """
+    global addr
+    create_server()
+    while True:
+        time.sleep(0.05)
+        try:
+            get_handshake_from_base, addr = recv_telem(msg_len, ser, repeat_keyword)
+            #? begin phase cal
+            if handshake_start in get_handshake_from_base:
+                print('%s: ' %(get_timestamp()) + "Handshake start for phase cal received from base.")
+                logging.info("Handshake start for phase cal received from base.")
+                send_telem(handshake_conf, ser, repeat_keyword, addr)
+                get_start_acq, addr = recv_telem(msg_len, ser_timeout, repeat_keyword)
+                if toggle_ON in get_start_acq:
+                    print('%s: ' %(get_timestamp()) + "Starting phase cal now.")
+                    logging.info("Starting phase cal now.")
+                    trigger_event.set()
+            #? reset ROS nodes
+            elif restart_wp_node in get_handshake_from_base:
+                send_telem(handshake_conf, ser, repeat_keyword, addr)
+                print('%s: ' %(get_timestamp()) + "Base has initiated manual reset of ROS nodes.")
+                logging.info("Base has initiated manual reset of ROS nodes.")
+                os.system('rosnode kill $(rosnode list | grep /write_WP)')
+                os.system('rosnode kill $(rosnode list | grep /wp_trigger)')
+                os.system('rosrun beam_mapping write_WPs.py &')
+                os.system('rosrun beam_mapping wp_trigger.py &')
+                reset_buffer()
+            #? shutdown GR codes
+            elif shutdown in get_handshake_from_base:
+                send_telem(handshake_conf, ser, repeat_keyword, addr)
+                print('%s: ' %(get_timestamp()) + colored('Kill command from base received. '\
+                                            'Shutting down TCP server and client programs.', 'red'))
+                logging.info("Manual kill command from base recd. Shutting down SDR code")
+                reset_buffer()
+                os.system('kill -9 $(pgrep -f ' +str(client_script_name) + ')')
+                os.system('lsof -t -i tcp:8810 | xargs kill -9')
+                break
+            #? ping test
+            elif pingtest in get_handshake_from_base:
+                print('%s: ' %(get_timestamp()) + "Ping received from base. Sending reply...")
+                logging.info("Ping received from base. Sending reply...")
+                send_telem(heartbeat_conf, ser, repeat_keyword, addr)
+                reset_buffer()
+        except (serial.SerialException, TypeError):
+            pass
+
+
+def main():
+    """
+    Initiate threads.
+    """
+    rospy.init_node('cal_sequence', anonymous = True)
+    t1 = Thread(target = serial_comms_phase)
+    t2 = Thread(target = stream_file)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
 
 if __name__ == '__main__':
     main()
