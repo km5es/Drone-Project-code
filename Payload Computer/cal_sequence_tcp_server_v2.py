@@ -478,8 +478,8 @@ def stream_file():
                 conn.send(cal_signal)
                 pulses += 1
                 if pulses == togglePoint:
-                    #GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
-                    #GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
@@ -506,8 +506,8 @@ def stream_file():
                 conn.send(cal_signal)                   # should this be noise or just a sine wave?
                 pulses += 1
                 if pulses == togglePoint:
-                    #GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
-                    #GPIO.setup (21, GPIO.OUT, initial=GPIO.HIGH)
+                    GPIO.setup (20, GPIO.OUT, initial=GPIO.HIGH)
+                    GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
                     print('%s: ' %(get_timestamp()) + colored("Switching polarization now.", 'cyan'))
                     logging.info("Switching polarization now")
             timestamp_stop = datetime.now().strftime("%H:%M:%S.%f-%d/%m/%y")
