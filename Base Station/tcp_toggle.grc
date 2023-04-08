@@ -302,7 +302,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>samp_rate/4</value>
+      <value>samp_rate/8</value>
     </param>
   </block>
   <block>
