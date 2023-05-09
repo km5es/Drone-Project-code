@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>gr_cal_tcp_loopback_client_cold</value>
+      <value>gr_cal_tcp_loopback_client</value>
     </param>
     <param>
       <key>max_nouts</key>
@@ -140,7 +140,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>60</value>
+      <value>40</value>
     </param>
   </block>
   <block>
@@ -194,7 +194,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>4096*16</value>
+      <value>int(100e3)</value>
     </param>
   </block>
   <block>
@@ -221,7 +221,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>7.68e6/2</value>
+      <value>7.68e6</value>
     </param>
   </block>
   <block>
@@ -334,7 +334,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(676, 430)</value>
+      <value>(640, 430)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -452,7 +452,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>send_frame_size=8192, num_send_frames=512</value>
+      <value>send_frame_size=8192,  num_send_frames=512</value>
     </param>
   </block>
   <block>
@@ -1115,7 +1115,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>device_transport</value>
+      <value>""</value>
     </param>
     <param>
       <key>dev_args</key>
@@ -1127,7 +1127,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(640, 268)</value>
+      <value>(640, 282)</value>
     </param>
     <param>
       <key>_rotation</key>
