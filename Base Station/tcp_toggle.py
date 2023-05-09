@@ -3,9 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Tcp Toggle
-# Author: Krishna Makhija
-# Description: GRC/UHD "front-end" for data acquisition during beam mapping.
-# Generated: Thu Apr  6 21:11:37 2023
+# Generated: Mon May  8 20:00:37 2023
 ##################################################
 
 if __name__ == '__main__':
@@ -26,7 +24,6 @@ from gnuradio import qtgui
 from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
-from gnuradio.qtgui import Range, RangeWidget
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import sip
@@ -68,16 +65,13 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate = 7.68e6
         self.wave_freq = wave_freq = samp_rate/8
         self.meas_freq = meas_freq = 150e6
-        self.min_buffer = min_buffer = 512*8200*2
-        self.gain = gain = 20
+        self.min_buffer = min_buffer = 8200*512
+        self.gain = gain = 0
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
         # Blocks
         ##################################################
-        self._gain_range = Range(0, 80, 5, 20, 200)
-        self._gain_win = RangeWidget(self._gain_range, self.set_gain, 'gain', "counter_slider", float)
-        self.top_grid_layout.addWidget(self._gain_win)
         self.uhd_usrp_source_0 = uhd.usrp_source(
         	",".join(("num_recv_frames=512, recv_frame_size=8200", "")),
         	uhd.stream_args(
@@ -92,8 +86,8 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
         self.uhd_usrp_source_0.set_center_freq(freq, 0)
         self.uhd_usrp_source_0.set_gain(gain, 0)
         self.uhd_usrp_source_0.set_center_freq(freq, 1)
-        self.uhd_usrp_source_0.set_gain(gain, 1)
-        (self.uhd_usrp_source_0).set_min_output_buffer(8396800)
+        self.uhd_usrp_source_0.set_gain(0, 1)
+        (self.uhd_usrp_source_0).set_min_output_buffer(4198400)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
         	4096, #size
         	firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -118,7 +112,7 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
         if "complex" == "float" or "complex" == "msg_float":
           self.qtgui_freq_sink_x_0.set_plot_pos_half(not True)
 
-        labels = ['Pol1', 'Pol2', '', '', '',
+        labels = ['', '', '', '', '',
                   '', '', '', '', '']
         widths = [1, 1, 1, 1, 1,
                   1, 1, 1, 1, 1]
@@ -196,8 +190,6 @@ class tcp_toggle(gr.top_block, Qt.QWidget):
     def set_gain(self, gain):
         self.gain = gain
         self.uhd_usrp_source_0.set_gain(self.gain, 0)
-
-        self.uhd_usrp_source_0.set_gain(self.gain, 1)
 
 
     def get_freq(self):

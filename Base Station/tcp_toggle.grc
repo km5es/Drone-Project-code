@@ -6,7 +6,7 @@
     <key>options</key>
     <param>
       <key>author</key>
-      <value>Krishna Makhija</value>
+      <value></value>
     </param>
     <param>
       <key>window_size</key>
@@ -22,7 +22,7 @@
     </param>
     <param>
       <key>description</key>
-      <value>GRC/UHD "front-end" for data acquisition during beam mapping.</value>
+      <value></value>
     </param>
     <param>
       <key>_enabled</key>
@@ -147,7 +147,7 @@
     <key>variable</key>
     <param>
       <key>comment</key>
-      <value>RX center frequency (LO frequency).</value>
+      <value>Center frequency the SDR will transmit at.</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -155,7 +155,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(908, 12)</value>
+      <value>(1032, 52)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -171,69 +171,6 @@
     </param>
   </block>
   <block>
-    <key>variable_qtgui_range</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>20</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(440, 68)</value>
-    </param>
-    <param>
-      <key>gui_hint</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>gain</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value>gain</value>
-    </param>
-    <param>
-      <key>min_len</key>
-      <value>200</value>
-    </param>
-    <param>
-      <key>orient</key>
-      <value>Qt.Horizontal</value>
-    </param>
-    <param>
-      <key>start</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>step</key>
-      <value>5</value>
-    </param>
-    <param>
-      <key>stop</key>
-      <value>80</value>
-    </param>
-    <param>
-      <key>rangeType</key>
-      <value>float</value>
-    </param>
-    <param>
-      <key>widget</key>
-      <value>counter_slider</value>
-    </param>
-  </block>
-  <block>
     <key>variable</key>
     <param>
       <key>comment</key>
@@ -241,7 +178,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>True</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -257,7 +194,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>60</value>
+      <value>0</value>
     </param>
   </block>
   <block>
@@ -311,7 +248,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>512*8200*2</value>
+      <value>8200*512</value>
     </param>
   </block>
   <block>
@@ -392,7 +329,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(740, 202)</value>
+      <value>(756, 258)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -439,11 +376,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(556, 220)</value>
+      <value>(500, 276)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -522,7 +459,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(612, 390)</value>
+      <value>(676, 402)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -554,7 +491,7 @@
     </param>
     <param>
       <key>label1</key>
-      <value>Pol1</value>
+      <value></value>
     </param>
     <param>
       <key>width1</key>
@@ -586,7 +523,7 @@
     </param>
     <param>
       <key>label2</key>
-      <value>Pol2</value>
+      <value></value>
     </param>
     <param>
       <key>width2</key>
@@ -1201,7 +1138,7 @@
     </param>
     <param>
       <key>gain1</key>
-      <value>gain</value>
+      <value>0</value>
     </param>
     <param>
       <key>lo_export1</key>
@@ -1957,7 +1894,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(216, 196)</value>
+      <value>(152, 220)</value>
     </param>
     <param>
       <key>_rotation</key>
