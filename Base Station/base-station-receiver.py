@@ -59,6 +59,7 @@ help_call           = 'helphelp'                    # help message for checking 
 acq_event           = Event()                       # save radio data (long-term)
 phase_cal_event     = Event()                       # save phase cal data
 timeout             = 1002                             # time after which saving data will stop if no trigger
+socket_timeout      = 4                             # socket timeout for UDP comms with payload
 repeat_keyword      = 4                             # number of times to repeat a telem msg
 ser                 = serial.Serial()               # dummy assignment in case no telemetry connected
 ser_timeout         = serial.Serial()
@@ -104,10 +105,10 @@ if network == 'wifi':
     ## UDP connection
     # conn 1 for sync
     payload_conn    = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    payload_conn.settimeout(timeout)
+    payload_conn.settimeout(socket_timeout)
     # conn 2 for sync
     payload_conn2   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    payload_conn2.settimeout(timeout)
+    payload_conn2.settimeout(socket_timeout)
 
 elif network == 'telemetry':
     print('%s: ' %(get_timestamp()) + colored('Connecting to the drone via ' + str(network), 'green'))
