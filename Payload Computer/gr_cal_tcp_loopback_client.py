@@ -135,7 +135,7 @@ def argument_parser():
     return parser
 
 
-def main(top_block_cls=toggle_save, options=None):
+def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
     if options is None:
         options, _ = argument_parser().parse_args()
 
