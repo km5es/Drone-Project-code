@@ -4,7 +4,7 @@
 # GNU Radio Python Flow Graph
 # Title: Toggle Save
 # Author: Krishna Makhija
-# Description: This flowgraph will simply save data when the checkbox is ticked.
+# Description: This flowgraph will simply save data continuously when executed. It will also save SDR temperature to a separate file. 
 # Generated: Thu Nov 18 23:20:12 2021
 ##################################################
 
@@ -34,7 +34,7 @@ class toggle_save(gr.top_block):
         ##################################################
         self.samp_rate = samp_rate = 7.68e6
         self.wave_freq = wave_freq = samp_rate/8
-        self.meas_freq = meas_freq = 150e6
+        self.meas_freq = meas_freq = 150.96e6
         self.min_buffer = min_buffer = 512*8200*2
         self.gain = gain = 0
         self.freq = freq = meas_freq - wave_freq

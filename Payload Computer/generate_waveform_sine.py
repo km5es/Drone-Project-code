@@ -5,7 +5,7 @@
 # Title: Generate Waveform Sine
 # Author: Krishna Makhija
 # Description: GR flograph for generating a calibration waveform. The waveform will be ON/OFF keyed to mitigate multipath, enable phase consistency and averaging.
-# Generated: Mon Sep 26 19:51:22 2022
+# Generated: Wed Apr 27 21:51:59 2022
 ##################################################
 
 if __name__ == '__main__':
@@ -62,13 +62,12 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 7.68e6
+        self.samp_rate = samp_rate = 1e6
         self.wave_samp_rate = wave_samp_rate = samp_rate
-        self.wave_freq = wave_freq = samp_rate/8
-        self.duty_cycle = duty_cycle = 3
-        self.ON_cycles = ON_cycles = 512
+        self.wave_freq = wave_freq = samp_rate/4
+        self.ON_cycles = ON_cycles = 25e3
         self.samps_per_period = samps_per_period = wave_samp_rate/wave_freq
-        self.OFF_cycles = OFF_cycles = duty_cycle*ON_cycles
+        self.OFF_cycles = OFF_cycles = 0*ON_cycles
         self.ON = ON = int(ON_cycles*samps_per_period)
         self.OFF = OFF = int(OFF_cycles*samps_per_period)
         self.stopTime = stopTime = ON/samp_rate
@@ -131,7 +130,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_wave_samp_rate(self.samp_rate)
-        self.set_wave_freq(self.samp_rate/8)
+        self.set_wave_freq(self.samp_rate/4)
         self.set_timeout(4096/self.samp_rate)
         self.set_stopTime(self.ON/self.samp_rate)
         self.set_pulse_TX_time((self.ON+self.OFF)/self.samp_rate)
@@ -169,7 +168,7 @@ class generate_waveform_sine(gr.top_block, Qt.QWidget):
     def set_ON_cycles(self, ON_cycles):
         self.ON_cycles = ON_cycles
         self.set_ON(int(self.ON_cycles*self.samps_per_period))
-        self.set_OFF_cycles(self.duty_cycle*self.ON_cycles)
+        self.set_OFF_cycles(0*self.ON_cycles)
 
     def get_samps_per_period(self):
         return self.samps_per_period
