@@ -143,7 +143,7 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
     rospy.init_node('SDR_temperature_node', anonymous=True)
     rate = rospy.Rate(10)   # 10 Hz
 
-    tb = top_block_cls(timestamp=options.timestamp)
+    tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
     while not rospy.is_shutdown():
         temp = tb.get_temp()
