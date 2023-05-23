@@ -38,7 +38,7 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.wave_freq = wave_freq = samp_rate/8
         self.meas_freq = meas_freq = 150.96e6
         self.min_buffer = min_buffer = int(100e3)
-        self.gain = gain = 40
+        self.gain = gain = 40               #! keep 40 for SITL, 55 for PAPER dipole, 70 for Vivaldi
         self.freq = freq = meas_freq - wave_freq
 
         ##################################################
