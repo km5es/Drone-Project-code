@@ -223,6 +223,8 @@ def stream_file():
             print('%s: ' %(get_timestamp()) + colored('Calibration sequence complete at GPS time: ' \
                             +str(timestamp_stop) + '. Total time taken was: ' + str(total_time) + ' seconds.', 'green'))
             logging.info("Cal sequence complete in %s seconds. CAL OFF" %total_time)
+            rospy.set_param('trigger/metadata', False)
+            rospy.set_param('trigger/waypoint', True) 
             GPIO.setup (20, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup (21, GPIO.OUT, initial=GPIO.LOW)
         ##? manually begin phase cal using SSH telemetry
