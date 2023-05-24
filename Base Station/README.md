@@ -18,7 +18,7 @@ During beam mapping on the field, there are two ways of acquiring data.
 roscd beam_mapping/Base\ Station/
 ./begin_mission.sh
 ```
-This will open up a new terminal window in which a ROS node is continuously saving temperature data to a log file. The original terminal runs the SDR RF data acquisition. To stop acquisition, simply close the new terminal windows.
+This will open up a new terminal window in which a ROS node is continuously saving temperature data to a log file located in the `./logs/base/` [folder](/logs/base). The original terminal runs the SDR RF data acquisition. To stop acquisition, simply close the new terminals.
 
 2. The other method will have a GUI which displays received signal and has some terminal commands to begin a synchronized calibration with the payload over a UDP connection. The terminal commands also allow one to begin and stop data acquisition using custom keyboard shortcuts (`Ctrl+Alt+Q` to begin and `Ctrl+Alt+P` to stop). 
 ```
