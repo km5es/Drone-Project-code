@@ -10,8 +10,6 @@ It will also look for manual RC input to update WP table if the drone gets stuck
 author  : Krishna Makhija
 last rev: 19th Nov 2022
 """
-#TODO: add logging for all events. Create a separate log file for this node.
-    #FIXME: does not work once ROS init_node has been called. what do? ROS logging sucks
 
 import rospy, time, logging, imp
 import csv
