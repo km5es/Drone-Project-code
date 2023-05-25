@@ -1,12 +1,12 @@
-# Payload computer 
+# Payload computer 💻
 
 This folder contains all the code that needs to be run on the payload computer. The payload computer is a Raspberry Pi 4B (4 GB variant) running 32-bit Raspbian (Buster). Broadly speaking, its dependencies are the same as the [base station](../).
 
-> **Note:** The complete image with all the scripts and dependencies installed can be found [here](https://drive.google.com/file/d/1IdIcXCnkl9QE6W4AtAGRXWZ7IAf_Bb1v/view?usp=sharing) (size: ~14.5 GB, 32 GB SD card required). Login details are available on request.
+> **Note**: The complete image with all the scripts and dependencies installed can be found [here](https://drive.google.com/file/d/1IdIcXCnkl9QE6W4AtAGRXWZ7IAf_Bb1v/view?usp=sharing) (size: ~14.5 GB, 32 GB SD card required). Login details are available on request.
 
 
 
-## Overview of how it works
+## Overview of how it works 🤖
 
 The Pi is interfaced to the flight controller and to the software-defined radio (SDR) via serial connections. Several ROS nodes instruct the flight controller where to navigate and ensure process synchronization. Upon reaching each waypoint, the SDR will begin transmitting a pre-stored waveform on loop for a set duration. During this time, it will also save metadata to the [`./logs`](../logs/) folder for use in post-processing and analysis. 
 
@@ -19,15 +19,15 @@ All of these nodes are folded into shell scripts which will run on bootup. Detai
 
 
 
-## Generating a waveform
+## Generating a waveform 〽️
 
 This folder contains several GNU Radio flowgraphs for generating a variety of pre-stored waveforms. The default waveform is a pulsed sine wave at 960 kHz baseband. Other waveforms such as a pulsed Gaussian-modulated sine wave, QPSK-modulated waveform, and broadband noise are also possible with the attached GR flowgraphs. 
 
-> **Warning:** When the SDR is not transmitting the calibration signal it will feed a sequence of zeros to its front-end. This will result in a low-amplitude broadband noise emission. 
+> **Warning**: When the SDR is not transmitting the calibration signal it will feed a sequence of zeros to its front-end. This will result in a low-amplitude broadband noise emission. 
 
 
 
-## Logging
+## Logging 📃
 
 - Logs from all of the navigation and SDR scripts are saved in the [`./logs/payload/`](../logs/payload/) folder. These are useful to identify if/when calibrations took place on the payload side.
 - Metadata logs are saved in [`./logs/metadata/`](../logs/metadata/). Required for post-processing and analysis. 
