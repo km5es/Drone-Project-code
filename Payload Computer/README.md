@@ -2,7 +2,7 @@
 
 This folder contains all the code that needs to be run on the payload computer. The payload computer is a Raspberry Pi 4B (4 GB variant) running 32-bit Raspbian (Buster). Broadly speaking, its dependencies are the same as the [base station](../).
 
->**NOTE:** The complete image with all the scripts and dependencies installed can be found [here](https://drive.google.com/file/d/1IdIcXCnkl9QE6W4AtAGRXWZ7IAf_Bb1v/view?usp=sharing) (size: ~14.5 GB, 32 GB SD card required). Login details are available on request.
+> **NOTE:** The complete image with all the scripts and dependencies installed can be found [here](https://drive.google.com/file/d/1IdIcXCnkl9QE6W4AtAGRXWZ7IAf_Bb1v/view?usp=sharing) (size: ~14.5 GB, 32 GB SD card required). Login details are available on request.
 
 
 
