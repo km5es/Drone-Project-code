@@ -1,4 +1,4 @@
-# Flight path generator
+# Flight path generator 🛬
 
 The chosen flight path is a series of over-the-horizon sorties to enable a complete hemispherical coverage at fixed radius from the antenna-under-test. Default angular spacing in elevation is 10 deg. Sorties will be spaced 10 degrees in azimuth. For options type:
 ```
