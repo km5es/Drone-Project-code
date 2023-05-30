@@ -9,7 +9,8 @@ date: 6th August 2020
 last modified: 28th Jan 2022
 """
 
-import socket, serial, os, rospy, logging, time, argparse
+import socket, serial, os, logging, time, argparse
+#import rospy
 from time import sleep
 from termcolor import colored
 from os.path import expanduser
@@ -204,7 +205,7 @@ def recv_data():
             logging.info('Handshake confirmation recd -- saving data in ' +str(filename))
             start           = time.time()
             start_timeout   = start + timeout
-            rospy.set_param('trigger/metadata', True)            
+            #rospy.set_param('trigger/metadata', True)            
             while True:
                 SDRdata     = client.recv(buff_size, socket.MSG_WAITALL)
                 f.write(SDRdata)
@@ -218,7 +219,7 @@ def recv_data():
                     reset_buffer()
                     break
             end = time.time()
-            rospy.set_param('trigger/metadata', False)
+            #rospy.set_param('trigger/metadata', False)
             print('%s: ' %(get_timestamp()) + colored('\nFinished saving data in: ' \
                                                             +str(end - start) + ' seconds.', 'grey', 'on_green'))
             logging.info('Finished saving data in: ' +str(end - start) + ' seconds.')
@@ -241,7 +242,6 @@ def recv_data():
 def serial_comms_old():
     '''
     Manually trigger payload and initiate saving data on base station.
-    #TODO: refactor this bit so I am not repeating steps
     '''
     global sendtime
     while True:                                     
@@ -327,7 +327,6 @@ def serial_comms_old():
 def serial_comms():
     '''
     Manually trigger payload and initiate saving data on base station.
-    #FIXME: each subsequent phase cal is shorter in length. why?
     '''
     global sendtime
     while True:
