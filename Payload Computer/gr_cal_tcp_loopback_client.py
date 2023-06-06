@@ -135,7 +135,7 @@ def argument_parser():
     return parser
 
 
-def main_temp(top_block_cls=gr_cal_tcp_loopback_client, options=None):
+def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
     '''
     use this to get sdr temp but no phase coherence
     '''
@@ -155,20 +155,6 @@ def main_temp(top_block_cls=gr_cal_tcp_loopback_client, options=None):
 #        rospy.loginfo(temp)
         pub.publish(temp)
         rate.sleep()
-    tb.wait()
-
-
-def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
-    '''
-    use this for phase coherence but no sdr temp
-    '''
-    if options is None:
-        options, _ = argument_parser().parse_args()
-    if gr.enable_realtime_scheduling() != gr.RT_OK:
-        print "Error: failed to enable real-time scheduling."
-
-    tb = top_block_cls(device_transport=options.device_transport)
-    tb.start()
     tb.wait()
 
 
