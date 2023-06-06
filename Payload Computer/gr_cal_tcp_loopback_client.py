@@ -142,6 +142,11 @@ def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
+    while not rospy.is_shutdown():
+        temp = tb.get_temp()
+        pub.publish(temp)
+        rate.sleep()
+    tb.stop()
     tb.wait()
 
 
