@@ -5,7 +5,7 @@
 # Title: gr_cal_tcp_loopback_client
 # Author: KM
 # Description: This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.
-# Generated: Mon Jun  5 22:46:34 2023
+# Generated: Mon Jun  5 23:03:21 2023
 ##################################################
 
 from gnuradio import blocks
@@ -17,8 +17,6 @@ from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import time
-import rospy
-from std_msgs.msg import Float32
 
 
 class gr_cal_tcp_loopback_client(gr.top_block):
@@ -122,9 +120,6 @@ class gr_cal_tcp_loopback_client(gr.top_block):
         self.freq = freq
         self.uhd_usrp_sink_0.set_center_freq(self.freq, 0)
 
-    def get_temp(self):
-        return self.uhd_usrp_sink_0.get_sensor('temp').to_real()
-
 
 def argument_parser():
     description = 'This will go on the drone. A predefined waveform is fed into the companion script which creates a TCP server and loops back into this script. The server also checks for serial toggle and triggers GPIO at set points.'
@@ -138,18 +133,11 @@ def argument_parser():
 def main(top_block_cls=gr_cal_tcp_loopback_client, options=None):
     if options is None:
         options, _ = argument_parser().parse_args()
-
-    pub = rospy.Publisher('sdr_temperature', Float32, queue_size=10)
-    rospy.init_node('SDR_temperature_node', anonymous=True)
-    rate = rospy.Rate(10)   # 10 Hz
+    if gr.enable_realtime_scheduling() != gr.RT_OK:
+        print "Error: failed to enable real-time scheduling."
 
     tb = top_block_cls(device_transport=options.device_transport)
     tb.start()
-    while not rospy.is_shutdown():
-        temp = tb.get_temp()
-        pub.publish(temp)
-        rate.sleep()
-    tb.stop()
     tb.wait()
 
 
