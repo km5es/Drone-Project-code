@@ -194,7 +194,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>int(100e3)</value>
+      <value>4096</value>
     </param>
   </block>
   <block>
