@@ -3,9 +3,22 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Generate Waveform Noise
-# Generated: Wed Apr 27 21:57:28 2022
+# Author: Krishna Makhija
+# Description: This flowgraph will generate a pulsed broadband noise signal.
+# Generated: Tue Jun  6 03:46:05 2023
 ##################################################
 
+if __name__ == '__main__':
+    import ctypes
+    import sys
+    if sys.platform.startswith('linux'):
+        try:
+            x11 = ctypes.cdll.LoadLibrary('libX11.so')
+            x11.XInitThreads()
+        except:
+            print "Warning: failed to XInitThreads()"
+
+from PyQt4 import Qt
 from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import eng_notation
@@ -14,12 +27,36 @@ from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
 import numpy as np
+import sys
+from gnuradio import qtgui
 
 
-class generate_waveform_noise(gr.top_block):
+class generate_waveform_noise(gr.top_block, Qt.QWidget):
 
     def __init__(self):
         gr.top_block.__init__(self, "Generate Waveform Noise")
+        Qt.QWidget.__init__(self)
+        self.setWindowTitle("Generate Waveform Noise")
+        qtgui.util.check_set_qss()
+        try:
+            self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
+        except:
+            pass
+        self.top_scroll_layout = Qt.QVBoxLayout()
+        self.setLayout(self.top_scroll_layout)
+        self.top_scroll = Qt.QScrollArea()
+        self.top_scroll.setFrameStyle(Qt.QFrame.NoFrame)
+        self.top_scroll_layout.addWidget(self.top_scroll)
+        self.top_scroll.setWidgetResizable(True)
+        self.top_widget = Qt.QWidget()
+        self.top_scroll.setWidget(self.top_widget)
+        self.top_layout = Qt.QVBoxLayout(self.top_widget)
+        self.top_grid_layout = Qt.QGridLayout()
+        self.top_layout.addLayout(self.top_grid_layout)
+
+        self.settings = Qt.QSettings("GNU Radio", "generate_waveform_noise")
+        self.restoreGeometry(self.settings.value("geometry").toByteArray())
+
 
         ##################################################
         # Variables
@@ -28,7 +65,7 @@ class generate_waveform_noise(gr.top_block):
         self.samp_rate = samp_rate = 1e6
         self.OFF = OFF = 15*ON
         self.ring_buffer_size = ring_buffer_size = 4096
-        self.head = head = int(100e3)
+        self.head = head = int(ON+OFF)
         self.duty_cycle = duty_cycle = OFF/ON
         self.ON_time = ON_time = ON/samp_rate
         self.OFF_time = OFF_time = OFF/samp_rate
@@ -59,11 +96,17 @@ class generate_waveform_noise(gr.top_block):
         self.connect((self.blocks_throttle_0, 0), (self.blocks_head_0, 0))
         self.connect((self.blocks_vector_source_x_0, 0), (self.blocks_multiply_xx_0, 1))
 
+    def closeEvent(self, event):
+        self.settings = Qt.QSettings("GNU Radio", "generate_waveform_noise")
+        self.settings.setValue("geometry", self.saveGeometry())
+        event.accept()
+
     def get_ON(self):
         return self.ON
 
     def set_ON(self, ON):
         self.ON = ON
+        self.set_head(int(self.ON+self.OFF))
         self.set_OFF(15*self.ON)
         self.set_duty_cycle(self.OFF/self.ON)
         self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
@@ -83,6 +126,7 @@ class generate_waveform_noise(gr.top_block):
 
     def set_OFF(self, OFF):
         self.OFF = OFF
+        self.set_head(int(self.ON+self.OFF))
         self.set_duty_cycle(self.OFF/self.ON)
         self.blocks_vector_source_x_0.set_data(np.hstack((np.zeros(self.OFF), np.ones(self.ON))), [])
         self.set_OFF_time(self.OFF/self.samp_rate)
@@ -121,9 +165,21 @@ class generate_waveform_noise(gr.top_block):
 
 def main(top_block_cls=generate_waveform_noise, options=None):
 
+    from distutils.version import StrictVersion
+    if StrictVersion(Qt.qVersion()) >= StrictVersion("4.5.0"):
+        style = gr.prefs().get_string('qtgui', 'style', 'raster')
+        Qt.QApplication.setGraphicsSystem(style)
+    qapp = Qt.QApplication(sys.argv)
+
     tb = top_block_cls()
     tb.start()
-    tb.wait()
+    tb.show()
+
+    def quitting():
+        tb.stop()
+        tb.wait()
+    qapp.connect(qapp, Qt.SIGNAL("aboutToQuit()"), quitting)
+    qapp.exec_()
 
 
 if __name__ == '__main__':

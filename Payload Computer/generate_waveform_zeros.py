@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 ##################################################
 # GNU Radio Python Flow Graph
-# Title: Zeros
-# Generated: Wed Apr 27 22:34:52 2022
+# Title: Generate Waveform Zeros
+# Author: Krishna Makhija
+# Description: This flowgraph will simply generate a file containing zeros in binary format. This is necessary for signal conditioning of the LO of the TX SDR for phase coherence (condition 2).
+# Generated: Tue Jun  6 03:52:09 2023
 ##################################################
 
 from gnuradio import blocks
@@ -15,10 +17,10 @@ from optparse import OptionParser
 import numpy as np
 
 
-class zeros(gr.top_block):
+class generate_waveform_zeros(gr.top_block):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Zeros")
+        gr.top_block.__init__(self, "Generate Waveform Zeros")
 
         ##################################################
         # Variables
@@ -60,7 +62,7 @@ class zeros(gr.top_block):
         self.blocks_head_0_0_0.set_length(self.head)
 
 
-def main(top_block_cls=zeros, options=None):
+def main(top_block_cls=generate_waveform_zeros, options=None):
 
     tb = top_block_cls()
     tb.start()

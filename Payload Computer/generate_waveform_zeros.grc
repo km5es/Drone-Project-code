@@ -6,7 +6,7 @@
     <key>options</key>
     <param>
       <key>author</key>
-      <value></value>
+      <value>Krishna Makhija</value>
     </param>
     <param>
       <key>window_size</key>
@@ -22,7 +22,7 @@
     </param>
     <param>
       <key>description</key>
-      <value></value>
+      <value>This flowgraph will simply generate a file containing zeros in binary format. This is necessary for signal conditioning of the LO of the TX SDR for phase coherence (condition 2).</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>zeros</value>
+      <value>generate_waveform_zeros</value>
     </param>
     <param>
       <key>max_nouts</key>
@@ -375,7 +375,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(184, 12)</value>
+      <value>(416, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
