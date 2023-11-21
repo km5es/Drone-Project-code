@@ -2,11 +2,12 @@
 <img src="calibration_animation v5.gif" width=1000 align=center>
 
 ## Description
-The Precision Radio Instrument for Antenna Measurements (PRAM) is a high accuracy drone-based calibrator targeted primarily towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. The following README will detail how to install dependencies on the base station computer and run the SITL simulations. These simulations combine the SDR code with ROS and the flight stack to make the calibration autonomous. More details inside each folder. The repo containing CAD files, PCB designs and RF simulations lives [here](https://github.com/km5es/Drone-Project-CAD.git). 
+The Precision Radio Instrument for Antenna Measurements (PRAM) is a high accuracy drone-based calibrator targeted primarily towards low-frequency radio astronomy instruments. These are codes for the base station, payload computer, and for generating flight paths. The following README will detail how to install dependencies on the base station computer and run the SITL simulations. These simulations combine the SDR code with ROS and the flight stack to make the calibration autonomous. More details inside each folder.  
 
->[!IMPORTANT]
->A complete [Gitbook](app.gitbook.com) guide can be found here:\
->https://krishnamakhija.gitbook.io/priam/
+>[!TIP]
+>* A complete [Gitbook](app.gitbook.com) guide can be found here:\
+>     https://krishnamakhija.gitbook.io/priam/
+>* The repo containing CAD files, PCB designs and RF simulations lives [here](https://github.com/km5es/Drone-Project-CAD.git).
 
 Start by cloning the repo into a catkin workspace:
 ```
